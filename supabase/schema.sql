@@ -18,6 +18,9 @@ create table if not exists public.join_submissions (
   agreed_to_contact boolean default true
 );
 
+-- Ensure 'goals' exists if table was created previously without it
+alter table public.join_submissions add column if not exists goals text;
+
 -- 2. Contact Inquiries
 create table if not exists public.contact_messages (
   id uuid primary key default gen_random_uuid(),

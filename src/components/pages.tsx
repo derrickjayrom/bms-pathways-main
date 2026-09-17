@@ -41,6 +41,7 @@ import {
 } from "@/lib/bms-data";
 import { supabase } from "@/utils/supabase";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 export function HomePage() {
   return (
@@ -229,11 +230,6 @@ const aboutWork = [
     text: "Connecting students with doctors and professionals who can share their experiences, provide guidance and offer practical perspectives on career development.",
   },
   {
-    title: "Career Skills",
-    icon: BriefcaseBusiness,
-    text: "Helping students develop essential skills such as CV building, interview preparation, networking, communication, personal branding and professional development.",
-  },
-  {
     title: "Research & Academia",
     icon: BookOpen,
     text: "Introducing students to research opportunities, academic development, publications, conferences and opportunities to contribute to healthcare knowledge.",
@@ -242,6 +238,11 @@ const aboutWork = [
     title: "Professional Exposure",
     icon: Telescope,
     text: "Creating opportunities through seminars, workshops, career talks, networking sessions and conversations with professionals from different areas of healthcare.",
+  },
+  {
+    title: "Career Skills",
+    icon: BriefcaseBusiness,
+    text: "Helping students develop essential skills such as CV building, interview preparation, networking, communication, personal branding and professional development.",
   },
 ];
 const aboutValues = [
@@ -275,109 +276,166 @@ const aboutValues = [
 export function AboutPage() {
   return (
     <>
+      {/* PAGE HERO */}
       <section className="relative overflow-hidden bg-primary text-primary-foreground">
         <div className="absolute inset-y-0 right-0 hidden w-1/3 border-l border-primary-foreground/10 bg-primary-foreground/[.03] lg:block" />
-        <div className="relative mx-auto flex min-h-[560px] max-w-7xl flex-col justify-center px-5 py-20 lg:px-8">
-          <p className="eyebrow">Mentorship. Exposure. Opportunity.</p>
-          <h1 className="mt-5 max-w-5xl text-4xl font-extrabold leading-[1.06] sm:text-5xl lg:text-7xl">
+        <div className="relative mx-auto flex min-h-[580px] max-w-7xl flex-col justify-center px-5 py-20 lg:px-8">
+          <div className="inline-flex items-center gap-2 self-start rounded-full border border-gold/30 bg-gold/10 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-gold">
+            Mentorship · Exposure · Opportunity
+          </div>
+          <h1 className="mt-6 max-w-5xl text-4xl font-extrabold leading-[1.08] sm:text-5xl lg:text-7xl">
             More Than a Medical Degree.
             <br />
             <span className="text-gold">A Journey Beyond.</span>
           </h1>
-          <p className="mt-7 max-w-2xl text-lg leading-8 text-primary-foreground/70">
+          <p className="mt-6 max-w-2xl text-lg leading-8 text-primary-foreground/80 sm:text-xl">
             Helping medical students navigate the opportunities, decisions and possibilities that
             come after medical school.
           </p>
+          <div className="mt-9 flex flex-wrap gap-4">
+            <Button asChild variant="accent" size="lg">
+              <Link to="/join">
+                Join BMS <ArrowRight size={18} />
+              </Link>
+            </Button>
+            <Button
+              asChild
+              size="lg"
+              className="border border-primary-foreground/25 bg-transparent hover:bg-primary-foreground/10"
+            >
+              <Link to="/programs">Explore Our Programs</Link>
+            </Button>
+          </div>
         </div>
       </section>
 
+      {/* SECTION 1 — WHO WE ARE */}
       <section className="section-pad about-reveal">
-        <div className="mx-auto grid max-w-7xl gap-12 px-5 lg:grid-cols-[.75fr_1.25fr] lg:px-8">
-          <div>
-            <p className="eyebrow">About BMS</p>
-            <h2 className="mt-3 text-3xl font-bold sm:text-4xl">Who We Are</h2>
-            <div className="mt-7 h-1 w-20 rounded-full bg-gold" />
-          </div>
-          <div className="space-y-5 text-base leading-8 text-muted-foreground sm:text-lg">
-            <p>
-              Beyond Medical School (BMS) is a medical student-focused career development and
-              mentorship initiative dedicated to helping students navigate the opportunities and
-              decisions that come after medical school.
-            </p>
-            <p>
-              Through seminars, workshops, mentorship, career guidance, professional development and
-              networking opportunities, BMS connects students with information, experiences and
-              people that can help them make informed decisions about their future.
-            </p>
-            <p>
-              We believe that medical students should not have to navigate the journey beyond
-              medical school without guidance or exposure to the possibilities available to them.
-            </p>
+        <div className="mx-auto max-w-7xl px-5 lg:px-8">
+          <div className="grid gap-12 lg:grid-cols-[.85fr_1.15fr] lg:items-center">
+            <div>
+              <p className="eyebrow">About BMS</p>
+              <h2 className="mt-3 text-3xl font-bold sm:text-4xl">Who We Are</h2>
+              <div className="mt-4 h-1 w-20 rounded-full bg-gold" />
+              <div className="mt-8 rounded-xl border border-gold/30 bg-gold/5 p-6 shadow-soft">
+                <p className="text-xs font-bold uppercase tracking-widest text-gold">Our Tagline</p>
+                <p className="mt-2 text-lg font-bold text-foreground">
+                  Mentorship · Exposure · Opportunity
+                </p>
+              </div>
+            </div>
+            <div className="space-y-5 text-base leading-8 text-muted-foreground sm:text-lg">
+              <div className="rounded-xl border border-border bg-card p-6 shadow-soft transition-all hover:border-gold/40">
+                <p>
+                  Beyond Medical School (BMS) is a medical student-focused career development and
+                  mentorship initiative dedicated to helping students navigate the opportunities and
+                  decisions that come after medical school.
+                </p>
+              </div>
+              <div className="rounded-xl border border-border bg-card p-6 shadow-soft transition-all hover:border-gold/40">
+                <p>
+                  Through seminars, workshops, mentorship, career guidance, professional development
+                  and networking opportunities, BMS connects students with information, experiences
+                  and people that can help them make informed decisions about their future.
+                </p>
+              </div>
+              <div className="rounded-xl border border-gold/30 bg-gold/5 p-6 shadow-soft transition-all">
+                <p className="font-medium text-foreground">
+                  We believe that medical students should not have to navigate the journey beyond
+                  medical school without guidance or exposure to the possibilities available to
+                  them.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
+      {/* SECTION 2 — THE QUESTIONS WE HELP ANSWER */}
       <section className="section-pad bg-surface about-reveal">
         <div className="mx-auto max-w-7xl px-5 lg:px-8">
-          <SectionHeading
-            eyebrow="Finding direction"
-            title="The Questions We Help Answer"
-            body="The journey after medical school can bring important choices."
-          />
-          <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <SectionHeading eyebrow="Finding direction" title="The Questions We Help Answer" />
+          <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {aboutQuestions.map((question, index) => (
               <article
                 key={question}
-                className="group flex min-h-36 items-start gap-4 rounded-lg border border-border bg-card p-6 shadow-soft transition-all hover:-translate-y-1 hover:border-gold/50 hover:shadow-card"
+                className="group flex min-h-36 items-start gap-4 rounded-xl border border-border bg-card p-6 shadow-soft transition-all hover:-translate-y-1 hover:border-gold/50 hover:shadow-card"
               >
-                <span className="grid size-10 shrink-0 place-items-center rounded-md bg-accent text-primary">
-                  <CircleHelp size={20} />
+                <span className="grid size-11 shrink-0 place-items-center rounded-lg bg-accent text-primary transition-colors group-hover:bg-gold group-hover:text-gold-foreground">
+                  <CircleHelp size={22} />
                 </span>
                 <div>
-                  <span className="text-xs font-bold text-gold">0{index + 1}</span>
-                  <h3 className="mt-2 text-lg font-bold leading-7">{question}</h3>
+                  <span className="text-xs font-bold uppercase tracking-wider text-gold">
+                    Question 0{index + 1}
+                  </span>
+                  <h3 className="mt-2 text-lg font-bold leading-snug text-foreground">
+                    {question}
+                  </h3>
                 </div>
               </article>
             ))}
           </div>
-          <p className="mt-10 border-l-2 border-gold pl-5 text-xl font-bold sm:text-2xl">
-            BMS exists to help students move from uncertainty to clarity.
-          </p>
+          <div className="mt-12 rounded-xl border-l-4 border-gold bg-card p-6 shadow-soft sm:p-8">
+            <p className="text-xl font-bold text-foreground sm:text-2xl">
+              BMS exists to help students move{" "}
+              <span className="text-gold">from uncertainty to clarity</span>.
+            </p>
+          </div>
         </div>
       </section>
 
+      {/* SECTION 3 — OUR MISSION */}
       <section className="section-pad about-reveal">
         <div className="mx-auto max-w-7xl px-5 lg:px-8">
           <SectionHeading eyebrow="Our purpose" title="Our Mission" body="Our mission is to:" />
-          <div className="mt-10 grid gap-5 md:grid-cols-3">
-            {missionPillars.map((item) => (
-              <IconCard key={item.title} icon={<item.icon />} title={item.title}>
-                {item.text}
-              </IconCard>
+          <div className="mt-10 grid gap-6 md:grid-cols-3">
+            {missionPillars.map((item, idx) => (
+              <article
+                key={item.title}
+                className="group relative flex flex-col justify-between overflow-hidden rounded-xl border border-border bg-card p-8 shadow-soft transition-all hover:-translate-y-1.5 hover:border-gold/50 hover:shadow-card"
+              >
+                <div>
+                  <div className="flex items-center justify-between">
+                    <span className="grid size-12 place-items-center rounded-lg bg-accent text-primary transition-colors group-hover:bg-gold group-hover:text-gold-foreground">
+                      <item.icon size={24} />
+                    </span>
+                    <span className="text-3xl font-extrabold text-muted-foreground/20 transition-colors group-hover:text-gold/30">
+                      0{idx + 1}
+                    </span>
+                  </div>
+                  <h3 className="mt-6 text-xl font-bold tracking-wide text-foreground">
+                    {item.title}
+                  </h3>
+                  <p className="mt-3 text-base leading-7 text-muted-foreground">{item.text}</p>
+                </div>
+                <div className="mt-8 h-1 w-12 rounded-full bg-gold/40 transition-all duration-300 group-hover:w-full group-hover:bg-gold" />
+              </article>
             ))}
           </div>
         </div>
       </section>
 
+      {/* SECTION 4 — OUR VISION */}
       <section className="bg-primary text-primary-foreground about-reveal">
         <div className="mx-auto grid max-w-7xl gap-10 px-5 py-20 lg:grid-cols-[.65fr_1.35fr] lg:px-8 lg:py-24">
           <div>
-            <p className="eyebrow">Where we are going</p>
+            <p className="eyebrow text-gold">Where we are going</p>
             <h2 className="mt-3 text-3xl font-bold sm:text-4xl">Our Vision</h2>
           </div>
           <div>
-            <p className="text-xl leading-9 text-primary-foreground/75">
+            <p className="text-xl leading-9 text-primary-foreground/80">
               To become a trusted team and platform that prepares medical students for life and
               career beyond medical school, helping students move from uncertainty to a clear and
               realistic career roadmap.
             </p>
-            <p className="mt-8 max-w-3xl border-l-2 border-gold pl-6 text-2xl font-extrabold leading-9 text-gold sm:text-3xl">
-              From uncertainty to a clear and realistic career roadmap.
-            </p>
+            <blockquote className="mt-8 rounded-xl border-l-4 border-gold bg-primary-foreground/[.06] p-6 sm:p-8 text-2xl font-extrabold leading-tight text-gold sm:text-3xl">
+              “From uncertainty to a clear and realistic career roadmap.”
+            </blockquote>
           </div>
         </div>
       </section>
 
+      {/* SECTION 5 — WHAT WE DO */}
       <section className="section-pad about-reveal">
         <div className="mx-auto max-w-7xl px-5 lg:px-8">
           <SectionHeading
@@ -385,21 +443,29 @@ export function AboutPage() {
             title="What We Do"
             body="BMS creates opportunities for students to explore different pathways and develop the skills needed to thrive beyond medical school."
           />
-          <div className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-6">
+          <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-6">
             {aboutWork.map((item, index) => (
-              <IconCard
+              <article
                 key={item.title}
-                icon={<item.icon />}
-                title={item.title}
-                className={index < 3 ? "lg:col-span-2" : "lg:col-span-3"}
+                className={cn(
+                  "group flex flex-col justify-between rounded-xl border border-border bg-card p-7 shadow-soft transition-all hover:-translate-y-1 hover:border-gold/50 hover:shadow-card",
+                  index < 3 ? "lg:col-span-2" : "lg:col-span-3",
+                )}
               >
-                {item.text}
-              </IconCard>
+                <div>
+                  <span className="grid size-12 place-items-center rounded-lg bg-accent text-primary transition-colors group-hover:bg-gold group-hover:text-gold-foreground">
+                    <item.icon size={22} />
+                  </span>
+                  <h3 className="mt-5 text-xl font-bold text-foreground">{item.title}</h3>
+                  <p className="mt-3 text-sm leading-6 text-muted-foreground">{item.text}</p>
+                </div>
+              </article>
             ))}
           </div>
         </div>
       </section>
 
+      {/* SECTION 6 — OUR BELIEF */}
       <section className="section-pad bg-surface about-reveal">
         <div className="mx-auto max-w-5xl px-5 text-center lg:px-8">
           <p className="eyebrow">What grounds us</p>
@@ -408,71 +474,94 @@ export function AboutPage() {
             We believe that every medical student deserves to understand that there is more than one
             path forward.
           </p>
-          <blockquote className="mx-auto mt-8 max-w-4xl border-y border-gold/40 py-8 text-2xl font-extrabold leading-10 text-primary sm:text-3xl">
-            Your medical degree opens the door to medicine — but it does not define the full extent
-            of what your career can become.
+          <blockquote className="mx-auto my-10 max-w-4xl rounded-2xl border-y-2 border-gold/40 bg-card py-10 px-6 sm:px-12 text-2xl font-extrabold leading-10 text-primary shadow-soft sm:text-3xl lg:text-4xl">
+            “Your medical degree opens the door to medicine — but it does not define the full extent
+            of what your career can become.”
           </blockquote>
-          <p className="mx-auto mt-8 max-w-3xl text-lg leading-8 text-muted-foreground">
+          <p className="mx-auto max-w-3xl text-lg leading-8 text-muted-foreground">
             BMS exists to help students see the possibilities, connect with the right people,
             develop the right skills and confidently take their next step.
           </p>
         </div>
       </section>
 
+      {/* SECTION 7 — OUR CORE VALUES */}
       <section className="section-pad about-reveal">
         <div className="mx-auto max-w-7xl px-5 lg:px-8">
           <SectionHeading eyebrow="What guides us" title="Our Core Values" />
-          <div className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-6">
+          <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-6">
             {aboutValues.map((item, index) => (
-              <IconCard
+              <article
                 key={item.title}
-                icon={<item.icon />}
-                title={item.title}
-                className={index < 3 ? "lg:col-span-2" : "lg:col-span-3"}
+                className={cn(
+                  "group flex flex-col justify-between rounded-xl border border-border bg-card p-7 shadow-soft transition-all hover:-translate-y-1 hover:border-gold/50 hover:shadow-card",
+                  index < 3 ? "lg:col-span-2" : "lg:col-span-3",
+                )}
               >
-                {item.text}
-              </IconCard>
+                <div>
+                  <span className="grid size-12 place-items-center rounded-lg bg-accent text-primary transition-colors group-hover:bg-gold group-hover:text-gold-foreground">
+                    <item.icon size={22} />
+                  </span>
+                  <h3 className="mt-5 text-xl font-bold text-foreground">{item.title}</h3>
+                  <p className="mt-3 text-sm leading-6 text-muted-foreground">{item.text}</p>
+                </div>
+              </article>
             ))}
           </div>
         </div>
       </section>
 
+      {/* SECTION 8 — THE BMS COMMUNITY */}
       <section className="section-pad bg-primary text-primary-foreground about-reveal">
         <div className="mx-auto max-w-7xl px-5 lg:px-8">
-          <div className="grid gap-10 lg:grid-cols-[.8fr_1.2fr]">
+          <div className="grid gap-10 lg:grid-cols-[.8fr_1.2fr] lg:items-center">
             <div>
-              <p className="eyebrow">Together, we go further</p>
+              <p className="eyebrow text-gold">Together, we go further</p>
               <h2 className="mt-3 text-3xl font-bold sm:text-4xl">The BMS Community</h2>
             </div>
-            <p className="text-lg leading-8 text-primary-foreground/70">
+            <p className="text-lg leading-8 text-primary-foreground/75">
               BMS is more than a series of seminars or workshops. It is a growing community of
               medical students, graduates, doctors, mentors and healthcare professionals who believe
               in helping the next generation navigate the journey beyond medical school.
             </p>
           </div>
-          <div className="mt-12 grid gap-px overflow-hidden rounded-lg bg-primary-foreground/10 sm:grid-cols-2 lg:grid-cols-4">
-            {["Learn.", "Connect.", "Grow.", "Create Opportunities."].map((word, index) => (
-              <div key={word} className="flex min-h-32 items-end bg-primary p-6">
-                <span className="mr-3 text-xs font-bold text-gold">0{index + 1}</span>
-                <p className="text-xl font-extrabold uppercase">{word}</p>
+          <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {["LEARN.", "CONNECT.", "GROW.", "CREATE OPPORTUNITIES."].map((word, index) => (
+              <div
+                key={word}
+                className="group relative flex min-h-36 flex-col justify-between rounded-xl border border-primary-foreground/15 bg-primary-foreground/[.05] p-6 backdrop-blur transition-all hover:-translate-y-1 hover:border-gold/60 hover:bg-primary-foreground/[.09]"
+              >
+                <span className="text-xs font-extrabold tracking-widest text-gold">
+                  0{index + 1}
+                </span>
+                <p className="text-xl font-extrabold uppercase tracking-wide text-primary-foreground sm:text-2xl">
+                  {word}
+                </p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
+      {/* SECTION 9 — FINAL CALL TO ACTION */}
       <section className="bg-gold about-reveal">
-        <div className="mx-auto max-w-7xl px-5 py-16 text-center lg:px-8">
-          <GraduationCap className="mx-auto text-gold-foreground" size={34} />
-          <h2 className="mx-auto mt-5 max-w-3xl text-3xl font-extrabold text-gold-foreground sm:text-4xl">
+        <div className="mx-auto max-w-7xl px-5 py-20 text-center lg:px-8">
+          <span className="mx-auto grid size-16 place-items-center rounded-full bg-gold-foreground/10 text-gold-foreground">
+            <GraduationCap size={36} />
+          </span>
+          <h2 className="mx-auto mt-6 max-w-3xl text-3xl font-extrabold text-gold-foreground sm:text-4xl lg:text-5xl">
             Your Journey Beyond Medical School Starts Here.
           </h2>
-          <p className="mx-auto mt-5 max-w-2xl leading-7 text-gold-foreground/75">
+          <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-gold-foreground/80 sm:text-lg">
             Join a community committed to helping medical students discover possibilities, build
             meaningful connections and prepare for the future.
           </p>
-          <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-            <Button asChild size="lg">
+          <div className="mt-10 flex flex-col justify-center gap-4 sm:flex-row">
+            <Button
+              asChild
+              size="lg"
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
+            >
               <Link to="/join">
                 Join BMS <ArrowRight size={18} />
               </Link>
@@ -486,11 +575,11 @@ export function AboutPage() {
               <Link to="/programs">Explore Our Programs</Link>
             </Button>
           </div>
-          <div className="mt-12 border-t border-gold-foreground/20 pt-8">
+          <div className="mt-16 border-t border-gold-foreground/20 pt-8">
             <p className="text-xl font-extrabold text-gold-foreground">
               Beyond Medical School. Beyond the Degree.
             </p>
-            <p className="mt-2 text-sm font-bold uppercase tracking-[.16em] text-gold-foreground/70">
+            <p className="mt-2 text-sm font-bold uppercase tracking-[.18em] text-gold-foreground/75">
               Mentorship. Exposure. Opportunity.
             </p>
           </div>

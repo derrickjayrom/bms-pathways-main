@@ -151,7 +151,7 @@ export function Footer() {
         <div>
           <h2 className="font-semibold">Explore</h2>
           <div className="mt-4 grid grid-cols-2 gap-3 text-sm text-primary-foreground/65">
-            {nav.slice(0, 6).map(([l, t]) => (
+            {nav.map(([l, t]) => (
               <Link key={t} to={t} className="hover:text-gold">
                 {l}
               </Link>

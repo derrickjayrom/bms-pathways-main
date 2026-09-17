@@ -14,12 +14,12 @@ create table if not exists public.join_submissions (
   level_or_expertise text not null,
   location text not null,
   primary_interest text not null,
-  goals text not null,
+  achieve_goals text not null,
   agreed_to_contact boolean default true
 );
 
--- Ensure 'goals' exists if table was created previously without it
-alter table public.join_submissions add column if not exists goals text;
+-- Ensure backwards compatibility if referenced as goals or achieve_goals
+alter table public.join_submissions add column if not exists achieve_goals text;
 
 -- 2. Contact Inquiries
 create table if not exists public.contact_messages (

@@ -1018,7 +1018,9 @@ export function JoinPage() {
     e.preventDefault();
     setLoading(true);
     const fd = new FormData(e.currentTarget);
-    const payload = {
+    const goalsValue = String(fd.get("goals") || "").trim();
+
+    const basePayload = {
       role_type: tab,
       full_name: String(fd.get("name") || "").trim(),
       email: String(fd.get("email") || "").trim(),
@@ -1026,12 +1028,23 @@ export function JoinPage() {
       level_or_expertise: String(fd.get("level") || "").trim(),
       location: String(fd.get("location") || "").trim(),
       primary_interest: String(fd.get("interest") || "").trim(),
-      goals: String(fd.get("goals") || "").trim(),
       agreed_to_contact: fd.get("agreed") === "on",
     };
 
     try {
-      const { error } = await supabase.from("join_submissions").insert(payload);
+      // Live Supabase table uses achieve_goals
+      let { error } = await supabase
+        .from("join_submissions")
+        .insert({ ...basePayload, achieve_goals: goalsValue });
+
+      // Fallback in case schema was migrated to goals
+      if (error && error.message.includes("achieve_goals")) {
+        const retry = await supabase
+          .from("join_submissions")
+          .insert({ ...basePayload, goals: goalsValue });
+        error = retry.error;
+      }
+
       if (error) {
         console.error("Supabase join error:", error);
         toast.error(`Submission failed: ${error.message}`);

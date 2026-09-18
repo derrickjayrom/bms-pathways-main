@@ -38,13 +38,13 @@ export function Header() {
         <Logo />
         <div className="flex items-center gap-1">
           <div className="hidden items-center gap-1 xl:flex">
-            <nav className="flex items-center">
+            <nav className="flex items-center gap-0.5">
               {nav.map(([label, to]) => (
                 <Link
                   key={to}
                   to={to}
-                  className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-                  activeProps={{ className: "text-primary bg-accent" }}
+                  className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-all duration-200 hover:bg-accent/60 hover:text-foreground"
+                  activeProps={{ className: "text-primary bg-accent font-semibold shadow-xs" }}
                 >
                   {label}
                 </Link>

@@ -4,13 +4,19 @@ import {
   ArrowRight,
   Binoculars,
   BookOpen,
+  Briefcase,
   BriefcaseBusiness,
+  Building2,
+  Calendar,
   CalendarDays,
   Check,
+  CheckCircle2,
   ChevronDown,
+  ChevronRight,
   CircleHelp,
   Compass,
   ExternalLink,
+  Globe,
   GraduationCap,
   Handshake,
   HeartHandshake,
@@ -20,22 +26,40 @@ import {
   Loader2,
   Mail,
   MapPin,
+  Microscope,
   Network,
   Search,
   Sparkles,
+  Stethoscope,
   Target,
   Telescope,
+  Trophy,
   Users,
   X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { CTA, IconCard, PageIntro, SectionHeading } from "@/components/site";
 import {
   audiences,
+  brandValues,
   events,
+  mentorCategories,
+  mentorStories,
+  type MentorCategory,
+  type MentorStory,
+  pathwayCategories,
   pillars,
   programCategories,
   programs,
+  resourceCards,
   resources,
   team,
 } from "@/lib/bms-data";
@@ -43,152 +67,281 @@ import { supabase } from "@/utils/supabase";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
+
 export function HomePage() {
   return (
     <>
-      <section className="relative overflow-hidden bg-primary text-primary-foreground">
-        <div className="absolute inset-y-0 right-0 hidden w-2/5 border-l border-primary-foreground/10 bg-primary-foreground/[.03] lg:block" />
-        <div className="relative mx-auto grid min-h-[650px] max-w-7xl items-center px-5 py-20 lg:grid-cols-[1.2fr_.8fr] lg:px-8">
-          <div>
-            <p className="eyebrow">Mentorship. Exposure. Opportunity.</p>
-            <h1 className="mt-5 max-w-4xl text-5xl font-extrabold leading-[1.04] sm:text-6xl lg:text-7xl">
-              Beyond Medical School.
-              <br />
-              <span className="text-gold">Beyond the Degree.</span>
-            </h1>
-            <p className="mt-7 max-w-2xl text-lg leading-8 text-primary-foreground/70">
-              A career-development and mentorship initiative created to help medical students and
-              early -career doctors make informed decisions about their journey beyond medical
-              school.
+      {/* 1. HERO SECTION */}
+      <section className="relative min-h-[600px] lg:min-h-[660px] overflow-hidden bg-[#0B192C] text-white flex items-center">
+        {/* Background Image of Doctors on the right with smooth gradient fade */}
+        <div className="absolute inset-0 z-0">
+          <img
+            src="/images/hero-doctors.jpg"
+            alt="Medical students and doctors collaborating"
+            className="absolute inset-y-0 right-0 h-full w-full object-cover object-center lg:w-3/5"
+          />
+          {/* Gradient mask: solid navy on the left fading to transparent on the right */}
+          <div className="absolute inset-0 bg-gradient-to-b from-[#0B192C]/90 via-[#0B192C]/80 to-[#0B192C] lg:bg-gradient-to-r lg:from-[#0B192C] lg:via-[#0B192C]/95 lg:to-transparent" />
+        </div>
+
+        {/* Hero Content (left column) */}
+        <div className="relative z-10 mx-auto w-full max-w-7xl px-5 py-20 sm:py-24 lg:px-8">
+          <div className="max-w-2xl">
+            <p className="text-xs font-bold uppercase tracking-widest text-[#10B981]">
+              MENTORSHIP. EXPOSURE. OPPORTUNITY.
             </p>
-            <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-              <Button asChild variant="accent" size="lg">
-                <Link to="/join">
-                  Join the BMS Community <ArrowRight size={18} />
+            <h1 className="mt-4 text-4xl font-extrabold tracking-tight text-white sm:text-6xl lg:text-7xl leading-[1.08]">
+              Beyond Medical<br />
+              School.<br />
+              <span className="text-[#10B981]">Beyond the<br className="hidden sm:inline" /> Degree.</span>
+            </h1>
+            <p className="mt-6 max-w-xl text-base text-white/80 sm:text-lg leading-relaxed font-normal">
+              A career-development and mentorship initiative created to help medical students and early-career doctors make informed decisions about their journey beyond medical school.
+            </p>
+            <div className="mt-8 flex flex-wrap gap-4 items-center">
+              <Button asChild size="lg" className="bg-[#10B981] hover:bg-[#059669] text-white font-medium rounded-md px-6 shadow-sm">
+                <Link to="/resources">
+                  Explore Resources <ArrowRight className="ml-2 size-4" />
                 </Link>
               </Button>
-              <Button
-                asChild
-                size="lg"
-                className="border border-primary-foreground/25 bg-transparent hover:bg-primary-foreground/10"
-              >
-                <Link to="/programs">Explore Our Programs</Link>
+              <Button asChild size="lg" variant="outline" className="border-white/25 bg-white/5 hover:bg-white/10 text-white font-medium rounded-md px-6">
+                <a href="#pathways">
+                  Explore Career Pathways
+                </a>
               </Button>
             </div>
           </div>
-          <div className="mt-14 grid grid-cols-2 gap-3 lg:mt-0">
-            <div className="col-span-2 rounded-lg border border-primary-foreground/10 bg-primary-foreground/[.06] p-7">
-              <p className="text-5xl font-bold text-gold">BMS</p>
-              <p className="mt-12 text-sm leading-6 text-primary-foreground/60">
-                A generation of healthcare leaders prepared for impact—in every space medicine can
-                take them.
+        </div>
+      </section>
+
+      {/* 2. "WHAT ARE YOU LOOKING FOR?" RESOURCE GATEWAY */}
+      <section className="py-20 lg:py-24 bg-white">
+        <div className="mx-auto max-w-7xl px-5 lg:px-8">
+          <div className="max-w-3xl">
+            <p className="text-xs font-bold uppercase tracking-wider text-[#10B981]">YOUR NEXT STEP</p>
+            <h2 className="mt-2 text-3xl font-extrabold text-foreground sm:text-4xl">What are you looking for?</h2>
+            <p className="mt-3 text-base text-muted-foreground sm:text-lg leading-relaxed">
+              Find the guidance, connections and opportunities you need for your journey beyond medical school.
+            </p>
+          </div>
+
+          <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {resourceCards.map((card) => {
+              const Icon = card.icon;
+              return (
+                <div
+                  key={card.title}
+                  className="rounded-xl border border-border/70 bg-card p-8 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow"
+                >
+                  <div>
+                    <div className="size-12 rounded-lg bg-stone-100 flex items-center justify-center text-foreground mb-6">
+                      <Icon className="size-6" />
+                    </div>
+                    <h3 className="text-xl font-bold text-foreground">
+                      {card.title}
+                    </h3>
+                    <p className="mt-3 text-sm text-muted-foreground leading-relaxed">
+                      {card.description}
+                    </p>
+                  </div>
+                  <div className="mt-8">
+                    <Link
+                      to={card.href}
+                      className="inline-flex items-center text-sm font-semibold text-foreground hover:text-[#10B981] transition-colors"
+                    >
+                      {card.buttonText} <ArrowRight className="ml-1.5 size-4" />
+                    </Link>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* 3. "EXPLORE YOUR PATHWAY" */}
+      <section id="pathways" className="py-20 lg:py-24 bg-[#F8FAFC]">
+        <div className="mx-auto max-w-7xl px-5 lg:px-8">
+          <div className="max-w-3xl">
+            <p className="text-xs font-bold uppercase tracking-wider text-[#10B981]">EXPLORE YOUR PATHWAY</p>
+            <h2 className="mt-2 text-3xl font-extrabold text-foreground sm:text-4xl">Where do you want to go after medical school?</h2>
+            <p className="mt-3 text-base text-muted-foreground sm:text-lg leading-relaxed">
+              Explore different career directions and discover the steps, experiences and opportunities that can help you get there.
+            </p>
+          </div>
+
+          <div className="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {pathwayCategories.map((pathway) => {
+              const Icon = pathway.icon;
+              return (
+                <div
+                  key={pathway.number}
+                  className="rounded-xl border border-border/70 bg-card p-8 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow"
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-6">
+                      <div className="size-12 rounded-lg bg-stone-100 flex items-center justify-center text-foreground">
+                        <Icon className="size-6" />
+                      </div>
+                      <span className="text-xs font-bold text-[#10B981]">
+                        {pathway.number}
+                      </span>
+                    </div>
+                    <h3 className="text-xl font-bold text-foreground">
+                      {pathway.title}
+                    </h3>
+                    <p className="mt-3 text-sm text-muted-foreground leading-relaxed">
+                      {pathway.description}
+                    </p>
+                  </div>
+                  <div className="mt-8">
+                    <Link
+                      to={pathway.href}
+                      className="inline-flex items-center text-sm font-semibold text-foreground hover:text-[#10B981] transition-colors"
+                    >
+                      Learn More <ArrowRight className="ml-1.5 size-4" />
+                    </Link>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* 4. MENTORSHIP & EXPERIENCES */}
+      <section className="py-20 lg:py-24 bg-[#0B192C] text-white">
+        <div className="mx-auto max-w-7xl px-5 lg:px-8">
+          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wider text-[#10B981]">MENTORSHIP & EXPERIENCES</p>
+              <h2 className="mt-2 text-3xl font-extrabold text-white sm:text-4xl">Learn From Those Who’ve Gone Before You</h2>
+              <p className="mt-3 text-base text-white/70 sm:text-lg leading-relaxed">
+                Real experiences. Real journeys. Practical insights.
               </p>
             </div>
-            <div className="rounded-lg bg-gold p-5 text-gold-foreground">
-              <strong className="text-3xl">3</strong>
-              <p className="mt-4 text-xs font-bold uppercase tracking-[.12em]">Core pillars</p>
-            </div>
-            <div className="rounded-lg border border-primary-foreground/10 bg-primary-foreground/[.06] p-5">
-              <Users className="text-gold" />
-              <p className="mt-5 text-xs font-bold uppercase tracking-[.12em]">One community</p>
-            </div>
-          </div>
-        </div>
-      </section>
-      <section className="section-pad">
-        <div className="mx-auto max-w-7xl px-5 lg:px-8">
-          <SectionHeading
-            eyebrow="Why BMS?"
-            title="More than a medical education"
-            body="Knowledge earns the degree. Perspective, relationships, and opportunity shape the career."
-          />
-          <div className="mt-10 grid gap-5 md:grid-cols-3">
-            {pillars.map((p) => (
-              <IconCard key={p.title} icon={<p.icon />} title={p.title}>
-                {p.text}
-              </IconCard>
-            ))}
-          </div>
-        </div>
-      </section>
-      <section className="section-pad bg-surface">
-        <div className="mx-auto max-w-7xl px-5 lg:px-8">
-          <SectionHeading eyebrow="What we do" title="Designed for the whole journey" center />
-          <div className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-            {programs.map((p) => (
-              <IconCard key={p.title} icon={<p.icon />} title={p.title}>
-                {p.text}
-              </IconCard>
-            ))}
-          </div>
-          <div className="mt-8 text-center">
-            <Button asChild variant="outline">
-              <Link to="/programs">
-                View all programs <ArrowRight size={16} />
+            <Button asChild className="bg-[#10B981] hover:bg-[#059669] text-white font-medium rounded-md px-5 shrink-0 self-start md:self-auto">
+              <Link to="/mentorship">
+                Explore All Mentor Stories <ArrowRight className="ml-1.5 size-4" />
               </Link>
             </Button>
           </div>
-        </div>
-      </section>
-      <section className="section-pad">
-        <div className="mx-auto grid max-w-7xl gap-12 px-5 lg:grid-cols-2 lg:px-8">
-          <div>
-            <SectionHeading
-              eyebrow="Our vision"
-              title="A world where medical potential has no narrow path"
-            />
-            <p className="mt-5 leading-7 text-muted-foreground">
-              To connect students with doctors, specialists, researchers, institutions and global
-              opportunities. To help students move from uncertainty to a clear, realistic career
-              roadmap.
-            </p>
-          </div>
-          <div className="border-l-2 border-gold pl-8">
-            <SectionHeading eyebrow="Our mission" title="Make possibility visible—and reachable" />
-            <p className="mt-5 leading-7 text-muted-foreground">
-              BMS connects people to guidance, practical learning, wider professional exposure, and
-              a community that believes in their potential.
-            </p>
-          </div>
-        </div>
-      </section>
-      <section className="section-pad bg-primary text-primary-foreground">
-        <div className="mx-auto max-w-7xl px-5 lg:px-8">
-          <SectionHeading
-            eyebrow="Who is BMS for?"
-            title="If you care about what comes next, you belong here."
-          />
-          <div className="mt-10 grid gap-px overflow-hidden rounded-lg bg-primary-foreground/10 md:grid-cols-2">
-            {audiences.map((a, i) => (
-              <div key={a} className="flex items-center gap-4 bg-primary p-6">
-                <span className="text-sm font-bold text-gold">0{i + 1}</span>
-                <p className="font-semibold">{a}</p>
+
+          <div className="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {mentorStories.map((story) => (
+              <div
+                key={story.id}
+                className="rounded-xl border border-white/10 bg-[#0F223D] p-7 flex flex-col justify-between hover:border-white/20 transition-all"
+              >
+                <div>
+                  <div className="flex items-center gap-3.5">
+                    <div className="size-12 rounded-full bg-[#10B981] text-white font-bold text-sm flex items-center justify-center shrink-0">
+                      {story.initials}
+                    </div>
+                    <div className="min-w-0">
+                      <h4 className="text-base font-bold text-white truncate">
+                        {story.name}
+                      </h4>
+                      <p className="text-xs text-white/60 truncate">{story.role}</p>
+                    </div>
+                  </div>
+
+                  <p className="mt-6 text-[11px] font-bold uppercase tracking-wider text-[#10B981]">
+                    {story.category}
+                  </p>
+                  <h3 className="mt-2 text-xl font-bold text-white leading-snug">
+                    {story.title}
+                  </h3>
+                  <p className="mt-2 text-sm text-white/70 leading-relaxed">
+                    {story.description}
+                  </p>
+
+                  <div className="mt-6 flex flex-wrap gap-2">
+                    {story.badges.map((b) => (
+                      <span
+                        key={b}
+                        className="rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs text-white/80"
+                      >
+                        {b}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="mt-6 pt-4">
+                  <Link
+                    to={story.href}
+                    className="inline-flex items-center text-sm font-semibold text-[#10B981] hover:underline"
+                  >
+                    Read Experience <ArrowRight className="ml-1.5 size-4" />
+                  </Link>
+                </div>
               </div>
             ))}
           </div>
         </div>
       </section>
-      <section className="section-pad">
+
+      {/* 5. UPCOMING EVENTS */}
+      <section className="py-20 lg:py-24 bg-white">
         <div className="mx-auto max-w-7xl px-5 lg:px-8">
-          <div className="flex items-end justify-between gap-6">
-            <SectionHeading eyebrow="Upcoming events" title="Meet. Learn. Move forward." />
-            <span className="rounded-full bg-accent px-4 py-2 text-xs font-bold text-primary">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wider text-[#10B981]">UPCOMING EVENTS</p>
+              <h2 className="mt-2 text-3xl font-extrabold text-foreground sm:text-4xl">Meet. Learn. Move forward.</h2>
+            </div>
+            <span className="rounded-full bg-stone-100 px-4 py-1.5 text-xs font-semibold text-foreground border border-border">
               Coming soon
             </span>
           </div>
-          <div className="mt-10 grid gap-5 md:grid-cols-3">
+
+          <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
             {events.slice(0, 3).map((e) => (
-              <article key={e.title} className="rounded-lg border border-border p-6">
-                <e.icon className="text-gold" />
-                <p className="mt-8 text-xs font-bold uppercase text-muted-foreground">{e.type}</p>
-                <h3 className="mt-2 text-xl font-bold">{e.title}</h3>
-                <p className="mt-4 text-sm text-muted-foreground">{e.date}</p>
+              <article
+                key={e.title}
+                className="rounded-xl border border-border/70 bg-card p-8 shadow-sm flex flex-col justify-between"
+              >
+                <div>
+                  <div className="size-10 rounded-lg bg-stone-100 flex items-center justify-center text-[#10B981]">
+                    <e.icon className="size-5" />
+                  </div>
+                  <p className="mt-6 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    {e.type}
+                  </p>
+                  <h3 className="mt-2 text-xl font-bold text-foreground">
+                    {e.title}
+                  </h3>
+                  <p className="mt-4 text-sm text-muted-foreground">{e.date}</p>
+                </div>
+                <div className="mt-8">
+                  <Button asChild variant="outline" size="sm" className="rounded-md border-border text-foreground hover:bg-stone-50">
+                    <Link to="/events">
+                      View Event <ArrowRight className="ml-1.5 size-3.5" />
+                    </Link>
+                  </Button>
+                </div>
               </article>
             ))}
           </div>
         </div>
       </section>
-      <CTA />
+
+      {/* 6. PRE-FOOTER BANNER CTA */}
+      <section className="bg-[#10B981] py-16">
+        <div className="mx-auto max-w-7xl px-5 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6">
+          <div>
+            <h2 className="text-3xl font-bold text-white">Your next step starts with clarity.</h2>
+            <p className="mt-2 text-white/90 max-w-xl text-base">
+              Explore BMS resources, connect with mentors, and discover where your medical degree can take you.
+            </p>
+          </div>
+          <Button asChild size="lg" className="bg-[#0B192C] hover:bg-[#07111E] text-white font-medium rounded-md px-6 shadow-sm shrink-0">
+            <Link to="/join">
+              Join the BMS Community <ArrowRight className="ml-2 size-4" />
+            </Link>
+          </Button>
+        </div>
+      </section>
     </>
   );
 }

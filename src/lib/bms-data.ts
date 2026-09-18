@@ -123,7 +123,8 @@ export const programCategories = [
 export interface TeamMember {
   role: string;
   name: string;
-  bio: string;
+  image?: string;
+  bio?: string;
   linkedin?: string;
   isOpen?: boolean;
 }
@@ -132,43 +133,42 @@ export const team: TeamMember[] = [
   {
     role: "Founder / Executive Director",
     name: "Dr. Gifty Lelabi Okyerefo",
-    bio: "Leading BMS's vision and strategy to empower medical students and early-career doctors beyond the traditional curriculum.",
+    image: "",
   },
   {
     role: "Programs & Academic Lead",
     name: "Dr. Erica Ntiamoah Mensah",
-    bio: "Designing structured academic initiatives, workshops, and educational pathways for medical trainees.",
+    image: "",
   },
   {
     role: "Operations / Events Lead",
     name: "Dr. Akosua Amoah",
-    bio: "Managing operational execution and coordinating high-impact BMS community events, webinars, and masterclasses.",
+    image: "",
   },
   {
     role: "Communications & Media Lead",
     name: "Open Position",
-    bio: "Driving storytelling, social engagement, and digital media presence across the BMS community.",
     isOpen: true,
   },
   {
     role: "Partnerships & Sponsorship Lead",
     name: "Dr. Derek Prince Owusu-Dabo",
-    bio: "Building strategic collaborations, institutional partnerships, and sponsorship networks to support BMS programs.",
+    image: "",
   },
   {
     role: "Research & Impact Lead",
     name: "Dr. Sylvia Amoako",
-    bio: "Directing research initiatives, academic medicine mentorship, and measuring program impact across medical schools.",
+    image: "",
   },
   {
     role: "Student Ambassador Lead",
     name: "Dr. Seth Opoku-Gyebi",
-    bio: "Championing medical student representation, managing campus chapters, and facilitating peer mentorship networks.",
+    image: "",
   },
   {
     role: "Financial Secretary / Admin",
     name: "Dr. Hilda Abla Terkutei",
-    bio: "Overseeing financial governance, administrative operations, and organizational sustainability for BMS.",
+    image: "",
   },
 ];
 export const events = [
@@ -231,13 +231,7 @@ export const testimonials = [
   },
 ];
 
-export const brandValues = [
-  "Mentorship",
-  "Exposure",
-  "Opportunity",
-  "Excellence",
-  "Collaboration",
-];
+export const brandValues = ["Mentorship", "Exposure", "Opportunity", "Excellence", "Collaboration"];
 
 export const resourceCards = [
   {
@@ -350,8 +344,7 @@ export const mentorStories: MentorStory[] = [
     role: "Consultant Cardiologist",
     category: "SPECIALIST STORIES",
     title: "How I Became a Cardiologist",
-    description:
-      "The decisions, training and mentors that shaped a path into specialist practice.",
+    description: "The decisions, training and mentors that shaped a path into specialist practice.",
     badges: ["Cardiology", "Ghana"],
     href: "/mentorship",
   },
@@ -362,8 +355,7 @@ export const mentorStories: MentorStory[] = [
     role: "Senior Resident",
     category: "RESIDENT EXPERIENCES",
     title: "What Residency Is Really Like",
-    description:
-      "An honest look at residency, responsibility and learning on the job.",
+    description: "An honest look at residency, responsibility and learning on the job.",
     badges: ["Internal Medicine", "Ghana"],
     href: "/mentorship",
   },
@@ -374,8 +366,7 @@ export const mentorStories: MentorStory[] = [
     role: "Family Medicine Resident",
     category: "INTERNATIONAL JOURNEYS",
     title: "My Journey From Ghana to Canada",
-    description:
-      "Practical lessons from navigating exams, applications and a new health system.",
+    description: "Practical lessons from navigating exams, applications and a new health system.",
     badges: ["Global mobility", "Canada"],
     href: "/mentorship",
   },
@@ -386,8 +377,7 @@ export const mentorStories: MentorStory[] = [
     role: "Clinical Research Fellow",
     category: "RESEARCH EXPERIENCES",
     title: "How I Got Started in Research",
-    description:
-      "How curiosity, collaboration and a first project became a research career.",
+    description: "How curiosity, collaboration and a first project became a research career.",
     badges: ["Public Health Research", "United Kingdom"],
     href: "/mentorship",
   },
@@ -398,11 +388,8 @@ export const mentorStories: MentorStory[] = [
     role: "MPH Candidate",
     category: "POSTGRADUATE EXPERIENCES",
     title: "Choosing a Master’s Degree After Medical School",
-    description:
-      "A practical framework for deciding whether postgraduate study fits your goals.",
+    description: "A practical framework for deciding whether postgraduate study fits your goals.",
     badges: ["Public Health", "Ghana"],
     href: "/mentorship",
   },
 ];
-
-

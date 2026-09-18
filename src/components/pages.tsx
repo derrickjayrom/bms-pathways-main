@@ -1121,44 +1121,70 @@ export function TeamPage() {
               return (
                 <article
                   key={m.role}
-                  className="flex flex-col justify-between overflow-hidden rounded-xl border border-border bg-card shadow-sm transition-all duration-200 hover:shadow-md hover:border-border/80"
+                  className="group flex flex-col overflow-hidden rounded-2xl border border-border/80 bg-card shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-gold/50 hover:shadow-xl"
                 >
-                  <div>
-                    <div className="relative grid aspect-[4/3] place-items-center bg-accent/60">
-                      {m.isOpen ? (
-                        <Users className="size-12 text-primary/30" />
-                      ) : (
-                        <span className="text-4xl font-extrabold tracking-wider text-primary/30">
-                          {initials}
+                  {/* Dominant Visual / Image Container (Aspect 3:4) */}
+                  <div className="relative aspect-[3/4] w-full overflow-hidden bg-gradient-to-b from-stone-100 via-stone-100/80 to-stone-200 dark:from-slate-800 dark:via-slate-850 dark:to-slate-900">
+                    {m.image ? (
+                      <img
+                        src={m.image}
+                        alt={m.name}
+                        className="h-full w-full object-cover object-top transition-transform duration-500 ease-out group-hover:scale-105"
+                      />
+                    ) : m.isOpen ? (
+                      <div className="flex h-full flex-col items-center justify-center gap-3 p-6 text-center">
+                        <div className="flex size-20 items-center justify-center rounded-2xl border border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                          <Users className="size-9" />
+                        </div>
+                        <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+                          Role Open
                         </span>
-                      )}
-                      {m.isOpen && (
-                        <span className="absolute top-3 right-3 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
-                          Open Role
+                      </div>
+                    ) : (
+                      <div className="flex h-full flex-col items-center justify-center gap-3 p-6 text-center">
+                        <div className="flex size-20 items-center justify-center rounded-2xl border border-border/80 bg-white/90 shadow-sm transition-transform duration-300 group-hover:scale-105 dark:border-border/40 dark:bg-card/90">
+                          <span className="text-2xl font-extrabold tracking-wider text-primary">
+                            {initials}
+                          </span>
+                        </div>
+                        <span className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground/60">
+                          Portrait Coming Soon
                         </span>
-                      )}
-                    </div>
-                    <div className="p-5">
-                      <p className="text-xs font-bold uppercase tracking-wider text-gold">
+                      </div>
+                    )}
+
+                    {/* Gradient overlay for contrast on image hover */}
+                    {m.image && (
+                      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                    )}
+                  </div>
+
+                  {/* Clean, Concise Info Footer — No wordy bios */}
+                  <div className="flex items-start justify-between gap-3 border-t border-border/60 p-4 sm:p-5">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[11px] font-bold uppercase tracking-wider text-gold">
                         {m.role}
                       </p>
-                      <h2 className="mt-2 text-lg font-bold text-foreground">{m.name}</h2>
-                      <p className="mt-3 text-sm leading-6 text-muted-foreground">{m.bio}</p>
+                      <h2 className="mt-1 text-base font-bold leading-snug text-foreground sm:text-lg">
+                        {m.name}
+                      </h2>
                     </div>
-                  </div>
-                  <div className="p-5 pt-0">
                     {m.isOpen ? (
-                      <Link
-                        to="/contact"
-                        className="inline-flex items-center text-xs font-semibold text-primary hover:text-gold transition-colors"
+                      <Button
+                        asChild
+                        size="sm"
+                        variant="ghost"
+                        className="h-8 shrink-0 px-2.5 text-xs font-semibold text-emerald-600 hover:bg-emerald-500/10 hover:text-emerald-700 dark:text-emerald-400"
                       >
-                        Inquire about this role <ArrowRight className="ml-1.5 size-3.5" />
-                      </Link>
+                        <Link to="/contact">
+                          Apply <ArrowRight className="ml-1 size-3" />
+                        </Link>
+                      </Button>
                     ) : (
                       <a
                         href={m.linkedin || "#"}
                         aria-label={`${m.name} on LinkedIn`}
-                        className="inline-flex text-muted-foreground hover:text-primary transition-colors"
+                        className="mt-0.5 shrink-0 rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-primary"
                       >
                         <Linkedin size={18} />
                       </a>

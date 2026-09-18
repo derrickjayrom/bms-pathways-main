@@ -34,36 +34,38 @@ export function Header() {
   const [open, setOpen] = useState(false);
   return (
     <header className="sticky top-0 z-50 border-b border-border/70 bg-background/95 backdrop-blur">
-      <div className="mx-auto grid h-18 max-w-7xl grid-cols-[minmax(0,1fr)_auto] items-center px-5 lg:px-8">
+      <div className="flex h-18 w-full items-center justify-between px-5 sm:px-8 lg:px-10">
         <Logo />
-        <div className="hidden items-center gap-1 xl:flex">
-          <nav className="flex items-center">
-            {nav.map(([label, to]) => (
-              <Link
-                key={to}
-                to={to}
-                className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-                activeProps={{ className: "text-primary bg-accent" }}
-              >
-                {label}
+        <div className="flex items-center gap-1">
+          <div className="hidden items-center gap-1 xl:flex">
+            <nav className="flex items-center">
+              {nav.map(([label, to]) => (
+                <Link
+                  key={to}
+                  to={to}
+                  className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+                  activeProps={{ className: "text-primary bg-accent" }}
+                >
+                  {label}
+                </Link>
+              ))}
+            </nav>
+            <Button asChild variant="accent" size="sm" className="ml-2">
+              <Link to="/join">
+                Join BMS <ArrowRight size={15} />
               </Link>
-            ))}
-          </nav>
-          <Button asChild variant="accent" size="sm">
-            <Link to="/join">
-              Join BMS <ArrowRight size={15} />
-            </Link>
+            </Button>
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="xl:hidden"
+            onClick={() => setOpen(!open)}
+            aria-label={open ? "Close menu" : "Open menu"}
+          >
+            {open ? <X /> : <Menu />}
           </Button>
         </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="xl:hidden"
-          onClick={() => setOpen(!open)}
-          aria-label={open ? "Close menu" : "Open menu"}
-        >
-          {open ? <X /> : <Menu />}
-        </Button>
       </div>
       {open && (
         <div className="border-t border-border bg-background p-5 xl:hidden">

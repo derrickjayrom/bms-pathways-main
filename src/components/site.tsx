@@ -345,17 +345,19 @@ export function PageIntro({
   children,
 }: {
   eyebrow: string;
-  title: string;
+  title: ReactNode;
   children: ReactNode;
 }) {
   return (
     <section className="bg-primary text-primary-foreground">
       <div className="mx-auto max-w-7xl px-5 py-20 lg:px-8 lg:py-28">
         <p className="eyebrow text-gold">{eyebrow}</p>
-        <h1 className="mt-4 max-w-4xl text-4xl font-bold leading-[1.08] sm:text-5xl lg:text-6xl">
+        <h1 className="mt-4 max-w-4xl text-4xl font-bold leading-[1.15] sm:text-5xl lg:text-6xl text-balance">
           {title}
         </h1>
-        <p className="mt-6 max-w-2xl text-lg leading-8 text-primary-foreground/70">{children}</p>
+        <p className="mt-6 max-w-2xl text-lg leading-8 text-primary-foreground/70 text-pretty">
+          {children}
+        </p>
       </div>
     </section>
   );

@@ -4,57 +4,35 @@ import {
   ArrowRight,
   Binoculars,
   BookOpen,
-  Briefcase,
   BriefcaseBusiness,
-  Building2,
-  Calendar,
   CalendarDays,
   Check,
-  CheckCircle2,
   ChevronDown,
-  ChevronRight,
   CircleHelp,
   Compass,
   ExternalLink,
-  Globe,
   GraduationCap,
   Handshake,
   HeartHandshake,
   Info,
-  Lightbulb,
   Linkedin,
   Loader2,
   Mail,
   MapPin,
-  Microscope,
   Network,
   Search,
   Sparkles,
-  Stethoscope,
   Target,
   Telescope,
-  Trophy,
   Users,
   X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { CTA, IconCard, PageIntro, SectionHeading } from "@/components/site";
 import {
-  audiences,
-  brandValues,
   events,
   mentorStories,
-  type MentorStory,
   pathwayCategories,
-  pillars,
   programCategories,
   programs,
   resourceCards,
@@ -64,7 +42,6 @@ import {
 import { supabase } from "@/utils/supabase";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-
 
 export function HomePage() {
   return (
@@ -89,23 +66,37 @@ export function HomePage() {
               MENTORSHIP. EXPOSURE. OPPORTUNITY.
             </p>
             <h1 className="mt-4 text-4xl font-extrabold tracking-tight text-white sm:text-6xl lg:text-7xl leading-[1.08]">
-              Beyond Medical<br />
-              School.<br />
-              <span className="text-[#10B981]">Beyond the<br className="hidden sm:inline" /> Degree.</span>
+              Beyond Medical
+              <br />
+              School.
+              <br />
+              <span className="text-[#10B981]">
+                Beyond the
+                <br className="hidden sm:inline" /> Degree.
+              </span>
             </h1>
             <p className="mt-6 max-w-xl text-base text-white/80 sm:text-lg leading-relaxed font-normal">
-              A career-development and mentorship initiative created to help medical students and early-career doctors make informed decisions about their journey beyond medical school.
+              A career-development and mentorship initiative created to help medical students and
+              early-career doctors make informed decisions about their journey beyond medical
+              school.
             </p>
             <div className="mt-8 flex flex-wrap gap-4 items-center">
-              <Button asChild size="lg" className="bg-[#10B981] hover:bg-[#059669] text-white font-medium rounded-md px-6 shadow-sm">
+              <Button
+                asChild
+                size="lg"
+                className="bg-[#10B981] hover:bg-[#059669] text-white font-medium rounded-md px-6 shadow-sm"
+              >
                 <Link to="/resources">
                   Explore Resources <ArrowRight className="ml-2 size-4" />
                 </Link>
               </Button>
-              <Button asChild size="lg" variant="outline" className="border-white/25 bg-white/5 hover:bg-white/10 text-white font-medium rounded-md px-6">
-                <a href="#pathways">
-                  Explore Career Pathways
-                </a>
+              <Button
+                asChild
+                size="lg"
+                variant="outline"
+                className="border-white/25 bg-white/5 hover:bg-white/10 text-white font-medium rounded-md px-6"
+              >
+                <a href="#pathways">Explore Career Pathways</a>
               </Button>
             </div>
           </div>
@@ -116,10 +107,15 @@ export function HomePage() {
       <section className="py-20 lg:py-24 bg-white">
         <div className="mx-auto max-w-7xl px-5 lg:px-8">
           <div className="max-w-3xl">
-            <p className="text-xs font-bold uppercase tracking-wider text-[#10B981]">YOUR NEXT STEP</p>
-            <h2 className="mt-2 text-3xl font-extrabold text-foreground sm:text-4xl">What are you looking for?</h2>
+            <p className="text-xs font-bold uppercase tracking-wider text-[#10B981]">
+              YOUR NEXT STEP
+            </p>
+            <h2 className="mt-2 text-3xl font-extrabold text-foreground sm:text-4xl">
+              What are you looking for?
+            </h2>
             <p className="mt-3 text-base text-muted-foreground sm:text-lg leading-relaxed">
-              Find the guidance, connections and opportunities you need for your journey beyond medical school.
+              Find the guidance, connections and opportunities you need for your journey beyond
+              medical school.
             </p>
           </div>
 
@@ -135,9 +131,7 @@ export function HomePage() {
                     <div className="size-12 rounded-lg bg-stone-100 flex items-center justify-center text-foreground mb-6">
                       <Icon className="size-6" />
                     </div>
-                    <h3 className="text-xl font-bold text-foreground">
-                      {card.title}
-                    </h3>
+                    <h3 className="text-xl font-bold text-foreground">{card.title}</h3>
                     <p className="mt-3 text-sm text-muted-foreground leading-relaxed">
                       {card.description}
                     </p>
@@ -161,10 +155,15 @@ export function HomePage() {
       <section id="pathways" className="py-20 lg:py-24 bg-[#F8FAFC]">
         <div className="mx-auto max-w-7xl px-5 lg:px-8">
           <div className="max-w-3xl">
-            <p className="text-xs font-bold uppercase tracking-wider text-[#10B981]">EXPLORE YOUR PATHWAY</p>
-            <h2 className="mt-2 text-3xl font-extrabold text-foreground sm:text-4xl">Where do you want to go after medical school?</h2>
+            <p className="text-xs font-bold uppercase tracking-wider text-[#10B981]">
+              EXPLORE YOUR PATHWAY
+            </p>
+            <h2 className="mt-2 text-3xl font-extrabold text-foreground sm:text-4xl">
+              Where do you want to go after medical school?
+            </h2>
             <p className="mt-3 text-base text-muted-foreground sm:text-lg leading-relaxed">
-              Explore different career directions and discover the steps, experiences and opportunities that can help you get there.
+              Explore different career directions and discover the steps, experiences and
+              opportunities that can help you get there.
             </p>
           </div>
 
@@ -181,13 +180,9 @@ export function HomePage() {
                       <div className="size-12 rounded-lg bg-stone-100 flex items-center justify-center text-foreground">
                         <Icon className="size-6" />
                       </div>
-                      <span className="text-xs font-bold text-[#10B981]">
-                        {pathway.number}
-                      </span>
+                      <span className="text-xs font-bold text-[#10B981]">{pathway.number}</span>
                     </div>
-                    <h3 className="text-xl font-bold text-foreground">
-                      {pathway.title}
-                    </h3>
+                    <h3 className="text-xl font-bold text-foreground">{pathway.title}</h3>
                     <p className="mt-3 text-sm text-muted-foreground leading-relaxed">
                       {pathway.description}
                     </p>
@@ -212,13 +207,20 @@ export function HomePage() {
         <div className="mx-auto max-w-7xl px-5 lg:px-8">
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
             <div>
-              <p className="text-xs font-bold uppercase tracking-wider text-[#10B981]">MENTORSHIP & EXPERIENCES</p>
-              <h2 className="mt-2 text-3xl font-extrabold text-white sm:text-4xl">Learn From Those Who’ve Gone Before You</h2>
+              <p className="text-xs font-bold uppercase tracking-wider text-[#10B981]">
+                MENTORSHIP & EXPERIENCES
+              </p>
+              <h2 className="mt-2 text-3xl font-extrabold text-white sm:text-4xl">
+                Learn From Those Who’ve Gone Before You
+              </h2>
               <p className="mt-3 text-base text-white/70 sm:text-lg leading-relaxed">
                 Real experiences. Real journeys. Practical insights.
               </p>
             </div>
-            <Button asChild className="bg-[#10B981] hover:bg-[#059669] text-white font-medium rounded-md px-5 shrink-0 self-start md:self-auto">
+            <Button
+              asChild
+              className="bg-[#10B981] hover:bg-[#059669] text-white font-medium rounded-md px-5 shrink-0 self-start md:self-auto"
+            >
               <Link to="/mentorship">
                 Explore All Mentor Stories <ArrowRight className="ml-1.5 size-4" />
               </Link>
@@ -237,9 +239,7 @@ export function HomePage() {
                       {story.initials}
                     </div>
                     <div className="min-w-0">
-                      <h4 className="text-base font-bold text-white truncate">
-                        {story.name}
-                      </h4>
+                      <h4 className="text-base font-bold text-white truncate">{story.name}</h4>
                       <p className="text-xs text-white/60 truncate">{story.role}</p>
                     </div>
                   </div>
@@ -247,12 +247,8 @@ export function HomePage() {
                   <p className="mt-6 text-[11px] font-bold uppercase tracking-wider text-[#10B981]">
                     {story.category}
                   </p>
-                  <h3 className="mt-2 text-xl font-bold text-white leading-snug">
-                    {story.title}
-                  </h3>
-                  <p className="mt-2 text-sm text-white/70 leading-relaxed">
-                    {story.description}
-                  </p>
+                  <h3 className="mt-2 text-xl font-bold text-white leading-snug">{story.title}</h3>
+                  <p className="mt-2 text-sm text-white/70 leading-relaxed">{story.description}</p>
 
                   <div className="mt-6 flex flex-wrap gap-2">
                     {story.badges.map((b) => (
@@ -285,8 +281,12 @@ export function HomePage() {
         <div className="mx-auto max-w-7xl px-5 lg:px-8">
           <div className="flex items-center justify-between gap-4">
             <div>
-              <p className="text-xs font-bold uppercase tracking-wider text-[#10B981]">UPCOMING EVENTS</p>
-              <h2 className="mt-2 text-3xl font-extrabold text-foreground sm:text-4xl">Meet. Learn. Move forward.</h2>
+              <p className="text-xs font-bold uppercase tracking-wider text-[#10B981]">
+                UPCOMING EVENTS
+              </p>
+              <h2 className="mt-2 text-3xl font-extrabold text-foreground sm:text-4xl">
+                Meet. Learn. Move forward.
+              </h2>
             </div>
             <span className="rounded-full bg-stone-100 px-4 py-1.5 text-xs font-semibold text-foreground border border-border">
               Coming soon
@@ -306,13 +306,16 @@ export function HomePage() {
                   <p className="mt-6 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                     {e.type}
                   </p>
-                  <h3 className="mt-2 text-xl font-bold text-foreground">
-                    {e.title}
-                  </h3>
+                  <h3 className="mt-2 text-xl font-bold text-foreground">{e.title}</h3>
                   <p className="mt-4 text-sm text-muted-foreground">{e.date}</p>
                 </div>
                 <div className="mt-8">
-                  <Button asChild variant="outline" size="sm" className="rounded-md border-border text-foreground hover:bg-stone-50">
+                  <Button
+                    asChild
+                    variant="outline"
+                    size="sm"
+                    className="rounded-md border-border text-foreground hover:bg-stone-50"
+                  >
                     <Link to="/events">
                       View Event <ArrowRight className="ml-1.5 size-3.5" />
                     </Link>
@@ -330,10 +333,15 @@ export function HomePage() {
           <div>
             <h2 className="text-3xl font-bold text-white">Your next step starts with clarity.</h2>
             <p className="mt-2 text-white/90 max-w-xl text-base">
-              Explore BMS resources, connect with mentors, and discover where your medical degree can take you.
+              Explore BMS resources, connect with mentors, and discover where your medical degree
+              can take you.
             </p>
           </div>
-          <Button asChild size="lg" className="bg-[#0B192C] hover:bg-[#07111E] text-white font-medium rounded-md px-6 shadow-sm shrink-0">
+          <Button
+            asChild
+            size="lg"
+            className="bg-[#0B192C] hover:bg-[#07111E] text-white font-medium rounded-md px-6 shadow-sm shrink-0"
+          >
             <Link to="/join">
               Join the BMS Community <ArrowRight className="ml-2 size-4" />
             </Link>
@@ -427,38 +435,19 @@ const aboutValues = [
 export function AboutPage() {
   return (
     <>
-      {/* PAGE HERO */}
-      <section className="relative overflow-hidden bg-primary text-primary-foreground">
-        <div className="absolute inset-y-0 right-0 hidden w-1/3 border-l border-primary-foreground/10 bg-primary-foreground/[.03] lg:block" />
-        <div className="relative mx-auto flex min-h-[580px] max-w-7xl flex-col justify-center px-5 py-20 lg:px-8">
-          <div className="inline-flex items-center gap-2 self-start rounded-full border border-gold/30 bg-gold/10 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-gold">
-            Mentorship · Exposure · Opportunity
-          </div>
-          <h1 className="mt-6 max-w-5xl text-4xl font-extrabold leading-[1.08] sm:text-5xl lg:text-7xl">
-            More Than a Medical Degree.
+      <PageIntro
+        eyebrow="About BMS"
+        title={
+          <>
+            More than a medical degree.
             <br />
-            <span className="text-gold">A Journey Beyond.</span>
-          </h1>
-          <p className="mt-6 max-w-2xl text-lg leading-8 text-primary-foreground/80 sm:text-xl">
-            Helping medical students navigate the opportunities, decisions and possibilities that
-            come after medical school.
-          </p>
-          <div className="mt-9 flex flex-wrap gap-4">
-            <Button asChild variant="accent" size="lg">
-              <Link to="/join">
-                Join BMS <ArrowRight size={18} />
-              </Link>
-            </Button>
-            <Button
-              asChild
-              size="lg"
-              className="border border-primary-foreground/25 bg-transparent hover:bg-primary-foreground/10"
-            >
-              <Link to="/programs">Explore Our Programs</Link>
-            </Button>
-          </div>
-        </div>
-      </section>
+            <span className="text-gold whitespace-nowrap">A journey beyond.</span>
+          </>
+        }
+      >
+        Helping medical students and early-career doctors navigate the opportunities, decisions, and
+        possibilities that come after medical school.
+      </PageIntro>
 
       {/* SECTION 1 — WHO WE ARE */}
       <section className="section-pad about-reveal">
@@ -1150,7 +1139,9 @@ export function TeamPage() {
                       )}
                     </div>
                     <div className="p-5">
-                      <p className="text-xs font-bold uppercase tracking-wider text-gold">{m.role}</p>
+                      <p className="text-xs font-bold uppercase tracking-wider text-gold">
+                        {m.role}
+                      </p>
                       <h2 className="mt-2 text-lg font-bold text-foreground">{m.name}</h2>
                       <p className="mt-3 text-sm leading-6 text-muted-foreground">{m.bio}</p>
                     </div>

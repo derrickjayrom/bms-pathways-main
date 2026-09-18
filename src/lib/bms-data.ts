@@ -120,30 +120,57 @@ export const programCategories = [
   "Exposure",
   "Research",
 ];
-export const team = [
-  "Executive Lead",
-  "Programs Lead",
-  "Mentorship Lead",
-  "Research Lead",
-  "Communications Lead",
-  "Partnerships Lead",
-  "Events Lead",
-  "Technology Lead",
-].map((role, i) => ({
-  role,
-  name:
-    [
-      "Dr. Ama Mensah",
-      "Kojo Asare",
-      "Dr. Naa Odoi",
-      "Selasi Amedome",
-      "Abena Owusu",
-      "Nana Yeboah",
-      "Esi Arthur",
-      "Kweku Boateng",
-    ][i] ?? "BMS Team Member",
-  bio: "Passionate about helping emerging healthcare leaders turn curiosity into confident action.",
-}));
+export interface TeamMember {
+  role: string;
+  name: string;
+  bio: string;
+  linkedin?: string;
+  isOpen?: boolean;
+}
+
+export const team: TeamMember[] = [
+  {
+    role: "Founder / Executive Director",
+    name: "Dr. Gifty Lelabi Okyerefo",
+    bio: "Leading BMS's vision and strategy to empower medical students and early-career doctors beyond the traditional curriculum.",
+  },
+  {
+    role: "Programs & Academic Lead",
+    name: "Dr. Erica Ntiamoah Mensah",
+    bio: "Designing structured academic initiatives, workshops, and educational pathways for medical trainees.",
+  },
+  {
+    role: "Operations / Events Lead",
+    name: "Dr. Akosua Amoah",
+    bio: "Managing operational execution and coordinating high-impact BMS community events, webinars, and masterclasses.",
+  },
+  {
+    role: "Communications & Media Lead",
+    name: "Open Position",
+    bio: "Driving storytelling, social engagement, and digital media presence across the BMS community.",
+    isOpen: true,
+  },
+  {
+    role: "Partnerships & Sponsorship Lead",
+    name: "Dr. Derek Prince Owusu-Dabo",
+    bio: "Building strategic collaborations, institutional partnerships, and sponsorship networks to support BMS programs.",
+  },
+  {
+    role: "Research & Impact Lead",
+    name: "Dr. Sylvia Amoako",
+    bio: "Directing research initiatives, academic medicine mentorship, and measuring program impact across medical schools.",
+  },
+  {
+    role: "Student Ambassador Lead",
+    name: "Dr. Seth Opoku-Gyebi",
+    bio: "Championing medical student representation, managing campus chapters, and facilitating peer mentorship networks.",
+  },
+  {
+    role: "Financial Secretary / Admin",
+    name: "Dr. Hilda Abla Terkutei",
+    bio: "Overseeing financial governance, administrative operations, and organizational sustainability for BMS.",
+  },
+];
 export const events = [
   {
     title: "Careers Beyond the Clinic",

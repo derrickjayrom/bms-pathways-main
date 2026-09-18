@@ -51,9 +51,7 @@ import {
   audiences,
   brandValues,
   events,
-  mentorCategories,
   mentorStories,
-  type MentorCategory,
   type MentorStory,
   pathwayCategories,
   pillars,
@@ -1119,38 +1117,66 @@ export function TeamPage() {
       </PageIntro>
       <section className="section-pad">
         <div className="mx-auto max-w-7xl px-5 lg:px-8">
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {team.map((m, i) => (
-              <article
-                key={m.role}
-                className="overflow-hidden rounded-lg border border-border bg-card"
-              >
-                <div className="grid aspect-[4/3] place-items-center bg-accent">
-                  <span className="text-5xl font-extrabold text-primary/20">
-                    {m.name
-                      .split(" ")
-                      .map((x) => x[0])
-                      .join("")}
-                  </span>
-                </div>
-                <div className="p-5">
-                  <p className="text-xs font-bold uppercase text-gold">{m.role}</p>
-                  <h2 className="mt-2 text-lg font-bold">{m.name}</h2>
-                  <p className="mt-3 text-sm leading-6 text-muted-foreground">{m.bio}</p>
-                  <a
-                    href="#"
-                    aria-label={`${m.name} on LinkedIn`}
-                    className="mt-4 inline-flex text-primary"
-                  >
-                    <Linkedin size={18} />
-                  </a>
-                </div>
-              </article>
-            ))}
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {team.map((m) => {
+              const initials = m.isOpen
+                ? "BMS"
+                : m.name
+                    .replace(/^Dr\.\s+/i, "")
+                    .split(" ")
+                    .filter(Boolean)
+                    .map((x) => x[0])
+                    .slice(0, 2)
+                    .join("");
+
+              return (
+                <article
+                  key={m.role}
+                  className="flex flex-col justify-between overflow-hidden rounded-xl border border-border bg-card shadow-sm transition-all duration-200 hover:shadow-md hover:border-border/80"
+                >
+                  <div>
+                    <div className="relative grid aspect-[4/3] place-items-center bg-accent/60">
+                      {m.isOpen ? (
+                        <Users className="size-12 text-primary/30" />
+                      ) : (
+                        <span className="text-4xl font-extrabold tracking-wider text-primary/30">
+                          {initials}
+                        </span>
+                      )}
+                      {m.isOpen && (
+                        <span className="absolute top-3 right-3 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
+                          Open Role
+                        </span>
+                      )}
+                    </div>
+                    <div className="p-5">
+                      <p className="text-xs font-bold uppercase tracking-wider text-gold">{m.role}</p>
+                      <h2 className="mt-2 text-lg font-bold text-foreground">{m.name}</h2>
+                      <p className="mt-3 text-sm leading-6 text-muted-foreground">{m.bio}</p>
+                    </div>
+                  </div>
+                  <div className="p-5 pt-0">
+                    {m.isOpen ? (
+                      <Link
+                        to="/contact"
+                        className="inline-flex items-center text-xs font-semibold text-primary hover:text-gold transition-colors"
+                      >
+                        Inquire about this role <ArrowRight className="ml-1.5 size-3.5" />
+                      </Link>
+                    ) : (
+                      <a
+                        href={m.linkedin || "#"}
+                        aria-label={`${m.name} on LinkedIn`}
+                        className="inline-flex text-muted-foreground hover:text-primary transition-colors"
+                      >
+                        <Linkedin size={18} />
+                      </a>
+                    )}
+                  </div>
+                </article>
+              );
+            })}
           </div>
-          <p className="mt-8 text-center text-xs text-muted-foreground">
-            Team profiles shown are representative placeholders.
-          </p>
         </div>
       </section>
       <CTA

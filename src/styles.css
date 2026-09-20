@@ -178,6 +178,10 @@
   border-radius: 0.375rem;
   background: color-mix(in oklab, var(--primary-foreground) 10%, transparent);
   transition: 0.2s;
+  &:hover {
+    background: var(--color-gold);
+    color: var(--color-gold-foreground);
+  }
 }
 @utility field {
   width: 100%;

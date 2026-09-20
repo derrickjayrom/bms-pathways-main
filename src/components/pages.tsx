@@ -128,7 +128,7 @@ export function HomePage() {
                   className="rounded-xl border border-border/70 bg-card p-8 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow"
                 >
                   <div>
-                    <div className="size-12 rounded-lg bg-stone-100 flex items-center justify-center text-foreground mb-6">
+                    <div className="size-12 rounded-lg bg-stone-100 flex items-center justify-center text-[#10B981] mb-6">
                       <Icon className="size-6" />
                     </div>
                     <h3 className="text-xl font-bold text-foreground">{card.title}</h3>
@@ -177,7 +177,7 @@ export function HomePage() {
                 >
                   <div>
                     <div className="flex items-center justify-between mb-6">
-                      <div className="size-12 rounded-lg bg-stone-100 flex items-center justify-center text-foreground">
+                      <div className="size-12 rounded-lg bg-stone-100 flex items-center justify-center text-[#10B981]">
                         <Icon className="size-6" />
                       </div>
                       <span className="text-xs font-bold text-[#10B981]">{pathway.number}</span>
@@ -501,7 +501,7 @@ export function AboutPage() {
                 key={question}
                 className="group flex min-h-36 items-start gap-4 rounded-xl border border-border bg-card p-6 shadow-soft transition-all hover:-translate-y-1 hover:border-gold/50 hover:shadow-card"
               >
-                <span className="grid size-11 shrink-0 place-items-center rounded-lg bg-accent text-primary transition-colors group-hover:bg-gold group-hover:text-gold-foreground">
+                <span className="grid size-11 shrink-0 place-items-center rounded-lg bg-stone-100 text-[#10B981] transition-colors group-hover:bg-[#10B981] group-hover:text-white">
                   <CircleHelp size={22} />
                 </span>
                 <div>
@@ -536,7 +536,7 @@ export function AboutPage() {
               >
                 <div>
                   <div className="flex items-center justify-between">
-                    <span className="grid size-12 place-items-center rounded-lg bg-accent text-primary transition-colors group-hover:bg-gold group-hover:text-gold-foreground">
+                    <span className="grid size-12 place-items-center rounded-lg bg-stone-100 text-[#10B981] transition-colors group-hover:bg-[#10B981] group-hover:text-white">
                       <item.icon size={24} />
                     </span>
                     <span className="text-3xl font-extrabold text-muted-foreground/20 transition-colors group-hover:text-gold/30">
@@ -593,7 +593,7 @@ export function AboutPage() {
                 )}
               >
                 <div>
-                  <span className="grid size-12 place-items-center rounded-lg bg-accent text-primary transition-colors group-hover:bg-gold group-hover:text-gold-foreground">
+                  <span className="grid size-12 place-items-center rounded-lg bg-stone-100 text-[#10B981] transition-colors group-hover:bg-[#10B981] group-hover:text-white">
                     <item.icon size={22} />
                   </span>
                   <h3 className="mt-5 text-xl font-bold text-foreground">{item.title}</h3>
@@ -639,7 +639,7 @@ export function AboutPage() {
                 )}
               >
                 <div>
-                  <span className="grid size-12 place-items-center rounded-lg bg-accent text-primary transition-colors group-hover:bg-gold group-hover:text-gold-foreground">
+                  <span className="grid size-12 place-items-center rounded-lg bg-stone-100 text-[#10B981] transition-colors group-hover:bg-[#10B981] group-hover:text-white">
                     <item.icon size={22} />
                   </span>
                   <h3 className="mt-5 text-xl font-bold text-foreground">{item.title}</h3>
@@ -938,7 +938,7 @@ export function EventsPage() {
                 className="rounded-lg border border-border bg-card p-6 shadow-soft"
               >
                 <div className="flex items-center justify-between">
-                  <span className="grid size-11 place-items-center rounded-md bg-accent text-primary">
+                  <span className="grid size-11 place-items-center rounded-lg bg-stone-100 text-[#10B981]">
                     <e.icon />
                   </span>
                   <span className="rounded-full bg-accent px-3 py-1 text-xs font-bold text-primary">
@@ -948,7 +948,7 @@ export function EventsPage() {
                 <p className="mt-8 text-xs font-bold uppercase text-muted-foreground">{e.type}</p>
                 <h2 className="mt-2 text-xl font-bold">{e.title}</h2>
                 <p className="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
-                  <CalendarDays size={16} />
+                  <CalendarDays className="text-[#10B981]" size={16} />
                   {e.date}
                 </p>
                 <Button className="mt-6 w-full" variant="outline" onClick={() => setSelected(e)}>

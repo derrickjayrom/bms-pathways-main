@@ -399,7 +399,7 @@ export function IconCard({
         className,
       )}
     >
-      <span className="grid size-11 place-items-center rounded-md bg-accent text-primary transition-colors group-hover:bg-gold group-hover:text-gold-foreground">
+      <span className="grid size-12 place-items-center rounded-lg bg-stone-100 text-[#10B981] transition-colors group-hover:bg-[#10B981] group-hover:text-white">
         {icon}
       </span>
       <h3 className="mt-5 text-xl font-bold">{title}</h3>

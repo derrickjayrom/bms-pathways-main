@@ -38,40 +38,22 @@ export const pillars = [
 ];
 export const programs = [
   {
+    title: "Career Exploration",
+    icon: Compass,
+    text: "Discover International and emerging paths across healthcare.",
+    category: "Career Exploration",
+  },
+  {
     title: "Career Development",
     icon: BriefcaseBusiness,
     text: "Build the professional skills medicine alone may not teach.",
     category: "Career Development",
   },
   {
-    title: "Career Exploration",
-    icon: Compass,
-    text: "Discover traditional and emerging paths across healthcare.",
-    category: "Career Exploration",
-  },
-  {
     title: "Mentorship Circles",
     icon: Users,
     text: "Grow with trusted mentors and a supportive peer community.",
     category: "Mentorship",
-  },
-  {
-    title: "Industry Exposure",
-    icon: Presentation,
-    text: "Meet leaders and see how health impact happens in practice.",
-    category: "Exposure",
-  },
-  {
-    title: "Research Launchpad",
-    icon: FlaskConical,
-    text: "Develop confidence, connections, and practical research skills.",
-    category: "Research",
-  },
-  {
-    title: "Leadership Labs",
-    icon: Lightbulb,
-    text: "Learn to lead teams, ideas, and change with purpose.",
-    category: "Career Development",
   },
 ];
 export const values = [
@@ -114,11 +96,9 @@ export const audiences = [
 ];
 export const programCategories = [
   "All",
-  "Career Development",
   "Career Exploration",
+  "Career Development",
   "Mentorship",
-  "Exposure",
-  "Research",
 ];
 export interface TeamMember {
   role: string;
@@ -310,7 +290,7 @@ export const pathwayCategories = [
   },
   {
     number: "04",
-    title: "International Opportunities",
+    title: "International Pathway",
     icon: Compass,
     description: "Explore pathways for studying, training and working in different countries.",
     href: "/programs",

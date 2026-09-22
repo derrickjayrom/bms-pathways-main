@@ -369,7 +369,7 @@ const missionPillars = [
   {
     title: "Information",
     icon: Info,
-    text: "Provide practical information on specialization, postgraduate education and international opportunities.",
+    text: "Provide practical information on specialization, postgraduate education and international pathways.",
   },
   {
     title: "Mentorship",

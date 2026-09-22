@@ -96,7 +96,7 @@ export function HomePage() {
                 variant="outline"
                 className="border-white/25 bg-white/5 hover:bg-white/10 text-white font-medium rounded-md px-6"
               >
-                <a href="#pathways">Explore Career Pathways</a>
+                <Link to="/programs">Explore Career Pathways</Link>
               </Button>
             </div>
           </div>

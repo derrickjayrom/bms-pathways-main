@@ -2,12 +2,15 @@ import { useState, useEffect } from "react";
 import { Link } from "@tanstack/react-router";
 import {
   ArrowRight,
+  ArrowDown,
+  Check,
   CheckCircle2,
   AlertCircle,
   Download,
   Lock,
   Unlock,
   ChevronRight,
+  ChevronDown,
   Sparkles,
   ExternalLink,
   RotateCcw,
@@ -231,57 +234,158 @@ export function UsResidencyPathwayPage() {
     toast.info("Sequence reset to Stage 1.");
   };
 
-  // Top flowchart stages as requested in user notes with icons and responsive pipeline
-  const topFlowchart = [
+  // Flowchart milestones structured into 2 distinct, connected strategic phases
+  // with a progressive green fading ramp from Stage 01 (high green) fading down to Stage 08
+  const phase1Milestones = [
     {
-      number: "01",
+      stageLabel: "STAGE 01",
       title: "MEDICAL SCHOOL",
-      subtitle: "Foundations & Clinical Timing",
+      targetIndex: 0,
+      stageId: "stage-01",
       icon: GraduationCap,
+      checkCompleted: (ids: string[]) => ids.includes("stage-01"),
+      cardStyle: {
+        background: "linear-gradient(135deg, rgba(16, 185, 129, 0.40) 0%, rgba(16, 185, 129, 0.28) 100%)",
+        borderColor: "rgba(16, 185, 129, 0.70)",
+      },
+      badgeStyle: {
+        backgroundColor: "#10B981",
+        color: "#ffffff",
+      },
+      iconClass: "bg-white/95 text-emerald-950 shadow-2xs",
     },
     {
-      number: "02",
+      stageLabel: "STAGE 02",
       title: "ESTABLISH MyIntealth Identity",
-      subtitle: "Account & Online Notarization",
+      targetIndex: 1,
+      stageId: "stage-02",
       icon: UserCheck,
+      checkCompleted: (ids: string[]) => ids.includes("stage-02"),
+      cardStyle: {
+        background: "linear-gradient(135deg, rgba(16, 185, 129, 0.32) 0%, rgba(16, 185, 129, 0.22) 100%)",
+        borderColor: "rgba(16, 185, 129, 0.58)",
+      },
+      badgeStyle: {
+        backgroundColor: "rgba(16, 185, 129, 0.92)",
+        color: "#ffffff",
+      },
+      iconClass: "bg-white/90 text-emerald-900 shadow-2xs",
     },
     {
-      number: "03",
+      stageLabel: "STAGE 03",
       title: "ECFMG CERTIFICATION APPLICATION",
-      subtitle: "Primary-Source Verification",
+      targetIndex: 2,
+      stageId: "stage-03",
       icon: FileCheck,
+      checkCompleted: (ids: string[]) => ids.includes("stage-03"),
+      cardStyle: {
+        background: "linear-gradient(135deg, rgba(16, 185, 129, 0.25) 0%, rgba(16, 185, 129, 0.16) 100%)",
+        borderColor: "rgba(16, 185, 129, 0.46)",
+      },
+      badgeStyle: {
+        backgroundColor: "rgba(16, 185, 129, 0.82)",
+        color: "#ffffff",
+      },
+      iconClass: "bg-white/85 text-emerald-800",
     },
     {
-      number: "04",
+      stageLabel: "STAGE 04",
       title: "USMLE STEPs",
-      subtitle: "Step 1 (P/F) & Step 2 CK",
+      targetIndex: 3,
+      stageId: "stage-04",
       icon: Stethoscope,
-    },
-    {
-      number: "05",
-      title: "ECFMG",
-      subtitle: "OET & Pathway Certification",
-      icon: Award,
-    },
-    {
-      number: "06",
-      title: "ERAS",
-      subtitle: "Residency Application & Token",
-      icon: Send,
-    },
-    {
-      number: "07",
-      title: "INTERVIEWS",
-      subtitle: "Program Review & Assessment",
-      icon: MessageSquare,
-    },
-    {
-      number: "08",
-      title: "MATCH",
-      subtitle: "NRMP Rank Order List & Match Day",
-      icon: Trophy,
+      checkCompleted: (ids: string[]) => ids.includes("stage-05") || ids.includes("stage-07"),
+      cardStyle: {
+        background: "linear-gradient(135deg, rgba(16, 185, 129, 0.19) 0%, rgba(16, 185, 129, 0.11) 100%)",
+        borderColor: "rgba(16, 185, 129, 0.36)",
+      },
+      badgeStyle: {
+        backgroundColor: "rgba(16, 185, 129, 0.72)",
+        color: "#ffffff",
+      },
+      iconClass: "bg-white/80 text-emerald-800",
     },
   ];
+
+  const phase2Milestones = [
+    {
+      stageLabel: "STAGE 05",
+      title: "ECFMG",
+      targetIndex: 8,
+      stageId: "stage-09",
+      icon: Award,
+      checkCompleted: (ids: string[]) => ids.includes("stage-09"),
+      cardStyle: {
+        background: "linear-gradient(135deg, rgba(16, 185, 129, 0.14) 0%, rgba(16, 185, 129, 0.07) 100%)",
+        borderColor: "rgba(16, 185, 129, 0.28)",
+      },
+      badgeStyle: {
+        backgroundColor: "rgba(16, 185, 129, 0.62)",
+        color: "#ffffff",
+      },
+      iconClass: "bg-stone-50/90 text-emerald-700",
+    },
+    {
+      stageLabel: "STAGE 06",
+      title: "ERAS",
+      targetIndex: 9,
+      stageId: "stage-10",
+      icon: Send,
+      checkCompleted: (ids: string[]) => ids.includes("stage-10"),
+      cardStyle: {
+        background: "linear-gradient(135deg, rgba(16, 185, 129, 0.09) 0%, rgba(16, 185, 129, 0.04) 100%)",
+        borderColor: "rgba(16, 185, 129, 0.20)",
+      },
+      badgeStyle: {
+        backgroundColor: "rgba(16, 185, 129, 0.48)",
+        color: "#ffffff",
+      },
+      iconClass: "bg-stone-50/90 text-stone-600",
+    },
+    {
+      stageLabel: "STAGE 07",
+      title: "INTERVIEWS",
+      targetIndex: 10,
+      stageId: "stage-11",
+      icon: MessageSquare,
+      checkCompleted: (ids: string[]) => ids.includes("stage-11"),
+      cardStyle: {
+        background: "linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, rgba(16, 185, 129, 0.02) 100%)",
+        borderColor: "rgba(16, 185, 129, 0.14)",
+      },
+      badgeStyle: {
+        backgroundColor: "rgba(16, 185, 129, 0.30)",
+        color: "#064e3b",
+      },
+      iconClass: "bg-stone-50/90 text-stone-600",
+    },
+    {
+      stageLabel: "STAGE 08",
+      title: "MATCH",
+      targetIndex: 12,
+      stageId: "stage-13",
+      icon: Trophy,
+      checkCompleted: (ids: string[]) => ids.includes("stage-13"),
+      cardStyle: {
+        background: "#ffffff",
+        borderColor: "#e5e7eb",
+      },
+      badgeStyle: {
+        backgroundColor: "#f3f4f6",
+        color: "#374151",
+      },
+      iconClass: "bg-stone-50/90 text-stone-500",
+    },
+  ];
+
+  const handleFlowchartCardClick = (targetIndex: number, stageId: string) => {
+    setExpandedStageId(stageId);
+    const el = document.getElementById(`stage-card-${targetIndex}`);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+      toast.info(`Viewing Stage: ${usmleRoadmapStages[targetIndex]?.title}`);
+    }
+  };
 
   const currentStage = usmleRoadmapStages[activeStageIndex];
   const progressPercent = Math.round(
@@ -353,10 +457,11 @@ export function UsResidencyPathwayPage() {
             </div>
           </div>
 
-          {/* FLOW CHART AT TOP (SLEEK 8-MILESTONE PIPELINE - NO SCROLLING) */}
+          {/* FLOW CHART AT TOP (INTERACTIVE HIGH-END PROCESS PIPELINE - ZERO HORIZONTAL SCROLL) */}
           <div className="mt-12 pt-8 border-t border-border/70">
             <div className="rounded-2xl border border-stone-200/90 bg-gradient-to-b from-stone-50/70 via-white to-stone-50/40 p-5 sm:p-7 shadow-xs">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-5">
+              {/* FLOWCHART HEADER */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
                 <div>
                   <div className="flex items-center gap-2 mb-1">
                     <span className="size-2 rounded-full bg-[#10B981] animate-pulse" />
@@ -365,73 +470,198 @@ export function UsResidencyPathwayPage() {
                     </p>
                   </div>
                   <h3 className="text-lg sm:text-xl font-extrabold text-foreground tracking-tight">
-                    Sequence from Medical School to Match Day
+                    End-to-End Sequence from Medical School to NRMP Match
                   </h3>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Click any stage to view its full guidance and requirements in the roadmap below.
+                  </p>
                 </div>
-                <span className="inline-flex items-center text-xs font-bold text-stone-700 bg-stone-100 px-3 py-1 rounded-lg w-fit">
-                  8 Core Milestones • Strictly Sequential
-                </span>
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className="inline-flex items-center gap-1.5 text-xs font-bold text-stone-700 bg-stone-100 px-3 py-1.5 rounded-lg border border-stone-200/60">
+                    <Sparkles size={13} className="text-[#10B981]" />
+                    8 Sequential Milestones
+                  </span>
+                </div>
               </div>
 
-              {/* RESPONSIVE 4x2 GRID - ZERO SCROLLING */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-                {topFlowchart.map((step, idx) => {
-                  const Icon = step.icon;
-                  const isFinal = idx === topFlowchart.length - 1;
+              {/* PHASE 1: ACADEMIC CREDENTIALS & BOARD EXAMS */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between px-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[11px] font-black uppercase tracking-wider text-sky-700 bg-sky-50 border border-sky-200/80 px-2.5 py-0.5 rounded-md">
+                      Phase 1
+                    </span>
+                    <span className="text-xs font-bold text-foreground">
+                      Academic Foundations & USMLE Board Examinations
+                    </span>
+                  </div>
+                  <span className="text-[11px] text-muted-foreground font-medium hidden sm:inline">
+                    STAGE 01 – STAGE 04
+                  </span>
+                </div>
 
-                  return (
-                    <div
-                      key={step.title}
-                      className={`relative rounded-xl border p-4 flex flex-col justify-between transition-all duration-200 group ${
-                        isFinal
-                          ? "border-[#10B981] bg-emerald-50/40 shadow-xs ring-1 ring-[#10B981]/30"
-                          : "border-stone-200/80 bg-card hover:border-[#10B981]/70 hover:shadow-xs"
-                      }`}
-                    >
-                      <div>
-                        <div className="flex items-center justify-between mb-3">
-                          <span
-                            className={`inline-flex items-center justify-center size-7 rounded-md text-xs font-bold ${
-                              isFinal
-                                ? "bg-[#10B981] text-white"
-                                : "bg-stone-100 text-stone-700 group-hover:bg-[#10B981]/10 group-hover:text-[#10B981]"
-                            }`}
-                          >
-                            {step.number}
-                          </span>
-                          <div
-                            className={`size-7 rounded-lg flex items-center justify-center ${
-                              isFinal
-                                ? "text-[#10B981] bg-emerald-100/60"
-                                : "text-stone-500 group-hover:text-[#10B981]"
-                            }`}
-                          >
-                            <Icon size={16} />
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 relative">
+                  {phase1Milestones.map((step, idx) => {
+                    const Icon = step.icon;
+                    const isStepPassed = step.checkCompleted(completedStageIds);
+
+                    return (
+                      <div
+                        key={step.title}
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => handleFlowchartCardClick(step.targetIndex, step.stageId)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            handleFlowchartCardClick(step.targetIndex, step.stageId);
+                          }
+                        }}
+                        style={step.cardStyle}
+                        className={`group relative rounded-xl border p-4 flex flex-col justify-between transition-all duration-200 cursor-pointer hover:-translate-y-0.5 hover:shadow-md min-h-[96px] ${
+                          isStepPassed ? "ring-2 ring-emerald-500/40" : ""
+                        }`}
+                      >
+                        <div>
+                          <div className="flex items-center justify-between mb-3">
+                            <span
+                              style={step.badgeStyle}
+                              className="inline-flex items-center justify-center h-6 px-2.5 rounded-md text-[11px] font-black tracking-wide shadow-2xs"
+                            >
+                              {step.stageLabel}
+                            </span>
+
+                            <div className="flex items-center gap-1.5">
+                              {isStepPassed && (
+                                <span className="flex items-center gap-0.5 text-[10px] font-bold text-emerald-800 bg-emerald-100/90 px-2 py-0.5 rounded-full border border-emerald-300">
+                                  <Check size={10} strokeWidth={3} /> Passed
+                                </span>
+                              )}
+                              <div
+                                className={`size-7 rounded-lg flex items-center justify-center transition-colors ${step.iconClass}`}
+                              >
+                                <Icon size={16} />
+                              </div>
+                            </div>
                           </div>
+
+                          <h4 className="text-xs sm:text-sm font-bold text-stone-900 leading-snug tracking-tight group-hover:text-emerald-800 transition-colors">
+                            {step.title}
+                          </h4>
                         </div>
 
-                        <h4 className="text-xs sm:text-sm font-bold text-foreground leading-snug tracking-tight">
-                          {step.title}
-                        </h4>
-                        <p className="text-[11px] sm:text-xs text-muted-foreground mt-1 leading-normal font-medium">
-                          {step.subtitle}
-                        </p>
+                        {/* CONNECTOR ARROW FOR DESKTOP */}
+                        {idx < 3 && (
+                          <div className="hidden lg:flex absolute -right-3.5 top-1/2 -translate-y-1/2 z-10 size-6 rounded-full bg-white border border-stone-200 items-center justify-center text-[#10B981] shadow-2xs pointer-events-none group-hover:border-[#10B981]">
+                            <ArrowRight size={11} strokeWidth={2.5} />
+                          </div>
+                        )}
                       </div>
-
-                      {/* CONNECTOR ARROW (Desktop between 1-2, 2-3, 3-4, 5-6, 6-7, 7-8) */}
-                      {idx % 4 !== 3 && idx < topFlowchart.length - 1 && (
-                        <div className="hidden md:flex absolute -right-3 top-1/2 -translate-y-1/2 z-10 size-6 rounded-full bg-white border border-stone-200 items-center justify-center text-[#10B981] shadow-2xs pointer-events-none">
-                          <ArrowRight size={11} strokeWidth={2.5} />
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </div>
 
-              <p className="text-xs text-muted-foreground mt-3.5 italic">
-                Note: These activities can overlap. Certification and program deadlines differ across cycles.
-              </p>
+              {/* TRANSITION BRIDGE: PHASE 1 -> PHASE 2 */}
+              <div className="my-4 lg:my-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 px-4 sm:px-5 py-2.5 rounded-xl bg-gradient-to-r from-sky-50/70 via-emerald-50/60 to-emerald-100/50 border border-emerald-200/70 text-xs text-stone-700">
+                <div className="flex items-center gap-2 font-bold text-stone-800">
+                  <span className="flex size-5 rounded-full bg-[#10B981] text-white items-center justify-center text-[10px] font-black shrink-0">
+                    ✓
+                  </span>
+                  <span>Step 1 & Step 2 CK Completed</span>
+                  <span className="text-muted-foreground font-normal hidden md:inline">
+                    • Unlocks ECFMG Pathways, OET Medicine & Residency Application Season
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5 font-bold text-[#10B981] text-xs shrink-0 self-end sm:self-auto">
+                  <span>Advance to Phase 2: ERAS & Match</span>
+                  <ArrowDown size={14} className="animate-bounce" />
+                </div>
+              </div>
+
+              {/* PHASE 2: CERTIFICATION, APPLICATIONS & THE MATCH */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between px-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[11px] font-black uppercase tracking-wider text-emerald-800 bg-emerald-50 border border-emerald-200/80 px-2.5 py-0.5 rounded-md">
+                      Phase 2
+                    </span>
+                    <span className="text-xs font-bold text-foreground">
+                      ECFMG Pathways, Residency Applications & NRMP Match
+                    </span>
+                  </div>
+                  <span className="text-[11px] text-muted-foreground font-medium hidden sm:inline">
+                    STAGE 05 – STAGE 08
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 relative">
+                  {phase2Milestones.map((step, idx) => {
+                    const Icon = step.icon;
+                    const isStepPassed = step.checkCompleted(completedStageIds);
+
+                    return (
+                      <div
+                        key={step.title}
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => handleFlowchartCardClick(step.targetIndex, step.stageId)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            handleFlowchartCardClick(step.targetIndex, step.stageId);
+                          }
+                        }}
+                        style={step.cardStyle}
+                        className={`group relative rounded-xl border p-4 flex flex-col justify-between transition-all duration-200 cursor-pointer hover:-translate-y-0.5 hover:shadow-md min-h-[96px] ${
+                          isStepPassed ? "ring-2 ring-emerald-500/40" : ""
+                        }`}
+                      >
+                        <div>
+                          <div className="flex items-center justify-between mb-3">
+                            <span
+                              style={step.badgeStyle}
+                              className="inline-flex items-center justify-center h-6 px-2.5 rounded-md text-[11px] font-black tracking-wide shadow-2xs"
+                            >
+                              {step.stageLabel}
+                            </span>
+
+                            <div className="flex items-center gap-1.5">
+                              {isStepPassed && (
+                                <span className="flex items-center gap-0.5 text-[10px] font-bold text-emerald-800 bg-emerald-100/90 px-2 py-0.5 rounded-full border border-emerald-300">
+                                  <Check size={10} strokeWidth={3} /> Passed
+                                </span>
+                              )}
+
+                              <div
+                                className={`size-7 rounded-lg flex items-center justify-center transition-colors ${step.iconClass}`}
+                              >
+                                <Icon size={16} />
+                              </div>
+                            </div>
+                          </div>
+
+                          <h4 className="text-xs sm:text-sm font-bold text-stone-900 leading-snug tracking-tight group-hover:text-emerald-800 transition-colors">
+                            {step.title}
+                          </h4>
+                        </div>
+
+                        {/* CONNECTOR ARROW FOR DESKTOP */}
+                        {idx < 3 && (
+                          <div className="hidden lg:flex absolute -right-3.5 top-1/2 -translate-y-1/2 z-10 size-6 rounded-full bg-white border border-stone-200 items-center justify-center text-[#10B981] shadow-2xs pointer-events-none group-hover:border-[#10B981]">
+                            <ArrowRight size={11} strokeWidth={2.5} />
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* FOOTER CAPTION & NOTE */}
+              <div className="mt-4 pt-3 border-t border-stone-200/60 flex items-center justify-between text-xs text-muted-foreground">
+                <p className="italic">
+                  Note: Preparation activities overlap. Certification and program application deadlines differ across cycles.
+                </p>
+              </div>
             </div>
           </div>
         </div>

@@ -18,6 +18,8 @@ import { Route as MentorshipRouteImport } from './routes/mentorship'
 import { Route as ProgramsRouteImport } from './routes/programs'
 import { Route as ResourcesRouteImport } from './routes/resources'
 import { Route as TeamRouteImport } from './routes/team'
+import { Route as CareerExplorationIndexRouteImport } from './routes/career-exploration/index'
+import { Route as CareerExplorationUsResidencyRouteImport } from './routes/career-exploration/us-residency'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -64,6 +66,17 @@ const TeamRoute = TeamRouteImport.update({
   path: '/team',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CareerExplorationIndexRoute = CareerExplorationIndexRouteImport.update({
+  id: '/career-exploration/',
+  path: '/career-exploration/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CareerExplorationUsResidencyRoute =
+  CareerExplorationUsResidencyRouteImport.update({
+    id: '/career-exploration/us-residency',
+    path: '/career-exploration/us-residency',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -75,6 +88,8 @@ export interface FileRoutesByFullPath {
   '/programs': typeof ProgramsRoute
   '/resources': typeof ResourcesRoute
   '/team': typeof TeamRoute
+  '/career-exploration/us-residency': typeof CareerExplorationUsResidencyRoute
+  '/career-exploration/': typeof CareerExplorationIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -86,6 +101,8 @@ export interface FileRoutesByTo {
   '/programs': typeof ProgramsRoute
   '/resources': typeof ResourcesRoute
   '/team': typeof TeamRoute
+  '/career-exploration/us-residency': typeof CareerExplorationUsResidencyRoute
+  '/career-exploration': typeof CareerExplorationIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -98,6 +115,8 @@ export interface FileRoutesById {
   '/programs': typeof ProgramsRoute
   '/resources': typeof ResourcesRoute
   '/team': typeof TeamRoute
+  '/career-exploration/us-residency': typeof CareerExplorationUsResidencyRoute
+  '/career-exploration/': typeof CareerExplorationIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -111,6 +130,8 @@ export interface FileRouteTypes {
     | '/programs'
     | '/resources'
     | '/team'
+    | '/career-exploration/us-residency'
+    | '/career-exploration/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -122,6 +143,8 @@ export interface FileRouteTypes {
     | '/programs'
     | '/resources'
     | '/team'
+    | '/career-exploration/us-residency'
+    | '/career-exploration'
   id:
     | '__root__'
     | '/'
@@ -133,6 +156,8 @@ export interface FileRouteTypes {
     | '/programs'
     | '/resources'
     | '/team'
+    | '/career-exploration/us-residency'
+    | '/career-exploration/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -145,6 +170,8 @@ export interface RootRouteChildren {
   ProgramsRoute: typeof ProgramsRoute
   ResourcesRoute: typeof ResourcesRoute
   TeamRoute: typeof TeamRoute
+  CareerExplorationUsResidencyRoute: typeof CareerExplorationUsResidencyRoute
+  CareerExplorationIndexRoute: typeof CareerExplorationIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -212,6 +239,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TeamRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/career-exploration/': {
+      id: '/career-exploration/'
+      path: '/career-exploration'
+      fullPath: '/career-exploration/'
+      preLoaderRoute: typeof CareerExplorationIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/career-exploration/us-residency': {
+      id: '/career-exploration/us-residency'
+      path: '/career-exploration/us-residency'
+      fullPath: '/career-exploration/us-residency'
+      preLoaderRoute: typeof CareerExplorationUsResidencyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -225,6 +266,8 @@ const rootRouteChildren: RootRouteChildren = {
   ProgramsRoute: ProgramsRoute,
   ResourcesRoute: ResourcesRoute,
   TeamRoute: TeamRoute,
+  CareerExplorationUsResidencyRoute: CareerExplorationUsResidencyRoute,
+  CareerExplorationIndexRoute: CareerExplorationIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

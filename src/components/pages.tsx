@@ -754,16 +754,33 @@ export function ProgramsPage() {
             ))}
           </div>
           <div className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-            {shown.map((p) => (
-              <IconCard key={p.title} icon={<p.icon />} title={p.title}>
-                <>
-                  {p.text}
-                  <span className="mt-5 flex items-center gap-1 font-semibold text-primary">
-                    Details coming soon <ArrowRight size={14} />
-                  </span>
-                </>
-              </IconCard>
-            ))}
+            {shown.map((p) => {
+              const Icon = p.icon;
+              return (
+                <div
+                  key={p.title}
+                  className="rounded-xl border border-border/70 bg-card p-8 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow group"
+                >
+                  <div>
+                    <div className="size-12 rounded-lg bg-stone-100 flex items-center justify-center text-[#10B981] mb-6 group-hover:bg-[#10B981] group-hover:text-white transition-colors">
+                      <Icon className="size-6" />
+                    </div>
+                    <h3 className="text-xl font-bold text-foreground">{p.title}</h3>
+                    <p className="mt-3 text-sm text-muted-foreground leading-relaxed">
+                      {p.text}
+                    </p>
+                  </div>
+                  <div className="mt-8">
+                    <Link
+                      to={p.href || "/career-exploration"}
+                      className="inline-flex items-center text-sm font-semibold text-[#10B981] hover:text-[#059669] transition-colors"
+                    >
+                      {p.buttonText || "Explore Details"} <ArrowRight className="ml-1.5 size-4" />
+                    </Link>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -1508,3 +1525,5 @@ export function ContactPage() {
     </>
   );
 }
+
+export { CareerExplorationPage, UsResidencyPathwayPage } from "./career-exploration";

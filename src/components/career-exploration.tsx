@@ -577,7 +577,7 @@ export function UsResidencyPathwayPage() {
   const phase2Milestones = [
     {
       stageLabel: "STAGE 05",
-      title: "ECFMG",
+      title: "ECFMG CERTIFICATION",
       targetIndex: 8,
       stageId: "stage-09",
       icon: Award,

@@ -562,7 +562,7 @@ export const usmleRoadmapStages: UsmleRoadmapStage[] = [
   {
     id: "stage-04",
     number: "04",
-    title: "04 Registered for Step 1",
+    title: "04 Register for Step 1",
     summary:
       "Register through FSMB, obtain your Prometric permit, and prepare with standard high-yield resources.",
     fees: [

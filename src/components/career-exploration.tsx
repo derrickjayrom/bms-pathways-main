@@ -679,7 +679,7 @@ export function UsResidencyPathwayPage() {
             </h2>
             <p className="mt-2 text-sm sm:text-base text-muted-foreground">
               Pass each stage in sequence to continue to the next stage. If an exam is not passed,
-              an alternative option guides your preparation.
+              guidance on what to do will guide your preparation.
             </p>
           </div>
 
@@ -898,7 +898,7 @@ export function UsResidencyPathwayPage() {
                               className="h-11 sm:h-12 px-6 text-sm sm:text-base font-bold border-2 border-amber-300 text-amber-950 hover:bg-amber-50 rounded-xl"
                             >
                               <AlertCircle className="mr-2 size-5 text-amber-600" />
-                              {showAlt ? "Hide Alternative Option" : "Did Not Pass? View Alternative Option"}
+                              {showAlt ? "Hide What to do" : "Did Not Pass? What to do"}
                             </Button>
                           </div>
 

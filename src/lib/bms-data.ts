@@ -556,10 +556,10 @@ export const usmleRoadmapStages: UsmleRoadmapStage[] = [
     details: [
       "Scored as Pass/Fail.",
       "If you passed: Continue directly to the next stage (06 Register for Step 2).",
-      "If you did not pass: Follow the alternative recovery option below.",
+      "If you did not pass: Follow the 'What to do' guidance below.",
     ],
     altOption: {
-      title: "Alternative Option: Step 1 Preparation Recovery & Retake Guidance",
+      title: "What to do: Step 1 Preparation Recovery & Retake Guidance",
       description:
         "Step 1 is scored as Pass/Fail. If not passed, reset your preparation strategy before retaking.",
       actionSteps: [
@@ -598,10 +598,10 @@ export const usmleRoadmapStages: UsmleRoadmapStage[] = [
     details: [
       "Step 2 CK is scored numerically on a 3-digit scale.",
       "If you passed: Continue directly to the next stage (08 Build a competitive IMG profile).",
-      "If you did not pass: Follow the alternative recovery option below.",
+      "If you did not pass: Follow the 'What to do' guidance below.",
     ],
     altOption: {
-      title: "Alternative Option: Step 2 CK Remediation & Step 3 Guidance",
+      title: "What to do: Step 2 CK Remediation & Step 3 Guidance",
       description:
         "If Step 2 CK is not passed, review clinical decision-making areas and recalibrate preparation.",
       actionSteps: [

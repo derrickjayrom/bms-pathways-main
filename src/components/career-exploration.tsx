@@ -150,6 +150,11 @@ export function UsResidencyPathwayPage() {
   const [completedStageIds, setCompletedStageIds] = useState<string[]>([]);
   const [showAltOptionForStage, setShowAltOptionForStage] = useState<string | null>(null);
   const [expandedStageId, setExpandedStageId] = useState<string | null>(null);
+  const [activeStageDetailsHidden, setActiveStageDetailsHidden] = useState(false);
+
+  useEffect(() => {
+    setActiveStageDetailsHidden(false);
+  }, [activeStageIndex]);
 
   // Load subscription state from localStorage
   useEffect(() => {
@@ -380,6 +385,9 @@ export function UsResidencyPathwayPage() {
 
   const handleFlowchartCardClick = (targetIndex: number, stageId: string) => {
     setExpandedStageId(stageId);
+    if (targetIndex === activeStageIndex) {
+      setActiveStageDetailsHidden(false);
+    }
     const el = document.getElementById(`stage-card-${targetIndex}`);
     if (el) {
       el.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -755,7 +763,9 @@ export function UsResidencyPathwayPage() {
               const isCurrent = idx === activeStageIndex;
               const isCompleted = completedStageIds.includes(stage.id);
               const showAlt = showAltOptionForStage === stage.id;
-              const isExpanded = expandedStageId === stage.id || isCurrent;
+              const isExpanded = isCurrent
+                ? !activeStageDetailsHidden
+                : expandedStageId === stage.id;
               const cleanTitle = stage.title.replace(/^\d+\s*/, "");
 
               return (
@@ -813,7 +823,7 @@ export function UsResidencyPathwayPage() {
                           variant="ghost"
                           onClick={() => {
                             if (isCurrent) {
-                              setExpandedStageId(isExpanded ? null : stage.id);
+                              setActiveStageDetailsHidden((prev) => !prev);
                             } else {
                               setExpandedStageId(expandedStageId === stage.id ? null : stage.id);
                             }

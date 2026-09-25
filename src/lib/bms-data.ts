@@ -716,8 +716,6 @@ export const usmleRoadmapStages: UsmleRoadmapStage[] = [
     summary:
       "Discover whether you matched, find out your matched program, and celebrate.",
     details: [
-      "15 March 2027: Match status released / Match Week begins.",
-      "19 March 2027: Match Day: program placement released.",
       "Find out whether you matched and, if matched, the program where you will begin residency training.",
       "Matching does not guarantee your first choice.",
     ],

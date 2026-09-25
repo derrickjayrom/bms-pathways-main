@@ -571,7 +571,15 @@ export function AdminSubscriptionsDashboard() {
           </form>
 
           <div className="mt-6 pt-5 border-t border-stone-800/80 text-center text-xs text-stone-500">
-            Protected area for Beyond Medical School administrators.
+            <div>Protected area for Beyond Medical School administrators.</div>
+            <div className="mt-2.5">
+              <a
+                href="/"
+                className="text-stone-400 hover:text-emerald-400 transition-colors inline-flex items-center gap-1 font-medium"
+              >
+                &larr; Back to public website
+              </a>
+            </div>
           </div>
         </div>
       </div>
@@ -606,6 +614,15 @@ export function AdminSubscriptionsDashboard() {
           </div>
 
           <div className="flex items-center gap-2.5">
+            <a
+              href="/"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-stone-700 bg-stone-800/70 text-stone-300 hover:text-white hover:bg-stone-700 text-xs font-semibold transition-colors"
+            >
+              <ExternalLink size={13} />
+              <span className="hidden sm:inline">View Website</span>
+            </a>
             <Button
               variant="outline"
               size="sm"

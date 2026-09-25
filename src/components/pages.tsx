@@ -135,18 +135,165 @@ export function HomePage() {
                     <p className="mt-3 text-sm text-muted-foreground leading-relaxed">
                       {card.description}
                     </p>
+
+                    {card.interests && (
+                      <div className="mt-5 pt-4 border-t border-border/70">
+                        <p className="text-xs font-bold uppercase tracking-wider text-[#10B981] mb-2.5">
+                          Interests
+                        </p>
+                        <div className="flex flex-col gap-1.5">
+                          {card.interests.map((item) => (
+                            <Link
+                              key={item.label}
+                              to={item.href}
+                              className="flex items-center justify-between text-xs font-semibold text-foreground hover:text-[#10B981] py-1 px-1.5 rounded-md hover:bg-stone-50 transition-colors"
+                            >
+                              <span>{item.label}</span>
+                              <ArrowRight className="size-3 text-[#10B981]" />
+                            </Link>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                   <div className="mt-8">
-                    <Link
-                      to={card.href}
-                      className="inline-flex items-center text-sm font-semibold text-foreground hover:text-[#10B981] transition-colors"
-                    >
-                      {card.buttonText} <ArrowRight className="ml-1.5 size-4" />
-                    </Link>
+                    {card.href.startsWith("#") ? (
+                      <a
+                        href={card.href}
+                        className="inline-flex items-center text-sm font-semibold text-foreground hover:text-[#10B981] transition-colors"
+                      >
+                        {card.buttonText} <ArrowRight className="ml-1.5 size-4" />
+                      </a>
+                    ) : (
+                      <Link
+                        to={card.href}
+                        className="inline-flex items-center text-sm font-semibold text-foreground hover:text-[#10B981] transition-colors"
+                      >
+                        {card.buttonText} <ArrowRight className="ml-1.5 size-4" />
+                      </Link>
+                    )}
                   </div>
                 </div>
               );
             })}
+          </div>
+        </div>
+      </section>
+
+      {/* 2.5 "INTERESTS: MAP YOUR MEDICAL CAREER" */}
+      <section id="interests" className="py-16 lg:py-20 bg-stone-50/80 border-y border-border/70 scroll-mt-12">
+        <div className="mx-auto max-w-7xl px-5 lg:px-8">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+            <div className="max-w-3xl">
+              <p className="text-xs font-bold uppercase tracking-widest text-[#10B981]">
+                INTERESTS
+              </p>
+              <h2 className="mt-2 text-3xl font-extrabold text-foreground sm:text-4xl tracking-tight">
+                Map My Medical Career by Interests
+              </h2>
+              <p className="mt-3 text-base text-muted-foreground sm:text-lg leading-relaxed">
+                Decide how to map your medical career based on your destination and clinical goals.
+                Explore step-by-step pathways tailored to your interests.
+              </p>
+            </div>
+            <Button asChild variant="outline" className="border-stone-300 font-bold self-start md:self-auto rounded-xl">
+              <Link to="/career-exploration">
+                View All Pathways <ArrowRight className="ml-2 size-4 text-[#10B981]" />
+              </Link>
+            </Button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Card 1: U.S. Residency Pathway */}
+            <div className="rounded-2xl border-2 border-[#10B981]/50 bg-card p-7 shadow-xs flex flex-col justify-between hover:shadow-md hover:border-[#10B981] transition-all">
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-3xl">🇺🇸</span>
+                  <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800">
+                    Interactive Roadmap
+                  </span>
+                </div>
+                <h3 className="text-xl font-bold text-foreground">U.S. Residency Pathway</h3>
+                <p className="mt-2.5 text-sm text-muted-foreground leading-relaxed">
+                  Complete 14-stage journey for international medical graduates: USMLE Step 1 & 2 CK,
+                  ECFMG certification, Intealth, ERAS, interviews, and NRMP Match.
+                </p>
+                <div className="mt-4 flex flex-wrap gap-1.5">
+                  <span className="text-xs bg-stone-100 px-2 py-0.5 rounded font-medium text-stone-700">USMLE Step 1 & 2</span>
+                  <span className="text-xs bg-stone-100 px-2 py-0.5 rounded font-medium text-stone-700">ECFMG</span>
+                  <span className="text-xs bg-stone-100 px-2 py-0.5 rounded font-medium text-stone-700">NRMP Match</span>
+                </div>
+              </div>
+              <div className="mt-6 pt-5 border-t border-border/70">
+                <Button asChild className="w-full bg-[#10B981] hover:bg-[#059669] text-white font-bold h-11 rounded-xl shadow-xs">
+                  <Link to="/career-exploration/us-residency">
+                    Map U.S. Pathway <ArrowRight className="ml-2 size-4" />
+                  </Link>
+                </Button>
+              </div>
+            </div>
+
+            {/* Card 2: Other International Pathways */}
+            <div className="rounded-2xl border border-border/80 bg-card p-7 shadow-xs flex flex-col justify-between hover:shadow-md hover:border-[#10B981]/60 transition-all">
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-1.5 text-2xl">
+                    <span>🇬🇧</span>
+                    <span>🇨🇦</span>
+                    <span>🇦🇺</span>
+                  </div>
+                  <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-stone-100 text-stone-700">
+                    Global Routes
+                  </span>
+                </div>
+                <h3 className="text-xl font-bold text-foreground">Other International Pathways</h3>
+                <p className="mt-2.5 text-sm text-muted-foreground leading-relaxed">
+                  Explore licensing exams, eligibility, and postgraduate training routes across the UK
+                  (PLAB/UKMLA), Canada, Australia, and global health destinations.
+                </p>
+                <div className="mt-4 flex flex-wrap gap-1.5">
+                  <span className="text-xs bg-stone-100 px-2 py-0.5 rounded font-medium text-stone-700">UK (PLAB)</span>
+                  <span className="text-xs bg-stone-100 px-2 py-0.5 rounded font-medium text-stone-700">Canada</span>
+                  <span className="text-xs bg-stone-100 px-2 py-0.5 rounded font-medium text-stone-700">Australia</span>
+                </div>
+              </div>
+              <div className="mt-6 pt-5 border-t border-border/70">
+                <Button asChild variant="outline" className="w-full font-bold h-11 rounded-xl border-stone-300 hover:border-[#10B981] hover:text-[#10B981]">
+                  <Link to="/career-exploration">
+                    Explore Other Pathways <ArrowRight className="ml-2 size-4" />
+                  </Link>
+                </Button>
+              </div>
+            </div>
+
+            {/* Card 3: Clinical Specialization & Residency */}
+            <div className="rounded-2xl border border-border/80 bg-card p-7 shadow-xs flex flex-col justify-between hover:shadow-md hover:border-[#10B981]/60 transition-all">
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-3xl">🩺</span>
+                  <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-stone-100 text-stone-700">
+                    Clinical Careers
+                  </span>
+                </div>
+                <h3 className="text-xl font-bold text-foreground">Specialization & Residency</h3>
+                <p className="mt-2.5 text-sm text-muted-foreground leading-relaxed">
+                  Navigate clinical specialty choices, postgraduate colleges, portfolio development,
+                  fellowships, research, and healthcare leadership.
+                </p>
+                <div className="mt-4 flex flex-wrap gap-1.5">
+                  <span className="text-xs bg-stone-100 px-2 py-0.5 rounded font-medium text-stone-700">Residency</span>
+                  <span className="text-xs bg-stone-100 px-2 py-0.5 rounded font-medium text-stone-700">Fellowships</span>
+                  <span className="text-xs bg-stone-100 px-2 py-0.5 rounded font-medium text-stone-700">Programs</span>
+                </div>
+              </div>
+              <div className="mt-6 pt-5 border-t border-border/70">
+                <Button asChild variant="outline" className="w-full font-bold h-11 rounded-xl border-stone-300 hover:border-[#10B981] hover:text-[#10B981]">
+                  <Link to="/programs">
+                    Explore Specializations <ArrowRight className="ml-2 size-4" />
+                  </Link>
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -1082,18 +1229,47 @@ export function ResourcesPage() {
           <p className="mt-8 text-sm text-muted-foreground">{shown.length} resources</p>
           <div className="mt-4 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
             {shown.map((r) => (
-              <article key={r.title} className="rounded-lg border border-border bg-card p-6">
-                <span className="text-xs font-bold uppercase text-gold">{r.cat}</span>
-                <h2 className="mt-3 text-xl font-bold">{r.title}</h2>
-                <p className="mt-2 text-sm text-muted-foreground">{r.type} · 5 min read</p>
-                <Button
-                  className="mt-7"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => alert("This resource will be available soon.")}
-                >
-                  Preview <ExternalLink size={15} />
-                </Button>
+              <article
+                key={r.title}
+                className="rounded-lg border border-border bg-card p-6 flex flex-col justify-between hover:border-[#10B981]/50 hover:shadow-xs transition-all"
+              >
+                <div>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs font-bold uppercase text-gold">{r.cat}</span>
+                    {r.badge && (
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                        {r.badge}
+                      </span>
+                    )}
+                  </div>
+                  <h2 className="mt-3 text-xl font-bold leading-snug">{r.title}</h2>
+                  <p className="mt-2 text-sm text-muted-foreground">{r.type} · Complete Guide</p>
+                  {r.description && (
+                    <p className="mt-2.5 text-xs text-stone-600 leading-relaxed font-normal">
+                      {r.description}
+                    </p>
+                  )}
+                </div>
+                {r.href ? (
+                  <Button
+                    asChild
+                    className="mt-7 bg-[#10B981] hover:bg-[#059669] text-white font-bold"
+                    size="sm"
+                  >
+                    <Link to={r.href}>
+                      Open Guide <ArrowRight size={15} className="ml-1.5" />
+                    </Link>
+                  </Button>
+                ) : (
+                  <Button
+                    className="mt-7"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => alert("This resource will be available soon.")}
+                  >
+                    Preview <ExternalLink size={15} />
+                  </Button>
+                )}
               </article>
             ))}
           </div>

@@ -185,7 +185,25 @@ export const events = [
     icon: GraduationCap,
   },
 ];
-export const resources = [
+export interface MedicalResource {
+  title: string;
+  cat: string;
+  type: string;
+  href?: string;
+  badge?: string;
+  description?: string;
+}
+
+export const resources: MedicalResource[] = [
+  {
+    title: "Complete U.S. Residency Pathway Guide",
+    cat: "International Pathways",
+    type: "Interactive Guide",
+    href: "/career-exploration/us-residency",
+    badge: "Interactive Roadmap",
+    description:
+      "Comprehensive 14-stage roadmap for IMGs: USMLE Step 1 & 2 CK, ECFMG Certification, Intealth, ERAS, and NRMP Match.",
+  },
   { title: "Mapping Your Medical Career", cat: "Career Guides", type: "Guide" },
   { title: "The Standout Medical CV", cat: "CV & Interview", type: "Toolkit" },
   { title: "Research Starter Pack", cat: "Research", type: "Workbook" },
@@ -219,14 +237,23 @@ export const testimonials = [
 
 export const brandValues = ["Mentorship", "Exposure", "Opportunity", "Excellence", "Collaboration"];
 
-export const resourceCards = [
+export interface ResourceCardItem {
+  title: string;
+  icon: any;
+  description: string;
+  buttonText: string;
+  href: string;
+  interests?: { label: string; href: string }[];
+}
+
+export const resourceCards: ResourceCardItem[] = [
   {
     title: "Career Pathways",
     icon: GraduationCap,
     description:
       "Explore specialization, postgraduate training, research, academia and other career pathways.",
     buttonText: "Explore Pathways",
-    href: "/programs",
+    href: "/career-exploration",
   },
   {
     title: "Mentorship",
@@ -248,7 +275,7 @@ export const resourceCards = [
     title: "Resources",
     icon: BookOpen,
     description:
-      "Access guides, webinars, articles, templates and practical resources for your medical career.",
+      "Access guides, webinars, articles, templates, and the complete U.S. Residency Pathway guide for your medical career.",
     buttonText: "Browse Resources",
     href: "/resources",
   },
@@ -258,7 +285,12 @@ export const resourceCards = [
     description:
       "Explore different routes from medical school to your desired career and discover possible next steps.",
     buttonText: "Start Mapping",
-    href: "/programs",
+    href: "#interests",
+    interests: [
+      { label: "🇺🇸 U.S. Residency Pathway", href: "/career-exploration/us-residency" },
+      { label: "🌍 Other International Pathways", href: "/career-exploration" },
+      { label: "🩺 Specialization & Residency", href: "/programs" },
+    ],
   },
   {
     title: "Career Skills",

@@ -5,6 +5,7 @@ import {
   ArrowDown,
   Check,
   CheckCircle2,
+  CheckCheck,
   AlertCircle,
   Download,
   Lock,
@@ -22,6 +23,8 @@ import {
   Send,
   MessageSquare,
   Trophy,
+  Copy,
+  Smartphone,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -44,6 +47,18 @@ import {
 import { PageIntro } from "@/components/site";
 import { toast } from "sonner";
 import { supabase } from "@/utils/supabase";
+import {
+  getSiteSettings,
+  submitSubscriptionRequest,
+  verifySubscriptionStatus,
+  buildWhatsAppLink,
+  saveSubscribedSession,
+  getSavedSubscriptionSession,
+  type BmsSiteSettings,
+  type PathwaySubscription,
+  type SavedSubscriptionSession,
+  DEFAULT_SETTINGS,
+} from "@/lib/subscriptions";
 
 // ---------------------------------------------------------------------------
 // 1. CAREER EXPLORATION HUB PAGE
@@ -144,6 +159,9 @@ export function CareerExplorationPage() {
 export function UsResidencyPathwayPage() {
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [subscriptionOpen, setSubscriptionOpen] = useState(false);
+  const [modalMode, setModalMode] = useState<"subscribe" | "verify">("subscribe");
+  const [siteSettings, setSiteSettings] = useState<BmsSiteSettings>(DEFAULT_SETTINGS);
+  const [activeSession, setActiveSession] = useState<SavedSubscriptionSession | null>(null);
 
   // Sequential progression state: current active stage index (0 to 13)
   const [activeStageIndex, setActiveStageIndex] = useState(0);
@@ -156,18 +174,20 @@ export function UsResidencyPathwayPage() {
     setActiveStageDetailsHidden(false);
   }, [activeStageIndex]);
 
-  // Load subscription state from localStorage
+  // Load subscription state from localStorage & Supabase
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const stored = localStorage.getItem("bms_usmle_subscribed");
-      if (stored === "true") {
-        setIsSubscribed(true);
-      }
+    getSiteSettings().then((s) => setSiteSettings(s));
+
+    const session = getSavedSubscriptionSession();
+    if (session && session.status === "approved") {
+      setIsSubscribed(true);
+      setActiveSession(session);
     }
   }, []);
 
   const handleStartRoadmap = () => {
     if (!isSubscribed) {
+      setModalMode("subscribe");
       setSubscriptionOpen(true);
     } else {
       const el = document.getElementById("interactive-roadmap");
@@ -181,6 +201,7 @@ export function UsResidencyPathwayPage() {
     if (isSubscribed) {
       triggerDownload();
     } else {
+      setModalMode("subscribe");
       setSubscriptionOpen(true);
     }
   };
@@ -190,9 +211,18 @@ export function UsResidencyPathwayPage() {
     window.print();
   };
 
-  const handleSubscriptionSuccess = () => {
+  const handleSubscriptionSuccess = (sub?: PathwaySubscription) => {
     setIsSubscribed(true);
-    if (typeof window !== "undefined") {
+    if (sub) {
+      saveSubscribedSession(sub);
+      setActiveSession({
+        email: sub.email,
+        reference_code: sub.reference_code,
+        full_name: sub.full_name,
+        status: sub.status,
+        verified_at: new Date().toISOString(),
+      });
+    } else {
       localStorage.setItem("bms_usmle_subscribed", "true");
     }
     setSubscriptionOpen(false);
@@ -416,14 +446,33 @@ export function UsResidencyPathwayPage() {
             {isSubscribed ? (
               <span className="flex items-center gap-1.5 font-bold text-[#10B981]">
                 <Unlock size={14} /> Full Access Unlocked
+                {activeSession?.full_name && (
+                  <span className="text-xs text-muted-foreground hidden sm:inline font-normal">
+                    ({activeSession.full_name})
+                  </span>
+                )}
               </span>
             ) : (
-              <button
-                onClick={() => setSubscriptionOpen(true)}
-                className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors cursor-pointer font-semibold"
-              >
-                <Lock size={14} /> Unlock Complete Guide
-              </button>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => {
+                    setModalMode("verify");
+                    setSubscriptionOpen(true);
+                  }}
+                  className="text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer font-semibold underline underline-offset-4"
+                >
+                  Already Subscribed?
+                </button>
+                <button
+                  onClick={() => {
+                    setModalMode("subscribe");
+                    setSubscriptionOpen(true);
+                  }}
+                  className="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-[#10B981] hover:bg-[#059669] px-3 py-1.5 rounded-lg transition-colors cursor-pointer shadow-2xs"
+                >
+                  <Lock size={13} /> Unlock Complete Guide
+                </button>
+              </div>
             )}
           </div>
         </div>
@@ -691,8 +740,72 @@ export function UsResidencyPathwayPage() {
             </p>
           </div>
 
-          {/* SEQUENCE PROGRESS TRACKER BAR */}
-          <div className="max-w-4xl lg:max-w-5xl mx-auto mb-10 rounded-2xl border border-stone-200/90 bg-card p-5 sm:p-6 shadow-xs">
+          {!isSubscribed ? (
+            <div className="max-w-4xl lg:max-w-5xl mx-auto rounded-3xl border-2 border-dashed border-emerald-500/40 bg-gradient-to-b from-emerald-50/70 via-stone-50/60 to-white p-7 sm:p-12 text-center shadow-lg relative overflow-hidden my-4">
+              <div className="size-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-[#10B981] mx-auto mb-4 shadow-inner">
+                <Lock className="size-8" />
+              </div>
+              <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300/60 mb-3">
+                <Sparkles size={13} className="text-[#10B981]" />
+                Interactive Roadmap &amp; Complete Guide
+              </div>
+              <h3 className="text-2xl sm:text-3xl font-black text-foreground tracking-tight">
+                Unlock the Complete 8-Stage Interactive Roadmap
+              </h3>
+              <p className="mt-3 text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+                Step-by-step guidance through USMLE Step 1, Step 2 CK, OET, ECFMG certification, clinical electives, ERAS applications, and the NRMP Match with alternative branch pathways and downloadable resources.
+              </p>
+
+              {siteSettings.subscription_price && (
+                <div className="mt-5 inline-flex items-center gap-2 bg-white border border-stone-200/90 rounded-2xl px-5 py-2.5 shadow-2xs">
+                  <span className="text-xs font-extrabold text-muted-foreground uppercase tracking-wider">Access Fee:</span>
+                  <span className="text-base font-black text-[#10B981]">{siteSettings.subscription_price}</span>
+                  <span className="text-xs text-muted-foreground">(Lifetime Full Access)</span>
+                </div>
+              )}
+
+              <div className="mt-7 flex flex-wrap items-center justify-center gap-3.5">
+                <Button
+                  size="lg"
+                  onClick={() => {
+                    setModalMode("subscribe");
+                    setSubscriptionOpen(true);
+                  }}
+                  className="bg-[#10B981] hover:bg-[#059669] text-white font-bold h-12 px-7 rounded-xl shadow-md text-sm sm:text-base cursor-pointer"
+                >
+                  Subscribe &amp; Pay on WhatsApp <ArrowRight className="ml-2 size-4" />
+                </Button>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  onClick={() => {
+                    setModalMode("verify");
+                    setSubscriptionOpen(true);
+                  }}
+                  className="border-stone-300 hover:bg-stone-100 font-bold h-12 px-6 rounded-xl text-sm sm:text-base cursor-pointer"
+                >
+                  Already Paid? Verify Access
+                </Button>
+              </div>
+
+              <div className="mt-8 pt-6 border-t border-stone-200/70 max-w-lg mx-auto flex flex-wrap items-center justify-center gap-4 text-xs text-muted-foreground">
+                <span className="flex items-center gap-1 font-semibold text-stone-700">
+                  <CheckCheck size={14} className="text-[#10B981]" /> Instant Admin Verification
+                </span>
+                <span>•</span>
+                <span className="flex items-center gap-1 font-semibold text-stone-700">
+                  <MessageSquare size={14} className="text-[#10B981]" /> Direct WhatsApp Support
+                </span>
+                <span>•</span>
+                <span className="flex items-center gap-1 font-semibold text-stone-700">
+                  <Download size={14} className="text-[#10B981]" /> Complete Printable Guide
+                </span>
+              </div>
+            </div>
+          ) : (
+            <>
+              {/* SEQUENCE PROGRESS TRACKER BAR */}
+              <div className="max-w-4xl lg:max-w-5xl mx-auto mb-10 rounded-2xl border border-stone-200/90 bg-card p-5 sm:p-6 shadow-xs">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-sm mb-4">
               <div>
                 <span className="font-bold text-foreground">Sequential Progress: </span>
@@ -984,6 +1097,8 @@ export function UsResidencyPathwayPage() {
               );
             })}
           </div>
+            </>
+          )}
         </div>
       </section>
 
@@ -1178,107 +1293,405 @@ export function UsResidencyPathwayPage() {
         open={subscriptionOpen}
         onOpenChange={setSubscriptionOpen}
         onSuccess={handleSubscriptionSuccess}
+        siteSettings={siteSettings}
+        initialMode={modalMode}
       />
     </div>
   );
 }
 
 // ---------------------------------------------------------------------------
-// 3. SUBSCRIPTION MODAL COMPONENT
+// 3. ENHANCED SUBSCRIPTION MODAL COMPONENT (WHATSAPP GATEWAY & STATUS VERIFICATION)
 // ---------------------------------------------------------------------------
 function SubscriptionModal({
   open,
   onOpenChange,
   onSuccess,
+  siteSettings,
+  initialMode = "subscribe",
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSuccess: () => void;
+  onSuccess: (sub?: PathwaySubscription) => void;
+  siteSettings: BmsSiteSettings;
+  initialMode?: "subscribe" | "verify";
 }) {
+  const [view, setView] = useState<"subscribe" | "whatsapp_prompt" | "verify">(initialMode);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [createdSub, setCreatedSub] = useState<PathwaySubscription | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // Verification state
+  const [verifyQuery, setVerifyQuery] = useState("");
+  const [verifying, setVerifying] = useState(false);
+  const [verifyPendingSub, setVerifyPendingSub] = useState<PathwaySubscription | null>(null);
+
+  useEffect(() => {
+    if (open) {
+      setView(initialMode);
+      setVerifyPendingSub(null);
+    }
+  }, [open, initialMode]);
+
+  // Handle new request
+  const handleSubmitSubscription = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !name) {
-      toast.error("Please enter your name and email address.");
+    if (!email.trim() || !name.trim() || !phone.trim()) {
+      toast.error("Please enter your name, email, and WhatsApp phone number.");
       return;
     }
 
     setSubmitting(true);
     try {
-      if (supabase) {
-        await supabase.from("join_submissions").insert({
-          full_name: name,
-          email,
-          goals: "U.S. Residency Pathway Guide Access",
-          created_at: new Date().toISOString(),
-        });
+      const res = await submitSubscriptionRequest({
+        fullName: name,
+        email,
+        phoneWhatsApp: phone,
+        pathwayId: "us-residency",
+      });
+
+      if (res.success && res.data) {
+        setCreatedSub(res.data);
+        setView("whatsapp_prompt");
+        toast.success(`Request submitted! Reference: ${res.data.reference_code}`);
+      } else {
+        toast.error(res.error || "Failed to submit subscription request. Please try again.");
       }
     } catch (err) {
-      console.warn("Saved locally:", err);
+      console.error(err);
+      toast.error("An unexpected error occurred while connecting to database.");
     } finally {
       setSubmitting(false);
-      onSuccess();
     }
+  };
+
+  // Handle verification check
+  const handleVerify = async (queryParam?: string) => {
+    const q = (queryParam || verifyQuery || (createdSub?.email ?? "")).trim();
+    if (!q) {
+      toast.error("Please enter your email address or reference code.");
+      return;
+    }
+
+    setVerifying(true);
+    try {
+      const res = await verifySubscriptionStatus(q);
+
+      if (res.status === "approved" && res.subscription) {
+        toast.success("Payment verified! Access is now unlocked.", {
+          description: "Welcome to the U.S. Residency Pathway Roadmap & Complete Guide.",
+        });
+        onSuccess(res.subscription);
+      } else if (res.status === "pending") {
+        setVerifyPendingSub(res.subscription || null);
+        toast.info("Payment pending admin verification", {
+          description:
+            "If you have already sent payment on WhatsApp, please give our admin a moment to confirm receipt.",
+        });
+      } else if (res.status === "rejected") {
+        toast.error("This subscription request was marked as rejected. Please contact admin on WhatsApp.");
+      } else {
+        toast.error("No subscription record found for this email or reference code.");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Error checking subscription status.");
+    } finally {
+      setVerifying(false);
+    }
+  };
+
+  // Generated WhatsApp chat link
+  const whatsAppUrl = createdSub
+    ? buildWhatsAppLink(siteSettings.whatsapp_number, siteSettings.whatsapp_default_message, {
+        code: createdSub.reference_code,
+        email: createdSub.email,
+        name: createdSub.full_name,
+      })
+    : buildWhatsAppLink(siteSettings.whatsapp_number, siteSettings.whatsapp_default_message, {
+        code: "PENDING",
+        email: email || "student@example.com",
+        name: name || "Student",
+      });
+
+  const handleCopyCode = (code: string) => {
+    navigator.clipboard.writeText(code);
+    toast.success("Reference code copied to clipboard!");
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md p-6 sm:p-8">
-        <DialogHeader>
-          <div className="size-11 rounded-lg bg-emerald-100 flex items-center justify-center text-[#10B981] mb-2">
-            <Sparkles className="size-6" />
-          </div>
-          <DialogTitle className="text-xl font-black text-foreground">
-            Subscription Option
-          </DialogTitle>
-          <DialogDescription className="text-xs text-muted-foreground pt-1">
-            Subscribe to start the roadmap and download the complete U.S. Residency Pathway guide.
-          </DialogDescription>
-        </DialogHeader>
-
-        <form onSubmit={handleSubmit} className="space-y-4 mt-3">
+      <DialogContent className="max-w-md p-6 sm:p-8 rounded-2xl">
+        {/* VIEW 1: SUBSCRIBE FORM */}
+        {view === "subscribe" && (
           <div>
-            <Label htmlFor="sub-name" className="text-xs font-bold text-foreground">
-              Full Name *
-            </Label>
-            <Input
-              id="sub-name"
-              placeholder="Dr. Ama Mensah"
-              required
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="mt-1"
-            />
-          </div>
+            <DialogHeader>
+              <div className="size-11 rounded-xl bg-emerald-100 flex items-center justify-center text-[#10B981] mb-2 shadow-xs">
+                <Sparkles className="size-6" />
+              </div>
+              <DialogTitle className="text-xl font-black text-foreground">
+                Subscribe to Unlock Pathway &amp; Guide
+              </DialogTitle>
+              <DialogDescription className="text-xs text-muted-foreground pt-1 leading-relaxed">
+                Get full access to all 8 sequential milestones, exam strategies, alternative clinical pathways, and the high-resolution downloadable guide.
+              </DialogDescription>
+            </DialogHeader>
 
+            {siteSettings.subscription_price && (
+              <div className="mt-4 p-3 bg-emerald-50/70 border border-emerald-200/80 rounded-xl flex items-center justify-between text-xs">
+                <span className="font-bold text-emerald-900">Access Fee:</span>
+                <span className="font-extrabold text-[#10B981] text-sm font-mono">
+                  {siteSettings.subscription_price}
+                </span>
+              </div>
+            )}
+
+            <form onSubmit={handleSubmitSubscription} className="space-y-3.5 mt-4">
+              <div>
+                <Label htmlFor="sub-name" className="text-xs font-bold text-foreground">
+                  Full Name *
+                </Label>
+                <Input
+                  id="sub-name"
+                  placeholder="e.g. Dr. Ama Mensah"
+                  required
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="mt-1"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="sub-email" className="text-xs font-bold text-foreground">
+                  Email Address *
+                </Label>
+                <Input
+                  id="sub-email"
+                  type="email"
+                  placeholder="ama.mensah@example.com"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="mt-1"
+                />
+                <p className="text-[11px] text-muted-foreground mt-0.5">
+                  Used to verify your access on this and other devices.
+                </p>
+              </div>
+
+              <div>
+                <Label htmlFor="sub-phone" className="text-xs font-bold text-foreground">
+                  WhatsApp Phone Number (with Country Code) *
+                </Label>
+                <Input
+                  id="sub-phone"
+                  placeholder="+233 24 000 0000"
+                  required
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  className="mt-1"
+                />
+                <p className="text-[11px] text-muted-foreground mt-0.5">
+                  We use this to verify your payment and provide support.
+                </p>
+              </div>
+
+              <div className="pt-2">
+                <Button
+                  type="submit"
+                  disabled={submitting}
+                  className="w-full bg-[#10B981] hover:bg-[#059669] text-white font-bold h-11 rounded-xl shadow-xs text-sm cursor-pointer"
+                >
+                  {submitting ? "Submitting Request..." : "Continue to WhatsApp Payment"}
+                  <ArrowRight className="ml-1.5 size-4" />
+                </Button>
+              </div>
+            </form>
+
+            <div className="mt-4 pt-3 border-t border-border/70 text-center">
+              <button
+                type="button"
+                onClick={() => setView("verify")}
+                className="text-xs text-muted-foreground hover:text-foreground font-semibold underline underline-offset-4 cursor-pointer"
+              >
+                Already subscribed or paid? Enter email to verify access
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* VIEW 2: WHATSAPP PAYMENT INSTRUCTIONS */}
+        {view === "whatsapp_prompt" && createdSub && (
+          <div className="space-y-4">
+            <DialogHeader>
+              <div className="size-11 rounded-xl bg-emerald-100 flex items-center justify-center text-[#10B981] mb-2 shadow-xs">
+                <Smartphone className="size-6" />
+              </div>
+              <DialogTitle className="text-xl font-black text-foreground">
+                Confirm Payment on WhatsApp
+              </DialogTitle>
+              <DialogDescription className="text-xs text-muted-foreground pt-1">
+                Your request has been recorded! Follow the two quick steps below to activate your account.
+              </DialogDescription>
+            </DialogHeader>
+
+            {/* Reference Code Card */}
+            <div className="bg-stone-50 border border-stone-200/90 rounded-xl p-3.5 text-center">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                Your Reference Code
+              </span>
+              <div className="flex items-center justify-center gap-2 mt-1">
+                <span className="font-mono text-xl font-black text-[#10B981]">
+                  {createdSub.reference_code}
+                </span>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => handleCopyCode(createdSub.reference_code)}
+                  className="h-8 w-8 text-stone-500 hover:text-foreground"
+                  title="Copy reference code"
+                >
+                  <Copy size={14} />
+                </Button>
+              </div>
+            </div>
+
+            {/* Steps */}
+            <div className="space-y-2.5 text-xs text-stone-700 bg-emerald-50/50 border border-emerald-100 rounded-xl p-3.5">
+              <div className="flex items-start gap-2.5">
+                <span className="size-5 rounded-full bg-[#10B981] text-white flex items-center justify-center font-bold text-[11px] shrink-0">
+                  1
+                </span>
+                <p>
+                  Click below to message our admin on WhatsApp with your reference code: <strong>{createdSub.reference_code}</strong>.
+                </p>
+              </div>
+              <div className="flex items-start gap-2.5">
+                <span className="size-5 rounded-full bg-[#10B981] text-white flex items-center justify-center font-bold text-[11px] shrink-0">
+                  2
+                </span>
+                <p>
+                  Complete your payment via Mobile Money or Bank Transfer as instructed in the chat.
+                </p>
+              </div>
+              <div className="flex items-start gap-2.5">
+                <span className="size-5 rounded-full bg-[#10B981] text-white flex items-center justify-center font-bold text-[11px] shrink-0">
+                  3
+                </span>
+                <p>
+                  Admin will approve your account. Once done, click <strong>&quot;Check My Status&quot;</strong> below to start!
+                </p>
+              </div>
+            </div>
+
+            {/* CTA Buttons */}
+            <div className="space-y-2 pt-1">
+              <a
+                href={whatsAppUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full inline-flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#1EBE5D] text-white font-bold h-11 px-4 rounded-xl text-sm shadow-md transition-colors"
+              >
+                <MessageSquare size={17} />
+                Chat on WhatsApp to Pay
+              </a>
+
+              <Button
+                type="button"
+                variant="outline"
+                disabled={verifying}
+                onClick={() => handleVerify(createdSub.email)}
+                className="w-full border-stone-300 font-bold h-10 rounded-xl text-xs hover:bg-stone-100"
+              >
+                {verifying ? "Checking Status in Supabase..." : "Check My Payment Status Now"}
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* VIEW 3: VERIFY EXISTING SUBSCRIPTION */}
+        {view === "verify" && (
           <div>
-            <Label htmlFor="sub-email" className="text-xs font-bold text-foreground">
-              Email Address *
-            </Label>
-            <Input
-              id="sub-email"
-              type="email"
-              placeholder="ama.mensah@example.com"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="mt-1"
-            />
-          </div>
+            <DialogHeader>
+              <div className="size-11 rounded-xl bg-emerald-100 flex items-center justify-center text-[#10B981] mb-2 shadow-xs">
+                <CheckCircle2 className="size-6" />
+              </div>
+              <DialogTitle className="text-xl font-black text-foreground">
+                Verify Your Subscription
+              </DialogTitle>
+              <DialogDescription className="text-xs text-muted-foreground pt-1">
+                Enter your email address or BMS reference code to restore your access.
+              </DialogDescription>
+            </DialogHeader>
 
-          <div className="pt-2">
-            <Button
-              type="submit"
-              disabled={submitting}
-              className="w-full bg-[#10B981] hover:bg-[#059669] text-white font-bold"
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleVerify();
+              }}
+              className="space-y-4 mt-4"
             >
-              {submitting ? "Subscribing..." : "Subscribe & Download Guide"}
-            </Button>
+              <div>
+                <Label htmlFor="verify-email" className="text-xs font-bold text-foreground">
+                  Email Address or Reference Code
+                </Label>
+                <Input
+                  id="verify-email"
+                  placeholder="e.g. ama.mensah@example.com or BMS-XXXX"
+                  required
+                  value={verifyQuery}
+                  onChange={(e) => setVerifyQuery(e.target.value)}
+                  className="mt-1"
+                />
+              </div>
+
+              {verifyPendingSub && (
+                <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800 space-y-2">
+                  <p className="font-semibold">
+                    Payment Pending: Request <strong>{verifyPendingSub.reference_code}</strong> is currently waiting for admin confirmation.
+                  </p>
+                  <a
+                    href={buildWhatsAppLink(
+                      siteSettings.whatsapp_number,
+                      siteSettings.whatsapp_default_message,
+                      {
+                        code: verifyPendingSub.reference_code,
+                        email: verifyPendingSub.email,
+                        name: verifyPendingSub.full_name,
+                      }
+                    )}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1.5 font-bold text-emerald-700 underline"
+                  >
+                    <MessageSquare size={13} /> Message Admin on WhatsApp to speed up approval
+                  </a>
+                </div>
+              )}
+
+              <Button
+                type="submit"
+                disabled={verifying}
+                className="w-full bg-[#10B981] hover:bg-[#059669] text-white font-bold h-11 rounded-xl shadow-xs text-sm cursor-pointer"
+              >
+                {verifying ? "Checking Access..." : "Verify & Unlock Access"}
+              </Button>
+            </form>
+
+            <div className="mt-4 pt-3 border-t border-border/70 text-center">
+              <button
+                type="button"
+                onClick={() => setView("subscribe")}
+                className="text-xs text-muted-foreground hover:text-foreground font-semibold underline underline-offset-4 cursor-pointer"
+              >
+                Need to start a new subscription? Click here
+              </button>
+            </div>
           </div>
-        </form>
+        )}
       </DialogContent>
     </Dialog>
   );

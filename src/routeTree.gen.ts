@@ -18,6 +18,8 @@ import { Route as MentorshipRouteImport } from './routes/mentorship'
 import { Route as ProgramsRouteImport } from './routes/programs'
 import { Route as ResourcesRouteImport } from './routes/resources'
 import { Route as TeamRouteImport } from './routes/team'
+import { Route as AdminIndexRouteImport } from './routes/admin/index'
+import { Route as AdminSubscriptionsRouteImport } from './routes/admin/subscriptions'
 import { Route as CareerExplorationIndexRouteImport } from './routes/career-exploration/index'
 import { Route as CareerExplorationUsResidencyRouteImport } from './routes/career-exploration/us-residency'
 
@@ -66,6 +68,16 @@ const TeamRoute = TeamRouteImport.update({
   path: '/team',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/admin/',
+  path: '/admin/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminSubscriptionsRoute = AdminSubscriptionsRouteImport.update({
+  id: '/admin/subscriptions',
+  path: '/admin/subscriptions',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CareerExplorationIndexRoute = CareerExplorationIndexRouteImport.update({
   id: '/career-exploration/',
   path: '/career-exploration/',
@@ -88,7 +100,9 @@ export interface FileRoutesByFullPath {
   '/programs': typeof ProgramsRoute
   '/resources': typeof ResourcesRoute
   '/team': typeof TeamRoute
+  '/admin/subscriptions': typeof AdminSubscriptionsRoute
   '/career-exploration/us-residency': typeof CareerExplorationUsResidencyRoute
+  '/admin/': typeof AdminIndexRoute
   '/career-exploration/': typeof CareerExplorationIndexRoute
 }
 export interface FileRoutesByTo {
@@ -101,7 +115,9 @@ export interface FileRoutesByTo {
   '/programs': typeof ProgramsRoute
   '/resources': typeof ResourcesRoute
   '/team': typeof TeamRoute
+  '/admin/subscriptions': typeof AdminSubscriptionsRoute
   '/career-exploration/us-residency': typeof CareerExplorationUsResidencyRoute
+  '/admin': typeof AdminIndexRoute
   '/career-exploration': typeof CareerExplorationIndexRoute
 }
 export interface FileRoutesById {
@@ -115,7 +131,9 @@ export interface FileRoutesById {
   '/programs': typeof ProgramsRoute
   '/resources': typeof ResourcesRoute
   '/team': typeof TeamRoute
+  '/admin/subscriptions': typeof AdminSubscriptionsRoute
   '/career-exploration/us-residency': typeof CareerExplorationUsResidencyRoute
+  '/admin/': typeof AdminIndexRoute
   '/career-exploration/': typeof CareerExplorationIndexRoute
 }
 export interface FileRouteTypes {
@@ -130,7 +148,9 @@ export interface FileRouteTypes {
     | '/programs'
     | '/resources'
     | '/team'
+    | '/admin/subscriptions'
     | '/career-exploration/us-residency'
+    | '/admin/'
     | '/career-exploration/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -143,7 +163,9 @@ export interface FileRouteTypes {
     | '/programs'
     | '/resources'
     | '/team'
+    | '/admin/subscriptions'
     | '/career-exploration/us-residency'
+    | '/admin'
     | '/career-exploration'
   id:
     | '__root__'
@@ -156,7 +178,9 @@ export interface FileRouteTypes {
     | '/programs'
     | '/resources'
     | '/team'
+    | '/admin/subscriptions'
     | '/career-exploration/us-residency'
+    | '/admin/'
     | '/career-exploration/'
   fileRoutesById: FileRoutesById
 }
@@ -170,7 +194,9 @@ export interface RootRouteChildren {
   ProgramsRoute: typeof ProgramsRoute
   ResourcesRoute: typeof ResourcesRoute
   TeamRoute: typeof TeamRoute
+  AdminSubscriptionsRoute: typeof AdminSubscriptionsRoute
   CareerExplorationUsResidencyRoute: typeof CareerExplorationUsResidencyRoute
+  AdminIndexRoute: typeof AdminIndexRoute
   CareerExplorationIndexRoute: typeof CareerExplorationIndexRoute
 }
 
@@ -239,6 +265,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TeamRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/': {
+      id: '/admin/'
+      path: '/admin'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/subscriptions': {
+      id: '/admin/subscriptions'
+      path: '/admin/subscriptions'
+      fullPath: '/admin/subscriptions'
+      preLoaderRoute: typeof AdminSubscriptionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/career-exploration/': {
       id: '/career-exploration/'
       path: '/career-exploration'
@@ -266,7 +306,9 @@ const rootRouteChildren: RootRouteChildren = {
   ProgramsRoute: ProgramsRoute,
   ResourcesRoute: ResourcesRoute,
   TeamRoute: TeamRoute,
+  AdminSubscriptionsRoute: AdminSubscriptionsRoute,
   CareerExplorationUsResidencyRoute: CareerExplorationUsResidencyRoute,
+  AdminIndexRoute: AdminIndexRoute,
   CareerExplorationIndexRoute: CareerExplorationIndexRoute,
 }
 export const routeTree = rootRouteImport

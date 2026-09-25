@@ -185,8 +185,12 @@ export function Footer() {
         </div>
       </div>
       <FeedbackSection />
-      <div className="border-t border-primary-foreground/10 px-5 py-5 text-center text-xs text-primary-foreground/45">
-        © 2026 Beyond Medical School. Built for possibility.
+      <div className="border-t border-primary-foreground/10 px-5 py-5 text-center text-xs text-primary-foreground/45 flex flex-wrap items-center justify-center gap-2">
+        <span>© 2026 Beyond Medical School. Built for possibility.</span>
+        <span>•</span>
+        <Link to="/admin" className="hover:text-primary-foreground/80 transition-colors underline underline-offset-2">
+          Admin Portal
+        </Link>
       </div>
     </footer>
   );

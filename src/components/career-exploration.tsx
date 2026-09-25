@@ -1694,7 +1694,7 @@ export function UsResidencyPathwayPage() {
 // ---------------------------------------------------------------------------
 // 3. ENHANCED SUBSCRIPTION MODAL COMPONENT (WHATSAPP GATEWAY & STATUS VERIFICATION)
 // ---------------------------------------------------------------------------
-function SubscriptionModal({
+export function SubscriptionModal({
   open,
   onOpenChange,
   onSuccess,

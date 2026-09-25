@@ -44,8 +44,15 @@ import {
 } from "@/lib/bms-data";
 import { supabase } from "@/utils/supabase";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
-import { getAllUploadedResources, type BmsResourceItem } from "@/lib/subscriptions";
+import {
+  getAllUploadedResources,
+  validateActiveSubscription,
+  getSiteSettings,
+  DEFAULT_SETTINGS,
+  type BmsResourceItem,
+  type BmsSiteSettings,
+} from "@/lib/subscriptions";
+import { SubscriptionModal } from "@/components/career-exploration";
 
 export function HomePage() {
   return (
@@ -1186,9 +1193,28 @@ export function EventsPage() {
 
 export function ResourcesPage() {
   const [uploaded, setUploaded] = useState<BmsResourceItem[]>([]);
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [subscriptionOpen, setSubscriptionOpen] = useState(false);
+  const [modalMode, setModalMode] = useState<"subscribe" | "verify">("subscribe");
+  const [siteSettings, setSiteSettings] = useState<BmsSiteSettings>(DEFAULT_SETTINGS);
 
   useEffect(() => {
     getAllUploadedResources().then((list) => setUploaded(list));
+    getSiteSettings().then((s) => setSiteSettings(s));
+
+    // Live pre-flight subscription check on mount
+    validateActiveSubscription().then((result) => {
+      setIsSubscribed(result.isValid);
+    });
+
+    const handleStorageChange = () => {
+      validateActiveSubscription().then((result) => {
+        setIsSubscribed(result.isValid);
+      });
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 
   const mergedResources = useMemo(() => {
@@ -1233,6 +1259,56 @@ export function ResourcesPage() {
       ),
     [active, query, mergedResources],
   );
+
+  const handleDownloadResource = async (r: MedicalResource) => {
+    if (r.isGated) {
+      if (!isSubscribed) {
+        toast.info("Subscription required", {
+          description: "This premium resource is reserved for verified members. Please subscribe or verify your access.",
+        });
+        setModalMode("subscribe");
+        setSubscriptionOpen(true);
+        return;
+      }
+
+      // Pre-flight live verification before initiating download
+      const check = await validateActiveSubscription();
+      if (!check.isValid) {
+        setIsSubscribed(false);
+        if (check.status === "device_mismatch") {
+          toast.error("Access Blocked: Device Mismatch", {
+            description:
+              check.reason ||
+              "This subscription belongs to another device. Sharing accounts across multiple users is strictly prohibited.",
+            duration: 9000,
+          });
+        } else {
+          toast.error("Subscription Expired or Revoked", {
+            description: "Your access has expired or was revoked. Please verify or renew your subscription.",
+          });
+        }
+        setModalMode("subscribe");
+        setSubscriptionOpen(true);
+        return;
+      }
+    }
+
+    if (!r.directUrl) {
+      toast.error("Download link is currently unavailable.");
+      return;
+    }
+
+    toast.success(`Opening & downloading "${r.title}"...`);
+    const link = document.createElement("a");
+    link.href = r.directUrl;
+    link.download = `${r.title.replace(/\s+/g, "_")}.pdf`;
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <>
       <PageIntro eyebrow="Resources" title="Useful knowledge, ready when you are.">
@@ -1266,71 +1342,112 @@ export function ResourcesPage() {
               ))}
             </div>
           </div>
-          <p className="mt-8 text-sm text-muted-foreground">{shown.length} resources</p>
-          <div className="mt-4 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-            {shown.map((r) => (
-              <article
-                key={r.title}
-                className="rounded-lg border border-border bg-card p-6 flex flex-col justify-between hover:border-[#10B981]/50 hover:shadow-xs transition-all"
+
+          <div className="mt-6 flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-border/60">
+            <p className="text-sm text-muted-foreground">{shown.length} resources</p>
+            {isSubscribed ? (
+              <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
+                <Check size={12} className="text-emerald-600" /> Member Access Active
+              </span>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  setModalMode("verify");
+                  setSubscriptionOpen(true);
+                }}
+                className="text-xs text-muted-foreground hover:text-foreground font-semibold underline underline-offset-4 cursor-pointer"
               >
-                <div>
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-xs font-bold uppercase text-gold">{r.cat}</span>
-                    {r.badge && (
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
-                        {r.badge}
-                      </span>
+                Already subscribed or paid? Enter email to verify access
+              </button>
+            )}
+          </div>
+
+          <div className="mt-4 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+            {shown.map((r) => {
+              const isLocked = r.isGated && !isSubscribed;
+              return (
+                <article
+                  key={r.title}
+                  className={`rounded-lg border p-6 flex flex-col justify-between transition-all ${
+                    isLocked
+                      ? "border-border bg-card/70 hover:border-amber-500/40"
+                      : "border-border bg-card hover:border-[#10B981]/50 hover:shadow-xs"
+                  }`}
+                >
+                  <div>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-xs font-bold uppercase text-gold">{r.cat}</span>
+                      {r.isGated ? (
+                        isSubscribed ? (
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 flex items-center gap-1">
+                            <Check size={10} /> Unlocked
+                          </span>
+                        ) : (
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 flex items-center gap-1">
+                            <Lock size={10} /> Members Only
+                          </span>
+                        )
+                      ) : r.badge ? (
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700">
+                          {r.badge}
+                        </span>
+                      ) : null}
+                    </div>
+                    <h2 className="mt-3 text-xl font-bold leading-snug">{r.title}</h2>
+                    <p className="mt-2 text-sm text-muted-foreground">
+                      {r.type} {r.fileSize ? `· ${r.fileSize}` : "· Complete Guide"}
+                    </p>
+                    {r.description && (
+                      <p className="mt-2.5 text-xs text-stone-600 leading-relaxed font-normal">
+                        {r.description}
+                      </p>
                     )}
                   </div>
-                  <h2 className="mt-3 text-xl font-bold leading-snug">{r.title}</h2>
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    {r.type} {r.fileSize ? `· ${r.fileSize}` : "· Complete Guide"}
-                  </p>
-                  {r.description && (
-                    <p className="mt-2.5 text-xs text-stone-600 leading-relaxed font-normal">
-                      {r.description}
-                    </p>
+                  {r.directUrl ? (
+                    isLocked ? (
+                      <Button
+                        className="mt-7 w-full bg-stone-900 hover:bg-stone-800 text-stone-200 font-bold"
+                        size="sm"
+                        onClick={() => {
+                          setModalMode("subscribe");
+                          setSubscriptionOpen(true);
+                        }}
+                      >
+                        <Lock size={14} className="mr-1.5 text-amber-400" /> Subscribe to Download
+                      </Button>
+                    ) : (
+                      <Button
+                        className="mt-7 w-full bg-[#10B981] hover:bg-[#059669] text-white font-bold"
+                        size="sm"
+                        onClick={() => handleDownloadResource(r)}
+                      >
+                        <Download size={14} className="mr-1.5" /> Download File
+                      </Button>
+                    )
+                  ) : r.href ? (
+                    <Button
+                      asChild
+                      className="mt-7 w-full bg-[#10B981] hover:bg-[#059669] text-white font-bold"
+                      size="sm"
+                    >
+                      <Link to={r.href}>
+                        Open Guide <ArrowRight size={15} className="ml-1.5" />
+                      </Link>
+                    </Button>
+                  ) : (
+                    <Button
+                      className="mt-7 w-full"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => alert("This resource will be available soon.")}
+                    >
+                      Preview <ExternalLink size={15} />
+                    </Button>
                   )}
-                </div>
-                {r.directUrl ? (
-                  <Button
-                    className="mt-7 bg-[#10B981] hover:bg-[#059669] text-white font-bold"
-                    size="sm"
-                    onClick={() => {
-                      toast.success(`Opening & downloading "${r.title}"...`);
-                      const link = document.createElement("a");
-                      link.href = r.directUrl!;
-                      link.target = "_blank";
-                      link.rel = "noopener noreferrer";
-                      document.body.appendChild(link);
-                      link.click();
-                      document.body.removeChild(link);
-                    }}
-                  >
-                    <Download size={14} className="mr-1.5" /> Download File
-                  </Button>
-                ) : r.href ? (
-                  <Button
-                    asChild
-                    className="mt-7 bg-[#10B981] hover:bg-[#059669] text-white font-bold"
-                    size="sm"
-                  >
-                    <Link to={r.href}>
-                      Open Guide <ArrowRight size={15} className="ml-1.5" />
-                    </Link>
-                  </Button>
-                ) : (
-                  <Button
-                    className="mt-7"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => alert("This resource will be available soon.")}
-                  >
-                    Preview <ExternalLink size={15} />
-                  </Button>
-                )}
-              </article>
-            ))}
+                </article>
+              );
+            })}
           </div>
           {shown.length === 0 && (
             <div className="py-20 text-center">
@@ -1344,6 +1461,21 @@ export function ResourcesPage() {
       <CTA
         title="Learning should open doors."
         body="Join the community for new guides, live sessions, and opportunities."
+      />
+
+      {/* SUBSCRIPTION GATE MODAL */}
+      <SubscriptionModal
+        open={subscriptionOpen}
+        onOpenChange={setSubscriptionOpen}
+        onSuccess={() => {
+          setIsSubscribed(true);
+          setSubscriptionOpen(false);
+          toast.success("Payment verified! Access is now unlocked.", {
+            description: "You can now download all premium guides and resources.",
+          });
+        }}
+        siteSettings={siteSettings}
+        initialMode={modalMode}
       />
     </>
   );

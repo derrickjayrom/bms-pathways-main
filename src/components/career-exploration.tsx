@@ -53,9 +53,11 @@ import {
   getSiteSettings,
   submitSubscriptionRequest,
   verifySubscriptionStatus,
+  validateActiveSubscription,
   buildWhatsAppLink,
   saveSubscribedSession,
   getSavedSubscriptionSession,
+  clearSubscriptionSession,
   getAllUploadedResources,
   type BmsSiteSettings,
   type PathwaySubscription,
@@ -179,44 +181,239 @@ export function UsResidencyPathwayPage() {
     setActiveStageDetailsHidden(false);
   }, [activeStageIndex]);
 
-  // Load subscription state from localStorage & Supabase
+  // Load subscription state from Supabase with LIVE validation
   useEffect(() => {
     getSiteSettings().then((s) => setSiteSettings(s));
     getAllUploadedResources().then((res) => setPathwayResources(res));
 
-    const session = getSavedSubscriptionSession();
-    if (session && session.status === "approved") {
-      setIsSubscribed(true);
-      setActiveSession(session);
-    }
+    // Live verification against Supabase on page load
+    validateActiveSubscription().then((result) => {
+      if (result.isValid && result.subscription) {
+        setIsSubscribed(true);
+        setActiveSession({
+          id: result.subscription.id,
+          email: result.subscription.email,
+          reference_code: result.subscription.reference_code,
+          full_name: result.subscription.full_name,
+          status: result.subscription.status,
+          verified_at: new Date().toISOString(),
+          bound_device_id: result.subscription.bound_device_id,
+        });
+      } else {
+        setIsSubscribed(false);
+        setActiveSession(null);
+        if (result.status === "device_mismatch") {
+          toast.error("Access Blocked: Registered to Another Device", {
+            description:
+              result.reason ||
+              "This subscription is bound to another device. Sharing accounts across multiple users is strictly prohibited.",
+            duration: 9000,
+          });
+        }
+      }
+    });
   }, []);
 
-  const handleStartRoadmap = () => {
+  // Re-verify when browser window or tab regains focus
+  useEffect(() => {
+    const handleRevalidate = () => {
+      if (typeof document !== "undefined" && document.visibilityState === "visible") {
+        validateActiveSubscription().then((result) => {
+          if (!result.isValid) {
+            setIsSubscribed(false);
+            setActiveSession(null);
+          } else if (result.subscription) {
+            setIsSubscribed(true);
+            setActiveSession({
+              id: result.subscription.id,
+              email: result.subscription.email,
+              reference_code: result.subscription.reference_code,
+              full_name: result.subscription.full_name,
+              status: result.subscription.status,
+              verified_at: new Date().toISOString(),
+            });
+          }
+        });
+      }
+    };
+
+    window.addEventListener("visibilitychange", handleRevalidate);
+    window.addEventListener("focus", handleRevalidate);
+    return () => {
+      window.removeEventListener("visibilitychange", handleRevalidate);
+      window.removeEventListener("focus", handleRevalidate);
+    };
+  }, []);
+
+  // Realtime subscription listener for instantaneous lock / unlock
+  useEffect(() => {
+    if (!supabase) return;
+
+    const channel = supabase
+      .channel("pathway_subscriptions_live_gate")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "pathway_subscriptions",
+        },
+        (payload) => {
+          const current = getSavedSubscriptionSession();
+          if (!current) return;
+
+          const oldRecord = payload.old as Partial<PathwaySubscription> | null;
+          const newRecord = payload.new as Partial<PathwaySubscription> | null;
+
+          const isMatching =
+            (oldRecord && (oldRecord.id === current.id || oldRecord.reference_code === current.reference_code)) ||
+            (newRecord && (
+              newRecord.id === current.id ||
+              newRecord.reference_code === current.reference_code ||
+              (newRecord.email && newRecord.email.toLowerCase() === current.email?.toLowerCase())
+            ));
+
+          if (isMatching) {
+            if (payload.eventType === "DELETE") {
+              clearSubscriptionSession();
+              setIsSubscribed(false);
+              setActiveSession(null);
+              toast.error("Access Revoked", {
+                description: "Your subscription access was removed by administrator.",
+                duration: 6000,
+              });
+            } else if (payload.eventType === "UPDATE") {
+              const newStatus = newRecord?.status;
+              if (newStatus !== "approved") {
+                clearSubscriptionSession();
+                setIsSubscribed(false);
+                setActiveSession(null);
+                toast.error("Access Changed", {
+                  description: `Your subscription is now marked as "${newStatus}". Access is locked.`,
+                  duration: 6000,
+                });
+              } else {
+                setIsSubscribed(true);
+                saveSubscribedSession(newRecord as PathwaySubscription);
+                setActiveSession({
+                  id: newRecord?.id,
+                  email: newRecord?.email || current.email,
+                  reference_code: newRecord?.reference_code || current.reference_code,
+                  full_name: newRecord?.full_name || current.full_name,
+                  status: "approved",
+                  verified_at: new Date().toISOString(),
+                });
+                toast.success("Access Approved!", {
+                  description: "Your access has been activated by administrator.",
+                });
+              }
+            }
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  const handleStartRoadmap = async () => {
     if (!isSubscribed) {
       setModalMode("subscribe");
       setSubscriptionOpen(true);
-    } else {
-      const el = document.getElementById("interactive-roadmap");
-      if (el) {
-        el.scrollIntoView({ behavior: "smooth" });
+      return;
+    }
+
+    // Pre-flight live verification before proceeding
+    const check = await validateActiveSubscription();
+    if (!check.isValid) {
+      setIsSubscribed(false);
+      setActiveSession(null);
+      if (check.status === "device_mismatch") {
+        toast.error("Access Blocked: Device Mismatch", {
+          description:
+            check.reason ||
+            "This subscription belongs to another device. Sharing accounts across multiple users is strictly prohibited.",
+          duration: 9000,
+        });
+      } else {
+        toast.error("Access Required", {
+          description: "Your subscription is not active or has been revoked. Please subscribe or verify status.",
+        });
       }
-    }
-  };
-
-  const handleDownloadClick = () => {
-    if (isSubscribed) {
-      triggerDownload();
-    } else {
-      setModalMode("subscribe");
-      setSubscriptionOpen(true);
-    }
-  };
-
-  const handleDownloadResource = (res: BmsResourceItem) => {
-    if (res.is_gated && !isSubscribed) {
       setModalMode("subscribe");
       setSubscriptionOpen(true);
       return;
+    }
+
+    const el = document.getElementById("interactive-roadmap");
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
+  const handleDownloadClick = async () => {
+    if (!isSubscribed) {
+      setModalMode("subscribe");
+      setSubscriptionOpen(true);
+      return;
+    }
+
+    // Pre-flight live verification before download
+    const check = await validateActiveSubscription();
+    if (!check.isValid) {
+      setIsSubscribed(false);
+      setActiveSession(null);
+      if (check.status === "device_mismatch") {
+        toast.error("Access Blocked: Device Mismatch", {
+          description:
+            check.reason ||
+            "This subscription belongs to another device. Sharing accounts across multiple users is strictly prohibited.",
+          duration: 9000,
+        });
+      } else {
+        toast.error("Access Required", {
+          description: "Your subscription is not active or has been revoked.",
+        });
+      }
+      setModalMode("subscribe");
+      setSubscriptionOpen(true);
+      return;
+    }
+
+    triggerDownload();
+  };
+
+  const handleDownloadResource = async (res: BmsResourceItem) => {
+    if (res.is_gated) {
+      if (!isSubscribed) {
+        setModalMode("subscribe");
+        setSubscriptionOpen(true);
+        return;
+      }
+
+      // Pre-flight live verification before downloading gated resource
+      const check = await validateActiveSubscription();
+      if (!check.isValid) {
+        setIsSubscribed(false);
+        setActiveSession(null);
+        if (check.status === "device_mismatch") {
+          toast.error("Access Blocked: Device Mismatch", {
+            description:
+              check.reason ||
+              "This subscription belongs to another device. Sharing accounts across multiple users is strictly prohibited.",
+            duration: 9000,
+          });
+        } else {
+          toast.error("Access Required", {
+            description: "Your subscription is not active or has been revoked.",
+          });
+        }
+        setModalMode("subscribe");
+        setSubscriptionOpen(true);
+        return;
+      }
     }
 
     toast.success(`Opening & downloading "${res.title}"...`);
@@ -252,14 +449,13 @@ export function UsResidencyPathwayPage() {
     if (sub) {
       saveSubscribedSession(sub);
       setActiveSession({
+        id: sub.id,
         email: sub.email,
         reference_code: sub.reference_code,
         full_name: sub.full_name,
         status: sub.status,
         verified_at: new Date().toISOString(),
       });
-    } else {
-      localStorage.setItem("bms_usmle_subscribed", "true");
     }
     setSubscriptionOpen(false);
     toast.success("Welcome! Roadmap & Complete Guide Unlocked.", {
@@ -480,7 +676,7 @@ export function UsResidencyPathwayPage() {
           </div>
           <div>
             {isSubscribed ? (
-              <span className="flex items-center gap-1.5 font-bold text-[#10B981]">
+              <span className="flex items-center gap-1.5 font-bold text-[#10B981] text-xs sm:text-sm">
                 <Unlock size={14} /> Full Access Unlocked
                 {activeSession?.full_name && (
                   <span className="text-xs text-muted-foreground hidden sm:inline font-normal">
@@ -1579,6 +1775,13 @@ function SubscriptionModal({
           description: "Welcome to the U.S. Residency Pathway Roadmap & Complete Guide.",
         });
         onSuccess(res.subscription);
+      } else if (res.status === "device_mismatch") {
+        toast.error("Security Alert: Device Mismatch", {
+          description:
+            res.errorMessage ||
+            `This subscription code is already registered to ${res.boundDeviceName || "another device"}. Sharing accounts across multiple users is strictly prohibited. If you switched devices, contact BMS administration on WhatsApp.`,
+          duration: 12000,
+        });
       } else if (res.status === "pending") {
         setVerifyPendingSub(res.subscription || null);
         toast.info("Payment pending admin verification", {
@@ -1588,7 +1791,7 @@ function SubscriptionModal({
       } else if (res.status === "rejected") {
         toast.error("This subscription request was marked as rejected. Please contact admin on WhatsApp.");
       } else {
-        toast.error("No subscription record found for this email or reference code.");
+        toast.error(res.errorMessage || "No subscription record found for this email or reference code.");
       }
     } catch (err) {
       console.error(err);

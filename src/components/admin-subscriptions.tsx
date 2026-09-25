@@ -41,6 +41,7 @@ import {
   updateSiteSetting,
   updateSubscriptionStatus,
   deleteSubscription,
+  resetSubscriptionDevice,
   buildAdminWhatsAppReplyLink,
   buildWhatsAppLink,
   checkDatabaseSetup,
@@ -199,7 +200,7 @@ export function AdminSubscriptionsDashboard() {
 
   // Action: Approve
   const handleApprove = async (sub: PathwaySubscription) => {
-    const ok = await updateSubscriptionStatus(sub.id, "approved");
+    const ok = await updateSubscriptionStatus(sub.id, "approved", null, settings.admin_passcode);
     if (ok) {
       toast.success(`Approved access for ${sub.full_name}!`);
       // Update local state
@@ -226,14 +227,28 @@ export function AdminSubscriptionsDashboard() {
     }
   };
 
+  // Action: Revoke
+  const handleRevoke = async (sub: PathwaySubscription) => {
+    if (!confirm(`Revoke access for ${sub.full_name} (${sub.reference_code})? Their access will immediately lock.`)) return;
+    const ok = await updateSubscriptionStatus(sub.id, "pending", null, settings.admin_passcode);
+    if (ok) {
+      toast.info(`Revoked access for ${sub.full_name}. Status reverted to pending and access locked.`);
+      setSubscriptions((prev) =>
+        prev.map((item) => (item.id === sub.id ? { ...item, status: "pending", approved_at: null } : item))
+      );
+    } else {
+      toast.error("Failed to revoke access");
+    }
+  };
+
   // Action: Reject
   const handleReject = async (sub: PathwaySubscription) => {
-    if (!confirm(`Are you sure you want to mark ${sub.full_name}'s request as rejected?`)) return;
-    const ok = await updateSubscriptionStatus(sub.id, "rejected");
+    if (!confirm(`Are you sure you want to mark ${sub.full_name}'s request as rejected? Their access will immediately lock.`)) return;
+    const ok = await updateSubscriptionStatus(sub.id, "rejected", null, settings.admin_passcode);
     if (ok) {
-      toast.info(`Marked ${sub.full_name} as rejected`);
+      toast.info(`Marked ${sub.full_name} as rejected. Access has been locked.`);
       setSubscriptions((prev) =>
-        prev.map((item) => (item.id === sub.id ? { ...item, status: "rejected" } : item))
+        prev.map((item) => (item.id === sub.id ? { ...item, status: "rejected", approved_at: null } : item))
       );
     } else {
       toast.error("Failed to update status");
@@ -242,13 +257,39 @@ export function AdminSubscriptionsDashboard() {
 
   // Action: Delete
   const handleDelete = async (sub: PathwaySubscription) => {
-    if (!confirm(`Permanently delete request for ${sub.full_name} (${sub.reference_code})?`)) return;
-    const ok = await deleteSubscription(sub.id);
+    if (!confirm(`Permanently delete request for ${sub.full_name} (${sub.reference_code})? This will permanently delete their record and immediately lock access.`)) return;
+    const ok = await deleteSubscription(sub.id, settings.admin_passcode);
     if (ok) {
-      toast.success("Subscription record deleted");
+      toast.success("Subscription record permanently deleted");
       setSubscriptions((prev) => prev.filter((item) => item.id !== sub.id));
     } else {
       toast.error("Failed to delete record");
+    }
+  };
+
+  // Action: Reset Device Binding
+  const handleResetDevice = async (sub: PathwaySubscription) => {
+    if (
+      !confirm(
+        `Reset registered device for ${sub.full_name} (${sub.reference_code})?\n\nThis will unbind "${sub.last_device_name || "current device"}" so the legitimate owner can activate on their new phone or computer.`
+      )
+    )
+      return;
+
+    const res = await resetSubscriptionDevice(sub.id, settings.admin_passcode);
+    if (res.success) {
+      toast.success(`Device binding reset for ${sub.full_name}!`, {
+        description: "The user can now log in and bind a new device.",
+      });
+      setSubscriptions((prev) =>
+        prev.map((item) =>
+          item.id === sub.id
+            ? { ...item, bound_device_id: null, last_device_name: null }
+            : item
+        )
+      );
+    } else {
+      toast.error(`Failed to reset device: ${res.error || "Unknown error"}`);
     }
   };
 
@@ -937,6 +978,31 @@ export function AdminSubscriptionsDashboard() {
                             Pathway: <strong className="text-stone-300">{sub.pathway_id}</strong>
                           </span>
                         </div>
+
+                        {/* Device Security & Anti-Sharing Status */}
+                        <div className="pt-1.5 flex flex-wrap items-center gap-2 text-[11px]">
+                          {sub.bound_device_id ? (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-stone-800 border border-stone-700 text-stone-300 font-medium">
+                              <Smartphone size={12} className="text-emerald-400" />
+                              <span>Locked to: <strong className="text-white">{sub.last_device_name || "1 Registered Device"}</strong></span>
+                              {sub.last_accessed_at && (
+                                <span className="text-stone-500 font-mono text-[10px]">
+                                  (Active: {new Date(sub.last_accessed_at).toLocaleDateString()})
+                                </span>
+                              )}
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-stone-800/60 border border-stone-800 text-stone-400">
+                              <Unlock size={12} className="text-stone-500" />
+                              <span>Device Unbound (locks to first login device)</span>
+                            </span>
+                          )}
+                          {Boolean(sub.device_reset_count && sub.device_reset_count > 0) && (
+                            <span className="text-[10px] text-stone-500 font-mono">
+                              ({sub.device_reset_count} device reset{sub.device_reset_count === 1 ? "" : "s"})
+                            </span>
+                          )}
+                        </div>
                       </div>
 
                       {/* Right: Actions */}
@@ -963,6 +1029,19 @@ export function AdminSubscriptionsDashboard() {
                           </a>
                         )}
 
+                        {sub.bound_device_id && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleResetDevice(sub)}
+                            className="border-stone-800 text-stone-300 hover:text-white hover:bg-stone-800 text-xs h-9 rounded-xl font-medium"
+                            title="Unbind device so student can activate on a new phone or computer"
+                          >
+                            <Smartphone size={13} className="mr-1 text-emerald-400" />
+                            Reset Device
+                          </Button>
+                        )}
+
                         {isPending && (
                           <Button
                             variant="outline"
@@ -976,9 +1055,9 @@ export function AdminSubscriptionsDashboard() {
                         {isApproved && (
                           <Button
                             variant="outline"
-                            onClick={() => updateSubscriptionStatus(sub.id, "pending").then(() => handleRefresh())}
+                            onClick={() => handleRevoke(sub)}
                             className="border-stone-800 text-stone-400 hover:text-amber-400 text-xs h-9 rounded-xl"
-                            title="Revert status back to pending"
+                            title="Revert status back to pending and lock access"
                           >
                             Revoke
                           </Button>

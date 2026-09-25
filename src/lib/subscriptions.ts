@@ -12,6 +12,10 @@ export interface PathwaySubscription {
   amount_paid?: string;
   approved_at?: string | null;
   notes?: string | null;
+  bound_device_id?: string | null;
+  last_device_name?: string | null;
+  last_accessed_at?: string | null;
+  device_reset_count?: number;
 }
 
 export interface BmsResourceItem {
@@ -49,6 +53,50 @@ export const DEFAULT_SETTINGS: BmsSiteSettings = {
 };
 
 const LOCAL_STORAGE_KEY = "bms_usmle_subscription_session";
+const DEVICE_STORAGE_KEY = "bms_device_fingerprint_v1";
+
+/**
+ * Returns or generates a persistent device ID unique to this physical device/browser.
+ * Prevents account sharing across multiple users or different devices.
+ */
+export function getOrCreateDeviceId(): string {
+  if (typeof window === "undefined") return "server-context";
+  let id = localStorage.getItem(DEVICE_STORAGE_KEY);
+  if (!id) {
+    if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+      id = "dev_" + crypto.randomUUID();
+    } else {
+      id = "dev_" + Date.now().toString(36) + "_" + Math.random().toString(36).substring(2, 10);
+    }
+    localStorage.setItem(DEVICE_STORAGE_KEY, id);
+  }
+  return id;
+}
+
+/**
+ * Detects an intuitive, user-friendly device & browser name for admin audit logs.
+ * Example: "Chrome on Mac", "Safari on iPhone", "Edge on Windows PC"
+ */
+export function getDeviceFriendlyName(): string {
+  if (typeof window === "undefined" || !navigator) return "Unknown Device";
+  const ua = navigator.userAgent;
+
+  let os = "Device";
+  if (/Windows/i.test(ua)) os = "Windows PC";
+  else if (/Macintosh|Mac OS/i.test(ua)) os = "Mac";
+  else if (/iPhone/i.test(ua)) os = "iPhone";
+  else if (/iPad/i.test(ua)) os = "iPad";
+  else if (/Android/i.test(ua)) os = "Android";
+  else if (/Linux/i.test(ua)) os = "Linux";
+
+  let browser = "Browser";
+  if (/Edg/i.test(ua)) browser = "Edge";
+  else if (/Chrome|CriOS/i.test(ua)) browser = "Chrome";
+  else if (/Firefox|FxiOS/i.test(ua)) browser = "Firefox";
+  else if (/Safari/i.test(ua) && !/Chrome/i.test(ua)) browser = "Safari";
+
+  return `${browser} on ${os}`;
+}
 
 // ---------------------------------------------------------------------------
 // 1. SETTINGS HELPERS
@@ -457,7 +505,7 @@ export async function setPrimaryResource(id: string): Promise<boolean> {
 
 export const BMS_DATABASE_SETUP_SQL = `-- Run this in your Supabase SQL Editor (supabase.com/dashboard -> SQL Editor)
 
--- 1. Create pathway_subscriptions table
+-- 1. Create pathway_subscriptions table with Anti-Sharing Device Security
 create table if not exists public.pathway_subscriptions (
   id uuid primary key default gen_random_uuid(),
   created_at timestamptz default timezone('utc'::text, now()) not null,
@@ -469,8 +517,19 @@ create table if not exists public.pathway_subscriptions (
   status text default 'pending' not null,
   amount_paid text default '',
   approved_at timestamptz,
-  notes text
+  notes text,
+  bound_device_id text,
+  last_device_name text,
+  last_accessed_at timestamptz,
+  device_reset_count integer default 0
 );
+
+-- Ensure security columns exist if table was already created earlier
+alter table public.pathway_subscriptions
+  add column if not exists bound_device_id text,
+  add column if not exists last_device_name text,
+  add column if not exists last_accessed_at timestamptz,
+  add column if not exists device_reset_count integer default 0;
 
 -- 2. Create bms_settings table for WhatsApp, pricing & admin PIN
 create table if not exists public.bms_settings (
@@ -495,18 +554,34 @@ on conflict (key) do nothing;
 create index if not exists idx_pathway_subs_email on public.pathway_subscriptions(lower(email));
 create index if not exists idx_pathway_subs_status on public.pathway_subscriptions(status);
 create index if not exists idx_pathway_subs_ref on public.pathway_subscriptions(reference_code);
+create index if not exists idx_pathway_subs_device on public.pathway_subscriptions(bound_device_id);
 
 -- 5. Enable Row Level Security & Access Policies
 alter table public.pathway_subscriptions enable row level security;
 alter table public.bms_settings enable row level security;
 
+-- Public can submit subscription requests
+drop policy if exists "Allow public insert on pathway_subscriptions" on public.pathway_subscriptions;
 create policy "Allow public insert on pathway_subscriptions" on public.pathway_subscriptions for insert to anon, authenticated with check (true);
+
+-- Public can read to verify reference code, status, and device binding
+drop policy if exists "Allow public read on pathway_subscriptions" on public.pathway_subscriptions;
 create policy "Allow public read on pathway_subscriptions" on public.pathway_subscriptions for select to anon, authenticated using (true);
+
+-- Device binding updates: allow client to register device_id and last access time
+drop policy if exists "Allow update on pathway_subscriptions" on public.pathway_subscriptions;
 create policy "Allow update on pathway_subscriptions" on public.pathway_subscriptions for update to anon, authenticated using (true) with check (true);
+
+drop policy if exists "Allow delete on pathway_subscriptions" on public.pathway_subscriptions;
 create policy "Allow delete on pathway_subscriptions" on public.pathway_subscriptions for delete to anon, authenticated using (true);
 
+drop policy if exists "Allow public read on bms_settings" on public.bms_settings;
 create policy "Allow public read on bms_settings" on public.bms_settings for select to anon, authenticated using (true);
+
+drop policy if exists "Allow update on bms_settings" on public.bms_settings;
 create policy "Allow update on bms_settings" on public.bms_settings for update to anon, authenticated using (true) with check (true);
+
+drop policy if exists "Allow insert on bms_settings" on public.bms_settings;
 create policy "Allow insert on bms_settings" on public.bms_settings for insert to anon, authenticated with check (true);
 
 -- 6. Storage bucket for PDF guide upload & downloads
@@ -527,7 +602,68 @@ create policy "Allow uploads to pathway-guides"
 create policy "Allow updates on pathway-guides"
   on storage.objects for update
   to anon, authenticated
-  using (bucket_id = 'pathway-guides');`;
+  using (bucket_id = 'pathway-guides');
+
+-- 7. Secure Admin RPC Functions (Verifies admin passcode before changing sensitive data)
+create or replace function public.bms_admin_update_subscription(
+  p_admin_passcode text,
+  p_subscription_id uuid,
+  p_status text default null,
+  p_notes text default null,
+  p_reset_device boolean default false
+) returns jsonb
+language plpgsql
+security definer
+as $$
+declare
+  v_actual_passcode text;
+begin
+  select value into v_actual_passcode from public.bms_settings where key = 'admin_passcode';
+  if v_actual_passcode is not null and p_admin_passcode != v_actual_passcode then
+    return jsonb_build_object('success', false, 'error', 'Invalid admin passcode');
+  end if;
+
+  update public.pathway_subscriptions
+  set
+    status = coalesce(p_status, status),
+    notes = coalesce(p_notes, notes),
+    approved_at = case when p_status = 'approved' then now() when p_status is not null and p_status != 'approved' then null else approved_at end,
+    bound_device_id = case when p_reset_device then null else bound_device_id end,
+    last_device_name = case when p_reset_device then null else last_device_name end,
+    device_reset_count = case when p_reset_device then coalesce(device_reset_count, 0) + 1 else device_reset_count end
+  where id = p_subscription_id;
+
+  return jsonb_build_object('success', true);
+end;
+$$;
+
+create or replace function public.bms_admin_delete_subscription(
+  p_admin_passcode text,
+  p_subscription_id uuid
+) returns jsonb
+language plpgsql
+security definer
+as $$
+declare
+  v_actual_passcode text;
+begin
+  select value into v_actual_passcode from public.bms_settings where key = 'admin_passcode';
+  if v_actual_passcode is not null and p_admin_passcode != v_actual_passcode then
+    return jsonb_build_object('success', false, 'error', 'Invalid admin passcode');
+  end if;
+
+  delete from public.pathway_subscriptions where id = p_subscription_id;
+  return jsonb_build_object('success', true);
+end;
+$$;
+
+-- 8. Realtime live sync for immediate access activation / revocation
+do $$
+begin
+  alter publication supabase_realtime add table public.pathway_subscriptions;
+exception when others then
+  null;
+end $$;`;
 
 export const BMS_STORAGE_FIX_SQL = `-- Run this in your Supabase SQL Editor (supabase.com/dashboard/project/owurtseimitnofbdepoq/sql/new)
 -- This creates the 'pathway-guides' bucket and allows PDF guide uploads and downloads.
@@ -665,16 +801,23 @@ export async function submitSubscriptionRequest(payload: {
 }
 
 export async function verifySubscriptionStatus(
-  query: string
+  query: string,
+  customDeviceId?: string,
+  customDeviceName?: string
 ): Promise<{
-  status: "approved" | "pending" | "rejected" | "not_found";
+  status: "approved" | "pending" | "rejected" | "not_found" | "device_mismatch";
   subscription?: PathwaySubscription;
+  boundDeviceName?: string;
+  errorMessage?: string;
 }> {
   const clean = query.trim().toLowerCase();
-  if (!clean) return { status: "not_found" };
+  if (!clean) return { status: "not_found", errorMessage: "Please enter your email or reference code." };
+
+  const currentDeviceId = customDeviceId || getOrCreateDeviceId();
+  const currentDeviceName = customDeviceName || getDeviceFriendlyName();
 
   try {
-    if (!supabase) return { status: "not_found" };
+    if (!supabase) return { status: "not_found", errorMessage: "Database connection unavailable." };
 
     // Search by email or reference code
     const isEmail = clean.includes("@");
@@ -689,70 +832,125 @@ export async function verifySubscriptionStatus(
     const { data, error } = await queryBuilder.order("created_at", { ascending: false });
 
     if (error || !data || data.length === 0) {
-      return { status: "not_found" };
+      return { status: "not_found", errorMessage: "No subscription record found for this email or reference code." };
     }
 
     // If multiple entries exist, prioritize 'approved', then 'pending', else most recent
     const approved = data.find((row) => row.status === "approved");
-    if (approved) {
-      return { status: "approved", subscription: approved as PathwaySubscription };
+    const targetSub = (approved || data[0]) as PathwaySubscription;
+
+    if (targetSub.status !== "approved") {
+      return {
+        status: (targetSub.status as "pending" | "rejected") || "not_found",
+        subscription: targetSub,
+        errorMessage:
+          targetSub.status === "pending"
+            ? "Your subscription is currently pending admin verification on WhatsApp."
+            : "This subscription request was marked as rejected. Please contact BMS administration.",
+      };
     }
 
-    const pending = data.find((row) => row.status === "pending");
-    if (pending) {
-      return { status: "pending", subscription: pending as PathwaySubscription };
-    }
+    // TARGET IS APPROVED: VERIFY DEVICE BINDING SECURITY
+    const boundId = targetSub.bound_device_id;
+    const boundName = targetSub.last_device_name;
 
-    return {
-      status: (data[0].status as "approved" | "pending" | "rejected") || "not_found",
-      subscription: data[0] as PathwaySubscription,
-    };
+    if (!boundId) {
+      // First device to claim this approved subscription: bind device permanently
+      try {
+        await supabase
+          .from("pathway_subscriptions")
+          .update({
+            bound_device_id: currentDeviceId,
+            last_device_name: currentDeviceName,
+            last_accessed_at: new Date().toISOString(),
+          })
+          .eq("id", targetSub.id);
+      } catch (err) {
+        console.warn("Could not save device binding (columns might be missing):", err);
+      }
+
+      const updatedSub: PathwaySubscription = {
+        ...targetSub,
+        bound_device_id: currentDeviceId,
+        last_device_name: currentDeviceName,
+      };
+
+      return {
+        status: "approved",
+        subscription: updatedSub,
+      };
+    } else if (boundId === currentDeviceId) {
+      // Authorized matching device! Update last active timestamp
+      try {
+        await supabase
+          .from("pathway_subscriptions")
+          .update({
+            last_device_name: currentDeviceName,
+            last_accessed_at: new Date().toISOString(),
+          })
+          .eq("id", targetSub.id);
+      } catch {
+        // ignore
+      }
+
+      return {
+        status: "approved",
+        subscription: targetSub,
+      };
+    } else {
+      // DEVICE MISMATCH DETECTED!
+      // This subscription code is already in use by another person / device.
+      console.warn("Security Alert: Device mismatch on subscription", targetSub.reference_code);
+      return {
+        status: "device_mismatch",
+        subscription: targetSub,
+        boundDeviceName: boundName || "another device",
+        errorMessage: `Security Protection: This subscription is already registered to ${boundName || "another device"}. Sharing subscription access across multiple users or devices is strictly prohibited. If you recently replaced your device, please contact BMS administration on WhatsApp to reset your device binding.`,
+      };
+    }
   } catch (err) {
     console.error("Error verifying subscription:", err);
-    return { status: "not_found" };
+    return { status: "not_found", errorMessage: "Error checking subscription status." };
   }
 }
 
 // ---------------------------------------------------------------------------
-// 5. LOCAL SESSION STORAGE HELPERS
+// 5. LOCAL SESSION STORAGE HELPERS & LIVE VALIDATION
 // ---------------------------------------------------------------------------
 
 export interface SavedSubscriptionSession {
+  id?: string;
   email: string;
   reference_code: string;
   full_name: string;
   status: string;
   verified_at: string;
+  bound_device_id?: string | null;
 }
 
 export function saveSubscribedSession(sub: PathwaySubscription): void {
   if (typeof window === "undefined") return;
   const payload: SavedSubscriptionSession = {
+    id: sub.id,
     email: sub.email,
     reference_code: sub.reference_code,
     full_name: sub.full_name,
     status: sub.status,
     verified_at: new Date().toISOString(),
+    bound_device_id: sub.bound_device_id,
   };
   localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(payload));
-  localStorage.setItem("bms_usmle_subscribed", "true");
+  if (sub.status === "approved") {
+    localStorage.setItem("bms_usmle_subscribed", "true");
+  } else {
+    localStorage.removeItem("bms_usmle_subscribed");
+  }
 }
 
 export function getSavedSubscriptionSession(): SavedSubscriptionSession | null {
   if (typeof window === "undefined") return null;
   const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
   if (!stored) {
-    // Check legacy key
-    const legacy = localStorage.getItem("bms_usmle_subscribed");
-    if (legacy === "true") {
-      return {
-        email: "",
-        reference_code: "PREVIOUS",
-        full_name: "Subscriber",
-        status: "approved",
-        verified_at: new Date().toISOString(),
-      };
-    }
     return null;
   }
   try {
@@ -766,6 +964,115 @@ export function clearSubscriptionSession(): void {
   if (typeof window === "undefined") return;
   localStorage.removeItem(LOCAL_STORAGE_KEY);
   localStorage.removeItem("bms_usmle_subscribed");
+}
+
+export async function validateActiveSubscription(): Promise<{
+  isValid: boolean;
+  status: "approved" | "pending" | "rejected" | "not_found" | "device_mismatch";
+  subscription?: PathwaySubscription;
+  reason?: string;
+}> {
+  if (typeof window === "undefined") {
+    return { isValid: false, status: "not_found", reason: "SSR context" };
+  }
+
+  const session = getSavedSubscriptionSession();
+  if (!session) {
+    localStorage.removeItem("bms_usmle_subscribed");
+    return { isValid: false, status: "not_found", reason: "No active subscription session" };
+  }
+
+  const clientDeviceId = getOrCreateDeviceId();
+  const clientDeviceName = getDeviceFriendlyName();
+
+  if (!session.id && !session.reference_code && !session.email) {
+    clearSubscriptionSession();
+    return { isValid: false, status: "not_found", reason: "Invalid session record" };
+  }
+
+  try {
+    if (!supabase) {
+      return { isValid: false, status: "not_found", reason: "Database client unavailable" };
+    }
+
+    let queryBuilder = supabase.from("pathway_subscriptions").select("*");
+
+    if (session.id) {
+      queryBuilder = queryBuilder.eq("id", session.id);
+    } else if (session.reference_code && session.reference_code !== "PREVIOUS") {
+      queryBuilder = queryBuilder.eq("reference_code", session.reference_code.toUpperCase());
+    } else if (session.email) {
+      queryBuilder = queryBuilder.ilike("email", session.email.trim());
+    } else {
+      clearSubscriptionSession();
+      return { isValid: false, status: "not_found", reason: "No valid identifier to check" };
+    }
+
+    const { data, error } = await queryBuilder.limit(1);
+
+    if (error || !data || data.length === 0) {
+      // Record was deleted or not found in database!
+      clearSubscriptionSession();
+      return {
+        isValid: false,
+        status: "not_found",
+        reason: "Subscription record has been deleted or not found.",
+      };
+    }
+
+    const currentSub = data[0] as PathwaySubscription;
+
+    if (currentSub.status !== "approved") {
+      // Admin revoked (pending) or rejected this record!
+      clearSubscriptionSession();
+      return {
+        isValid: false,
+        status: currentSub.status as "pending" | "rejected",
+        subscription: currentSub,
+        reason: `Subscription is marked as ${currentSub.status} by administrator.`,
+      };
+    }
+
+    // CHECK DEVICE BINDING SECURITY
+    if (currentSub.bound_device_id && currentSub.bound_device_id !== clientDeviceId) {
+      // Session does not match this physical device! Code sharing or session copying detected!
+      clearSubscriptionSession();
+      return {
+        isValid: false,
+        status: "device_mismatch",
+        subscription: currentSub,
+        reason: `Security Violation: This subscription is registered to another device (${currentSub.last_device_name || "another device"}). Account sharing is not permitted.`,
+      };
+    }
+
+    // If not yet bound, bind it now
+    if (!currentSub.bound_device_id) {
+      try {
+        await supabase
+          .from("pathway_subscriptions")
+          .update({
+            bound_device_id: clientDeviceId,
+            last_device_name: clientDeviceName,
+            last_accessed_at: new Date().toISOString(),
+          })
+          .eq("id", currentSub.id);
+      } catch {
+        // ignore
+      }
+      currentSub.bound_device_id = clientDeviceId;
+      currentSub.last_device_name = clientDeviceName;
+    }
+
+    saveSubscribedSession(currentSub);
+    return {
+      isValid: true,
+      status: "approved",
+      subscription: currentSub,
+    };
+  } catch (err) {
+    console.error("Error validating subscription against Supabase:", err);
+    return { isValid: false, status: "not_found", reason: "Validation error" };
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -795,10 +1102,24 @@ export async function getAllSubscriptions(): Promise<PathwaySubscription[]> {
 export async function updateSubscriptionStatus(
   id: string,
   status: "approved" | "pending" | "rejected",
-  notes?: string
+  notes?: string | null,
+  adminPasscode?: string
 ): Promise<boolean> {
   try {
     if (!supabase) return false;
+
+    if (adminPasscode) {
+      const { data: rpcData, error: rpcError } = await supabase.rpc("bms_admin_update_subscription", {
+        p_admin_passcode: adminPasscode,
+        p_subscription_id: id,
+        p_status: status,
+        p_notes: notes ?? null,
+      });
+
+      if (!rpcError && rpcData?.success) {
+        return true;
+      }
+    }
 
     const payload: Record<string, unknown> = {
       status,
@@ -828,9 +1149,21 @@ export async function updateSubscriptionStatus(
   }
 }
 
-export async function deleteSubscription(id: string): Promise<boolean> {
+export async function deleteSubscription(id: string, adminPasscode?: string): Promise<boolean> {
   try {
     if (!supabase) return false;
+
+    if (adminPasscode) {
+      const { data: rpcData, error: rpcError } = await supabase.rpc("bms_admin_delete_subscription", {
+        p_admin_passcode: adminPasscode,
+        p_subscription_id: id,
+      });
+
+      if (!rpcError && rpcData?.success) {
+        return true;
+      }
+    }
+
     const { error } = await supabase
       .from("pathway_subscriptions")
       .delete()
@@ -845,5 +1178,44 @@ export async function deleteSubscription(id: string): Promise<boolean> {
   } catch (err) {
     console.error("Exception deleting subscription:", err);
     return false;
+  }
+}
+
+export async function resetSubscriptionDevice(
+  subId: string,
+  adminPasscode?: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    if (!supabase) return { success: false, error: "Database not connected" };
+
+    if (adminPasscode) {
+      const { data: rpcData, error: rpcError } = await supabase.rpc("bms_admin_update_subscription", {
+        p_admin_passcode: adminPasscode,
+        p_subscription_id: subId,
+        p_reset_device: true,
+      });
+
+      if (!rpcError && rpcData?.success) {
+        return { success: true };
+      }
+    }
+
+    const { error } = await supabase
+      .from("pathway_subscriptions")
+      .update({
+        bound_device_id: null,
+        last_device_name: null,
+      })
+      .eq("id", subId);
+
+    if (error) {
+      console.error("Error resetting device:", error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true };
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : "Failed to reset device";
+    return { success: false, error: msg };
   }
 }

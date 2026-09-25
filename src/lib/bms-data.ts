@@ -192,6 +192,9 @@ export interface MedicalResource {
   href?: string;
   badge?: string;
   description?: string;
+  directUrl?: string;
+  fileSize?: string;
+  isGated?: boolean;
 }
 
 export const resources: MedicalResource[] = [

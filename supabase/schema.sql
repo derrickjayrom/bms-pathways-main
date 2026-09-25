@@ -174,3 +174,34 @@ create policy "Allow insert on bms_settings"
   to anon, authenticated
   with check (true);
 
+-- 8. Storage bucket & RLS policies for PDF Guide uploads and downloads
+insert into storage.buckets (id, name, public)
+values ('pathway-guides', 'pathway-guides', true)
+on conflict (id) do update set public = true;
+
+drop policy if exists "Allow public downloads on pathway-guides" on storage.objects;
+drop policy if exists "Allow uploads to pathway-guides" on storage.objects;
+drop policy if exists "Allow updates on pathway-guides" on storage.objects;
+drop policy if exists "Allow deletes on pathway-guides" on storage.objects;
+
+create policy "Allow public downloads on pathway-guides"
+  on storage.objects for select
+  to anon, authenticated
+  using (bucket_id = 'pathway-guides');
+
+create policy "Allow uploads to pathway-guides"
+  on storage.objects for insert
+  to anon, authenticated
+  with check (bucket_id = 'pathway-guides');
+
+create policy "Allow updates on pathway-guides"
+  on storage.objects for update
+  to anon, authenticated
+  using (bucket_id = 'pathway-guides')
+  with check (bucket_id = 'pathway-guides');
+
+create policy "Allow deletes on pathway-guides"
+  on storage.objects for delete
+  to anon, authenticated
+  using (bucket_id = 'pathway-guides');
+

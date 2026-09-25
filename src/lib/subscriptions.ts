@@ -14,11 +14,28 @@ export interface PathwaySubscription {
   notes?: string | null;
 }
 
+export interface BmsResourceItem {
+  id: string;
+  title: string;
+  category: string;
+  resource_type: string;
+  description?: string;
+  file_url: string;
+  filename: string;
+  file_size?: string;
+  is_gated: boolean;
+  is_primary_guide?: boolean;
+  pathway_id?: string;
+  created_at: string;
+}
+
 export interface BmsSiteSettings {
   whatsapp_number: string;
   whatsapp_default_message: string;
   subscription_price: string;
   admin_passcode: string;
+  guide_pdf_url?: string;
+  guide_pdf_filename?: string;
 }
 
 export const DEFAULT_SETTINGS: BmsSiteSettings = {
@@ -27,6 +44,8 @@ export const DEFAULT_SETTINGS: BmsSiteSettings = {
     "Hello BMS! I would like to activate my subscription for the U.S. Residency Pathway Roadmap & Complete Guide. My reference code is: {code} and email: {email}.",
   subscription_price: "$25 / GHS 350",
   admin_passcode: "bms-admin-2025",
+  guide_pdf_url: "",
+  guide_pdf_filename: "",
 };
 
 const LOCAL_STORAGE_KEY = "bms_usmle_subscription_session";
@@ -63,7 +82,7 @@ export async function getSiteSettings(): Promise<BmsSiteSettings> {
 }
 
 export async function updateSiteSetting(
-  key: keyof BmsSiteSettings,
+  key: keyof BmsSiteSettings | string,
   value: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
@@ -121,6 +140,321 @@ export async function checkDatabaseSetup(): Promise<{
   }
 }
 
+export async function uploadGuidePdf(
+  file: File
+): Promise<{ success: boolean; url?: string; filename?: string; error?: string }> {
+  try {
+    if (!supabase) return { success: false, error: "Database client is not initialized" };
+
+    const cleanBaseName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
+    const filePath = `guides/${Date.now()}_${cleanBaseName}`;
+
+    // Upload to Supabase Storage bucket 'pathway-guides'
+    const { error: uploadError } = await supabase.storage
+      .from("pathway-guides")
+      .upload(filePath, file, {
+        cacheControl: "3600",
+        upsert: false,
+      });
+
+    if (uploadError) {
+      console.error("Storage upload error:", uploadError);
+      return { success: false, error: uploadError.message };
+    }
+
+    const { data } = supabase.storage.from("pathway-guides").getPublicUrl(filePath);
+    const publicUrl = data.publicUrl;
+
+    // Save in settings table
+    await updateSiteSetting("guide_pdf_url", publicUrl);
+    await updateSiteSetting("guide_pdf_filename", file.name);
+
+    // Also register in resource library as primary guide
+    let sizeFormatted = "";
+    if (file.size < 1024 * 1024) {
+      sizeFormatted = `${Math.round(file.size / 1024)} KB`;
+    } else {
+      sizeFormatted = `${(file.size / (1024 * 1024)).toFixed(1)} MB`;
+    }
+
+    await saveUploadedResource({
+      title: "Complete U.S. Residency Pathway Guide",
+      category: "U.S. Residency",
+      resource_type: "Complete Guide",
+      description:
+        "Comprehensive 14-stage roadmap for IMGs: USMLE Step 1 & 2 CK, ECFMG Certification, Intealth, ERAS, and NRMP Match.",
+      file_url: publicUrl,
+      filename: file.name,
+      file_size: sizeFormatted,
+      is_gated: true,
+      is_primary_guide: true,
+      pathway_id: "us-residency",
+    });
+
+    return { success: true, url: publicUrl, filename: file.name };
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : "Failed to upload file";
+    return { success: false, error: msg };
+  }
+}
+
+export async function uploadAnyResourceFile(
+  file: File,
+  folder = "resources"
+): Promise<{ success: boolean; url?: string; filename?: string; sizeFormatted?: string; error?: string }> {
+  try {
+    if (!supabase) return { success: false, error: "Database client is not initialized" };
+
+    const cleanBaseName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
+    const filePath = `${folder}/${Date.now()}_${cleanBaseName}`;
+
+    let sizeFormatted = "";
+    if (file.size < 1024 * 1024) {
+      sizeFormatted = `${Math.round(file.size / 1024)} KB`;
+    } else {
+      sizeFormatted = `${(file.size / (1024 * 1024)).toFixed(1)} MB`;
+    }
+
+    const { error: uploadError } = await supabase.storage
+      .from("pathway-guides")
+      .upload(filePath, file, {
+        cacheControl: "3600",
+        upsert: false,
+      });
+
+    if (uploadError) {
+      console.error("Storage upload error:", uploadError);
+      return { success: false, error: uploadError.message };
+    }
+
+    const { data } = supabase.storage.from("pathway-guides").getPublicUrl(filePath);
+    return {
+      success: true,
+      url: data.publicUrl,
+      filename: file.name,
+      sizeFormatted,
+    };
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : "Failed to upload file";
+    return { success: false, error: msg };
+  }
+}
+
+export async function getAllUploadedResources(): Promise<BmsResourceItem[]> {
+  try {
+    if (!supabase) return [];
+
+    // 1. Try reading from bms_resources table if available
+    try {
+      const { data: tableData, error: tableErr } = await supabase
+        .from("bms_resources")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (!tableErr && Array.isArray(tableData) && tableData.length > 0) {
+        return tableData as BmsResourceItem[];
+      }
+    } catch {
+      // Table may not exist yet, continue to settings fallback
+    }
+
+    // 2. Read from bms_settings (key: bms_uploaded_resources)
+    const { data: settingData } = await supabase
+      .from("bms_settings")
+      .select("value")
+      .eq("key", "bms_uploaded_resources")
+      .single();
+
+    let list: BmsResourceItem[] = [];
+    if (settingData?.value) {
+      try {
+        list = JSON.parse(settingData.value);
+      } catch (e) {
+        console.warn("Failed to parse bms_uploaded_resources JSON:", e);
+      }
+    }
+
+    // 3. Ensure primary guide_pdf_url from bms_settings is accounted for
+    const { data: guideUrlRow } = await supabase
+      .from("bms_settings")
+      .select("value")
+      .eq("key", "guide_pdf_url")
+      .single();
+
+    if (guideUrlRow?.value && guideUrlRow.value.trim().length > 0) {
+      const primaryUrl = guideUrlRow.value.trim();
+      const hasMatch = list.some((item) => item.file_url === primaryUrl || item.is_primary_guide);
+
+      if (!hasMatch) {
+        const { data: guideNameRow } = await supabase
+          .from("bms_settings")
+          .select("value")
+          .eq("key", "guide_pdf_filename")
+          .single();
+
+        const defaultPrimary: BmsResourceItem = {
+          id: "primary-residency-guide",
+          title: "Complete U.S. Residency Pathway Guide",
+          category: "U.S. Residency",
+          resource_type: "Complete Guide",
+          description:
+            "Comprehensive 14-stage roadmap for IMGs: USMLE Step 1 & 2 CK, ECFMG Certification, Intealth, ERAS, and NRMP Match.",
+          file_url: primaryUrl,
+          filename: guideNameRow?.value || "BMS-US-Residency-Pathway-Guide.pdf",
+          file_size: "PDF Guide",
+          is_gated: true,
+          is_primary_guide: true,
+          pathway_id: "us-residency",
+          created_at: new Date().toISOString(),
+        };
+        list.unshift(defaultPrimary);
+      }
+    }
+
+    return list;
+  } catch (err) {
+    console.warn("Error fetching uploaded resources:", err);
+    return [];
+  }
+}
+
+export async function saveUploadedResource(
+  item: Omit<BmsResourceItem, "id" | "created_at">
+): Promise<{ success: boolean; item?: BmsResourceItem; error?: string }> {
+  try {
+    if (!supabase) return { success: false, error: "Database not connected" };
+
+    const newItem: BmsResourceItem = {
+      ...item,
+      id: "res_" + Date.now() + "_" + Math.random().toString(36).substring(2, 7),
+      created_at: new Date().toISOString(),
+    };
+
+    const existing = await getAllUploadedResources();
+
+    if (newItem.is_primary_guide) {
+      existing.forEach((r) => {
+        r.is_primary_guide = false;
+      });
+      await updateSiteSetting("guide_pdf_url", newItem.file_url);
+      await updateSiteSetting("guide_pdf_filename", newItem.filename);
+    }
+
+    const updatedList = [newItem, ...existing.filter((r) => r.id !== newItem.id)];
+
+    // Try saving to bms_resources table if available
+    try {
+      await supabase.from("bms_resources").upsert({
+        id: newItem.id,
+        title: newItem.title,
+        category: newItem.category,
+        resource_type: newItem.resource_type,
+        description: newItem.description || "",
+        file_url: newItem.file_url,
+        filename: newItem.filename,
+        file_size: newItem.file_size || "",
+        is_gated: newItem.is_gated,
+        is_primary_guide: !!newItem.is_primary_guide,
+        pathway_id: newItem.pathway_id || "us-residency",
+        created_at: newItem.created_at,
+      });
+    } catch {
+      // Ignore if table not created
+    }
+
+    // Always persist to bms_settings as JSON array
+    const { error } = await supabase.from("bms_settings").upsert({
+      key: "bms_uploaded_resources",
+      value: JSON.stringify(updatedList),
+      updated_at: new Date().toISOString(),
+    });
+
+    if (error) {
+      console.error("Error saving resource to settings:", error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true, item: newItem };
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : "Failed to save resource";
+    return { success: false, error: msg };
+  }
+}
+
+export async function deleteUploadedResource(id: string): Promise<boolean> {
+  try {
+    if (!supabase) return false;
+
+    try {
+      await supabase.from("bms_resources").delete().eq("id", id);
+    } catch {
+      // Ignore
+    }
+
+    const existing = await getAllUploadedResources();
+    const target = existing.find((r) => r.id === id);
+    const updated = existing.filter((r) => r.id !== id);
+
+    if (target?.is_primary_guide) {
+      const nextPrimary = updated.find(
+        (r) => r.pathway_id === "us-residency" || r.category === "U.S. Residency"
+      );
+      if (nextPrimary) {
+        nextPrimary.is_primary_guide = true;
+        await updateSiteSetting("guide_pdf_url", nextPrimary.file_url);
+        await updateSiteSetting("guide_pdf_filename", nextPrimary.filename);
+      } else {
+        await updateSiteSetting("guide_pdf_url", "");
+        await updateSiteSetting("guide_pdf_filename", "");
+      }
+    }
+
+    await supabase.from("bms_settings").upsert({
+      key: "bms_uploaded_resources",
+      value: JSON.stringify(updated),
+      updated_at: new Date().toISOString(),
+    });
+
+    return true;
+  } catch (err) {
+    console.error("Error deleting resource:", err);
+    return false;
+  }
+}
+
+export async function setPrimaryResource(id: string): Promise<boolean> {
+  try {
+    if (!supabase) return false;
+    const existing = await getAllUploadedResources();
+    let selected: BmsResourceItem | undefined;
+
+    existing.forEach((r) => {
+      if (r.id === id) {
+        r.is_primary_guide = true;
+        selected = r;
+      } else {
+        r.is_primary_guide = false;
+      }
+    });
+
+    if (selected) {
+      await updateSiteSetting("guide_pdf_url", selected.file_url);
+      await updateSiteSetting("guide_pdf_filename", selected.filename);
+    }
+
+    await supabase.from("bms_settings").upsert({
+      key: "bms_uploaded_resources",
+      value: JSON.stringify(existing),
+      updated_at: new Date().toISOString(),
+    });
+
+    return true;
+  } catch (err) {
+    console.error("Error setting primary resource:", err);
+    return false;
+  }
+}
+
 export const BMS_DATABASE_SETUP_SQL = `-- Run this in your Supabase SQL Editor (supabase.com/dashboard -> SQL Editor)
 
 -- 1. Create pathway_subscriptions table
@@ -152,7 +486,9 @@ values
   ('whatsapp_number', '+233240000000', 'Admin WhatsApp contact number with country code'),
   ('whatsapp_default_message', 'Hello BMS! I would like to activate my subscription for the U.S. Residency Pathway Roadmap & Complete Guide. My reference code is: {code} and email: {email}.', 'Template message opened when user clicks Chat on WhatsApp'),
   ('subscription_price', '$25 / GHS 350', 'Display price for the pathway roadmap & guide access'),
-  ('admin_passcode', 'bms-admin-2025', 'Passcode to access the /admin/subscriptions dashboard')
+  ('admin_passcode', 'bms-admin-2025', 'Passcode to access the /admin/subscriptions dashboard'),
+  ('guide_pdf_url', '', 'Direct URL to download complete guide PDF'),
+  ('guide_pdf_filename', '', 'Display filename of the uploaded guide PDF')
 on conflict (key) do nothing;
 
 -- 4. Create Indexes
@@ -171,7 +507,63 @@ create policy "Allow delete on pathway_subscriptions" on public.pathway_subscrip
 
 create policy "Allow public read on bms_settings" on public.bms_settings for select to anon, authenticated using (true);
 create policy "Allow update on bms_settings" on public.bms_settings for update to anon, authenticated using (true) with check (true);
-create policy "Allow insert on bms_settings" on public.bms_settings for insert to anon, authenticated with check (true);`;
+create policy "Allow insert on bms_settings" on public.bms_settings for insert to anon, authenticated with check (true);
+
+-- 6. Storage bucket for PDF guide upload & downloads
+insert into storage.buckets (id, name, public)
+values ('pathway-guides', 'pathway-guides', true)
+on conflict (id) do nothing;
+
+create policy "Allow public downloads on pathway-guides"
+  on storage.objects for select
+  to anon, authenticated
+  using (bucket_id = 'pathway-guides');
+
+create policy "Allow uploads to pathway-guides"
+  on storage.objects for insert
+  to anon, authenticated
+  with check (bucket_id = 'pathway-guides');
+
+create policy "Allow updates on pathway-guides"
+  on storage.objects for update
+  to anon, authenticated
+  using (bucket_id = 'pathway-guides');`;
+
+export const BMS_STORAGE_FIX_SQL = `-- Run this in your Supabase SQL Editor (supabase.com/dashboard/project/owurtseimitnofbdepoq/sql/new)
+-- This creates the 'pathway-guides' bucket and allows PDF guide uploads and downloads.
+
+-- 1. Create or ensure public bucket
+insert into storage.buckets (id, name, public)
+values ('pathway-guides', 'pathway-guides', true)
+on conflict (id) do update set public = true;
+
+-- 2. Drop existing conflicting policies
+drop policy if exists "Allow public downloads on pathway-guides" on storage.objects;
+drop policy if exists "Allow uploads to pathway-guides" on storage.objects;
+drop policy if exists "Allow updates on pathway-guides" on storage.objects;
+drop policy if exists "Allow deletes on pathway-guides" on storage.objects;
+
+-- 3. Create permissive policies for 'pathway-guides'
+create policy "Allow public downloads on pathway-guides"
+  on storage.objects for select
+  to anon, authenticated
+  using (bucket_id = 'pathway-guides');
+
+create policy "Allow uploads to pathway-guides"
+  on storage.objects for insert
+  to anon, authenticated
+  with check (bucket_id = 'pathway-guides');
+
+create policy "Allow updates on pathway-guides"
+  on storage.objects for update
+  to anon, authenticated
+  using (bucket_id = 'pathway-guides')
+  with check (bucket_id = 'pathway-guides');
+
+create policy "Allow deletes on pathway-guides"
+  on storage.objects for delete
+  to anon, authenticated
+  using (bucket_id = 'pathway-guides');`;
 
 // ---------------------------------------------------------------------------
 // 2. REFERENCE CODE GENERATOR

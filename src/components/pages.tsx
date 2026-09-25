@@ -1,4 +1,4 @@
-import { useMemo, useState, type FormEvent, type ReactNode } from "react";
+import { useMemo, useState, useEffect, type FormEvent, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import {
   ArrowRight,
@@ -10,6 +10,7 @@ import {
   ChevronDown,
   CircleHelp,
   Compass,
+  Download,
   ExternalLink,
   GraduationCap,
   Handshake,
@@ -17,6 +18,7 @@ import {
   Info,
   Linkedin,
   Loader2,
+  Lock,
   Mail,
   MapPin,
   Network,
@@ -38,10 +40,12 @@ import {
   resourceCards,
   resources,
   team,
+  type MedicalResource,
 } from "@/lib/bms-data";
 import { supabase } from "@/utils/supabase";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { getAllUploadedResources, type BmsResourceItem } from "@/lib/subscriptions";
 
 export function HomePage() {
   return (
@@ -1181,17 +1185,53 @@ export function EventsPage() {
 }
 
 export function ResourcesPage() {
-  const cats = ["All", ...Array.from(new Set(resources.map((r) => r.cat)))];
+  const [uploaded, setUploaded] = useState<BmsResourceItem[]>([]);
+
+  useEffect(() => {
+    getAllUploadedResources().then((list) => setUploaded(list));
+  }, []);
+
+  const mergedResources = useMemo(() => {
+    const list: MedicalResource[] = [...resources];
+    uploaded.forEach((u) => {
+      const existingIdx = list.findIndex(
+        (x) => x.title.toLowerCase().trim() === u.title.toLowerCase().trim()
+      );
+      const converted: MedicalResource = {
+        title: u.title,
+        cat: u.category,
+        type: u.resource_type,
+        href: u.pathway_id === "us-residency" ? "/career-exploration/us-residency" : undefined,
+        description: u.description || `${u.category} · ${u.resource_type} (${u.file_size || "PDF"})`,
+        badge: u.is_primary_guide ? "★ Primary Guide" : u.is_gated ? "Members Only" : "Free Download",
+        directUrl: u.file_url,
+        fileSize: u.file_size,
+        isGated: u.is_gated,
+      };
+
+      if (existingIdx >= 0) {
+        list[existingIdx] = { ...list[existingIdx], ...converted };
+      } else {
+        list.unshift(converted);
+      }
+    });
+    return list;
+  }, [uploaded]);
+
+  const cats = useMemo(
+    () => ["All", ...Array.from(new Set(mergedResources.map((r) => r.cat)))],
+    [mergedResources]
+  );
   const [active, setActive] = useState("All");
   const [query, setQuery] = useState("");
   const shown = useMemo(
     () =>
-      resources.filter(
+      mergedResources.filter(
         (r) =>
           (active === "All" || r.cat === active) &&
           r.title.toLowerCase().includes(query.toLowerCase()),
       ),
-    [active, query],
+    [active, query, mergedResources],
   );
   return (
     <>
@@ -1243,14 +1283,33 @@ export function ResourcesPage() {
                     )}
                   </div>
                   <h2 className="mt-3 text-xl font-bold leading-snug">{r.title}</h2>
-                  <p className="mt-2 text-sm text-muted-foreground">{r.type} · Complete Guide</p>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    {r.type} {r.fileSize ? `· ${r.fileSize}` : "· Complete Guide"}
+                  </p>
                   {r.description && (
                     <p className="mt-2.5 text-xs text-stone-600 leading-relaxed font-normal">
                       {r.description}
                     </p>
                   )}
                 </div>
-                {r.href ? (
+                {r.directUrl ? (
+                  <Button
+                    className="mt-7 bg-[#10B981] hover:bg-[#059669] text-white font-bold"
+                    size="sm"
+                    onClick={() => {
+                      toast.success(`Opening & downloading "${r.title}"...`);
+                      const link = document.createElement("a");
+                      link.href = r.directUrl!;
+                      link.target = "_blank";
+                      link.rel = "noopener noreferrer";
+                      document.body.appendChild(link);
+                      link.click();
+                      document.body.removeChild(link);
+                    }}
+                  >
+                    <Download size={14} className="mr-1.5" /> Download File
+                  </Button>
+                ) : r.href ? (
                   <Button
                     asChild
                     className="mt-7 bg-[#10B981] hover:bg-[#059669] text-white font-bold"

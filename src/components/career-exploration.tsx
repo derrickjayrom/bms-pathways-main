@@ -25,6 +25,8 @@ import {
   Trophy,
   Copy,
   Smartphone,
+  Globe,
+  FileText,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -54,9 +56,11 @@ import {
   buildWhatsAppLink,
   saveSubscribedSession,
   getSavedSubscriptionSession,
+  getAllUploadedResources,
   type BmsSiteSettings,
   type PathwaySubscription,
   type SavedSubscriptionSession,
+  type BmsResourceItem,
   DEFAULT_SETTINGS,
 } from "@/lib/subscriptions";
 
@@ -162,6 +166,7 @@ export function UsResidencyPathwayPage() {
   const [modalMode, setModalMode] = useState<"subscribe" | "verify">("subscribe");
   const [siteSettings, setSiteSettings] = useState<BmsSiteSettings>(DEFAULT_SETTINGS);
   const [activeSession, setActiveSession] = useState<SavedSubscriptionSession | null>(null);
+  const [pathwayResources, setPathwayResources] = useState<BmsResourceItem[]>([]);
 
   // Sequential progression state: current active stage index (0 to 13)
   const [activeStageIndex, setActiveStageIndex] = useState(0);
@@ -177,6 +182,7 @@ export function UsResidencyPathwayPage() {
   // Load subscription state from localStorage & Supabase
   useEffect(() => {
     getSiteSettings().then((s) => setSiteSettings(s));
+    getAllUploadedResources().then((res) => setPathwayResources(res));
 
     const session = getSavedSubscriptionSession();
     if (session && session.status === "approved") {
@@ -206,9 +212,39 @@ export function UsResidencyPathwayPage() {
     }
   };
 
+  const handleDownloadResource = (res: BmsResourceItem) => {
+    if (res.is_gated && !isSubscribed) {
+      setModalMode("subscribe");
+      setSubscriptionOpen(true);
+      return;
+    }
+
+    toast.success(`Opening & downloading "${res.title}"...`);
+    const link = document.createElement("a");
+    link.href = res.file_url;
+    link.download = res.filename || `${res.title.replace(/\s+/g, "_")}.pdf`;
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const triggerDownload = () => {
-    toast.success("Printing / Downloading BMS U.S. Residency Pathway Guide!");
-    window.print();
+    if (siteSettings.guide_pdf_url) {
+      toast.success("Opening & downloading official BMS U.S. Residency Pathway Guide...");
+      const link = document.createElement("a");
+      link.href = siteSettings.guide_pdf_url;
+      link.download = siteSettings.guide_pdf_filename || "BMS-US-Residency-Pathway-Guide.pdf";
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } else {
+      toast.success("Printing / Downloading BMS U.S. Residency Pathway Guide!");
+      window.print();
+    }
   };
 
   const handleSubscriptionSuccess = (sub?: PathwaySubscription) => {
@@ -1099,6 +1135,165 @@ export function UsResidencyPathwayPage() {
           </div>
             </>
           )}
+        </div>
+      </section>
+
+      {/* DOWNLOADABLE PATHWAY RESOURCES & STUDY MATERIALS */}
+      <section id="pathway-resources-section" className="py-14 sm:py-20 bg-stone-900 border-t border-stone-800 text-stone-100">
+        <div className="mx-auto max-w-7xl px-5 lg:px-8">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10 pb-6 border-b border-stone-800">
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <span className="size-2 rounded-full bg-emerald-400" />
+                <span className="text-xs font-black uppercase tracking-widest text-emerald-400">
+                  OFFICIAL DOWNLOADABLE MATERIALS
+                </span>
+              </div>
+              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-white tracking-tight">
+                Pathway Guides, Checklists & Workbooks
+              </h2>
+              <p className="mt-2 text-sm text-stone-400 max-w-2xl leading-relaxed">
+                Download the complete guides, USMLE study schedules, and application templates prepared by BMS mentors.
+                {!isSubscribed && " Subscribe to unlock all premium materials with one click."}
+              </p>
+            </div>
+
+            <div className="shrink-0 flex items-center gap-3">
+              {isSubscribed ? (
+                <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold bg-emerald-950/80 text-emerald-300 border border-emerald-800/60">
+                  <CheckCircle2 size={13} /> Full Access Unlocked
+                </span>
+              ) : (
+                <Button
+                  onClick={() => {
+                    setModalMode("subscribe");
+                    setSubscriptionOpen(true);
+                  }}
+                  className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold h-10 px-5 rounded-xl shadow-xs text-xs"
+                >
+                  <Lock size={13} className="mr-1.5" />
+                  Unlock All Materials
+                </Button>
+              )}
+            </div>
+          </div>
+
+          {/* Resources Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {/* Primary Complete Guide Card */}
+            <div className="rounded-2xl border-2 border-emerald-500/50 bg-gradient-to-b from-stone-950 to-stone-900/90 p-6 flex flex-col justify-between shadow-lg relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
+              <div>
+                <div className="flex items-center justify-between gap-2 mb-3">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-gold px-2.5 py-0.5 rounded-full bg-stone-950 border border-stone-800">
+                    Comprehensive Guide
+                  </span>
+                  <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                    ★ Primary PDF
+                  </span>
+                </div>
+                <h3 className="text-xl font-black text-white leading-snug">
+                  Complete U.S. Residency Pathway Guide
+                </h3>
+                <p className="mt-2 text-xs text-stone-400 leading-relaxed">
+                  End-to-end official roadmap breakdown covering USMLE Step 1 & 2 CK, ECFMG Intealth, USCE clinical rotations, ERAS CV, personal statement, and the NRMP Match.
+                </p>
+                <div className="mt-4 flex items-center gap-2 text-[11px] text-stone-500 font-mono">
+                  <span>PDF Document</span>
+                  <span>·</span>
+                  <span>Official BMS Guide</span>
+                </div>
+              </div>
+
+              <div className="mt-6 pt-4 border-t border-stone-800/80">
+                <Button
+                  onClick={handleDownloadClick}
+                  className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold h-11 rounded-xl shadow-xs"
+                >
+                  <Download className="mr-2 size-4" />
+                  {isSubscribed ? "Download Complete Guide" : "Subscribe to Download"}
+                </Button>
+              </div>
+            </div>
+
+            {/* Custom Uploaded Resources */}
+            {pathwayResources
+              .filter((r) => !r.is_primary_guide)
+              .map((res) => {
+                const isLocked = res.is_gated && !isSubscribed;
+                return (
+                  <div
+                    key={res.id}
+                    className={`rounded-2xl border p-6 flex flex-col justify-between transition-all ${
+                      isLocked
+                        ? "bg-stone-950/60 border-stone-800/80 hover:border-stone-700 opacity-90"
+                        : "bg-stone-950 border-stone-800 hover:border-emerald-500/40 shadow-sm"
+                    }`}
+                  >
+                    <div>
+                      <div className="flex items-center justify-between gap-2 mb-3">
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-stone-400 px-2.5 py-0.5 rounded-full bg-stone-900 border border-stone-800">
+                          {res.category}
+                        </span>
+                        {res.is_gated ? (
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-950/80 text-emerald-400 border border-emerald-800/60 flex items-center gap-1">
+                            <Lock size={9} /> Subscribers Only
+                          </span>
+                        ) : (
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-950/80 text-blue-400 border border-blue-800/60 flex items-center gap-1">
+                            <Globe size={9} /> Free Download
+                          </span>
+                        )}
+                      </div>
+
+                      <h3 className="text-lg font-bold text-white leading-snug">
+                        {res.title}
+                      </h3>
+
+                      {res.description && (
+                        <p className="mt-2 text-xs text-stone-400 leading-relaxed line-clamp-3">
+                          {res.description}
+                        </p>
+                      )}
+
+                      <div className="mt-4 flex items-center gap-2 text-[11px] text-stone-500 font-mono">
+                        <span className="truncate max-w-[160px]">{res.filename}</span>
+                        {res.file_size && (
+                          <>
+                            <span>·</span>
+                            <span>{res.file_size}</span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="mt-6 pt-4 border-t border-stone-800/80">
+                      {isLocked ? (
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            setModalMode("subscribe");
+                            setSubscriptionOpen(true);
+                          }}
+                          className="w-full border-stone-700 bg-stone-900/60 hover:bg-stone-800 text-stone-300 font-bold h-11 rounded-xl text-xs"
+                        >
+                          <Lock className="mr-2 size-3.5 text-emerald-400" />
+                          Subscribe to Download
+                        </Button>
+                      ) : (
+                        <Button
+                          onClick={() => handleDownloadResource(res)}
+                          className="w-full bg-stone-800 hover:bg-emerald-600 text-white font-bold h-11 rounded-xl text-xs transition-colors"
+                        >
+                          <Download className="mr-2 size-3.5 text-emerald-400" />
+                          Download File
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+          </div>
         </div>
       </section>
 

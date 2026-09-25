@@ -616,17 +616,12 @@ export const usmleRoadmapStages: UsmleRoadmapStage[] = [
     number: "08",
     title: "08 Build a Competitive IMG Profile",
     summary:
-      "Develop research, U.S. clinical experience, leadership, and satisfy the OET Medicine requirement.",
-    fees: [
-      { item: "OET Medicine Examination", amount: "~$450" },
-    ],
+      "Develop research, U.S. clinical experience, leadership, and meaningful experiences.",
     details: [
       "Research projects, publications and presentations.",
       "U.S. clinical experience where eligible: observerships, clinical rotations and other supervised experiences.",
       "Leadership, volunteering, teaching, awards and other meaningful experiences.",
       "Check eligibility before arranging US clinical experiences.",
-      "OET (Occupational English Test) Medicine: All Pathways applicants need OET Medicine, regardless of native language or medical-school teaching language.",
-      "OET minimums in one sitting: Listening 350, Reading 350, Speaking 350 and Writing 300. For 2027 Pathways, test on or after 1 January 2025.",
     ],
   },
   {
@@ -634,13 +629,16 @@ export const usmleRoadmapStages: UsmleRoadmapStage[] = [
     number: "09",
     title: "09 ECFMG CERTIFICATION",
     summary:
-      "Complete credential verification, examination components, and obtain your official ECFMG Certificate.",
+      "Complete credential verification, examination components (USMLE + OET), and obtain your official ECFMG Certificate.",
     fees: [
+      { item: "OET Medicine Examination", amount: "~$450" },
       { item: "2027 Pathways application fee", amount: "$945*" },
     ],
     details: [
       "Complete the applicable examination, credential-verification and other certification requirements.",
       "Step 1 + Step 2 CK form the USMLE examination component of the pathway. OET forms the clinical/communication component.",
+      "OET (Occupational English Test) Medicine: All Pathways applicants need OET Medicine, regardless of native language or medical-school teaching language.",
+      "OET minimums in one sitting: Listening 350, Reading 350, Speaking 350 and Writing 300. For 2027 Pathways, test on or after 1 January 2025.",
       "2027 Pathways application fee: $945*.",
       "Timing matters: plan certification early enough for the residency application and Match cycle.",
     ],

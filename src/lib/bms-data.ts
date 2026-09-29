@@ -445,17 +445,17 @@ export const internationalPathways: InternationalPathwayItem[] = [
     id: "uk-residency",
     flag: "🇬🇧",
     country: "United Kingdom",
-    title: "UK Residency Pathway",
+    title: "U.K. PLAB Pathway",
     description:
-      "Complete guidance on PLAB / UKMLA, GMC registration, Foundation Programme, and specialty training applications across the NHS.",
+      "Your step-by-step roadmap to practising medicine in the U.K., from PMQ and English tests to PLAB 1 & 2, GMC registration, and NHS jobs.",
     href: "/career-exploration/uk-residency",
-    badge: "Coming Soon",
-    isDeveloped: false,
+    badge: "Interactive Roadmap Available",
+    isDeveloped: true,
     highlights: [
-      "PLAB / UKMLA Exam",
-      "GMC Registration",
-      "NHS Foundation Training",
-      "Specialty Training (ST)",
+      "PMQ & English Test",
+      "EPIC Verification",
+      "PLAB 1 & PLAB 2",
+      "GMC Registration & NHS Jobs",
     ],
   },
   {
@@ -909,3 +909,343 @@ export const usmleBudgetBreakdown = [
     category: "Licensing (Optional for Match)",
   },
 ];
+
+// ===========================================================================
+// U.K. PLAB PATHWAY DATA
+// ===========================================================================
+
+export const plabRoadmapStages: UsmleRoadmapStage[] = [
+  {
+    id: "plab-stage-01",
+    number: "01",
+    title: "01 Complete Medical School",
+    summary:
+      "Obtain your Primary Medical Qualification (PMQ) and keep medical school records and documentation accessible.",
+    details: [
+      "Obtain your Primary Medical Qualification (PMQ).",
+      "You may be able to proceed after passing final examinations even if the formal certificate is not yet issued, subject to GMC requirements.",
+      "Keep your medical school transcripts, certificates, and records easily accessible.",
+      "Maintain active communication with your medical school deanery for future credential verification.",
+    ],
+  },
+  {
+    id: "plab-stage-02",
+    number: "02",
+    title: "02 Check Your PMQ",
+    summary:
+      "Confirm that your primary medical qualification satisfies the GMC's overseas qualification requirements.",
+    details: [
+      "Confirm that your medical qualification is acceptable to the General Medical Council (GMC).",
+      "Check the GMC's current guidance on acceptable overseas qualifications before booking exams or paying fees.",
+      "Important: Being listed in the World Directory of Medical Schools (WDOMS) does not by itself guarantee GMC acceptance.",
+      "Review criteria including minimum clinical training hours, course duration, and primary regulatory recognition.",
+    ],
+  },
+  {
+    id: "plab-stage-03",
+    number: "03",
+    title: "03 English Language Requirement",
+    summary:
+      "Demonstrate the required professional English proficiency through GMC-approved testing (OET Medicine or IELTS Academic).",
+    fees: [
+      { item: "OET Medicine Examination", amount: "~£587 (AUD $587)" },
+      { item: "IELTS Academic Examination", amount: "~£195 – £220" },
+    ],
+    details: [
+      "Key Point: Demonstrate the required knowledge of English to practise safely in the UK healthcare system.",
+      "Tests recommended by GMC:",
+      "• OET Medicine: At least Grade B in each component (Listening, Reading, Writing, Speaking).",
+      "• IELTS Academic: Overall score of at least 7.5, with at least 7.0 in each individual testing component.",
+      "Important: Validity of both tests is 2 years at the time of booking PLAB and applying for GMC registration.",
+      "The GMC accepts other forms of evidence in specific circumstances—always check current requirements on the official GMC portal.",
+    ],
+  },
+  {
+    id: "plab-stage-04",
+    number: "04",
+    title: "04 Create a GMC Online Account",
+    summary:
+      "Set up your free GMC Online account to manage PLAB applications, bookings, and official registration.",
+    details: [
+      "Create your personal GMC Online account through the official General Medical Council portal (gmc-uk.org).",
+      "Account creation itself is free. Payments are only made for registration of the licensing exams.",
+      "Use the account to manage your PLAB application, test bookings, results, and registration with a licence to practise.",
+      "Setting up the account does not guarantee GMC registration; eligibility is assessed separately.",
+    ],
+  },
+  {
+    id: "plab-stage-05",
+    number: "05",
+    title: "05 Primary-Source Verification (EPIC)",
+    summary:
+      "Complete primary-source verification of your medical qualification through ECFMG EPIC / MyIntealth.",
+    fees: [
+      { item: "MyIntealth Account & Identity Confirmation", amount: "$110*" },
+      { item: "Establish EPIC Portfolio", amount: "$35*" },
+      { item: "Upload & Verify Qualification (per credential)", amount: "$35*" },
+    ],
+    details: [
+      "Key Point: International medical graduates generally need their medical qualification verified.",
+      "ECFMG/Intealth supports the GMC verification process through EPIC (Electronic Portfolio of International Credentials).",
+      "Set up a MyIntealth account and confirm identity ($110*). Once you establish a MyIntealth account, you will be issued a MyIntealth ID.",
+      "Establish an EPIC Portfolio ($35*), then upload the required qualification ($35*).",
+      "Upload the required qualification(s) for verification.",
+      "The qualification is verified directly with the awarding medical school.",
+      "*Fees are subject to change.",
+      "Note: Start early because verification may require prompt action and correspondence from your medical school.",
+    ],
+  },
+  {
+    id: "plab-stage-06",
+    number: "06",
+    title: "06 Register for PLAB 1",
+    summary:
+      "Meet GMC eligibility requirements and book your PLAB 1 test date through your GMC Online account.",
+    fees: [
+      { item: "PLAB 1 Examination Fee (2026 GMC listing)", amount: "£283*" },
+    ],
+    details: [
+      "Meet the GMC eligibility requirements (PMQ acceptable + verified English language test score recorded in GMC Online).",
+      "Book PLAB 1 through GMC Online when booking windows open.",
+      "PLAB is one established route to GMC registration for international medical graduates.",
+      "Test places fill quickly upon release; monitor GMC announcement schedules closely.",
+    ],
+  },
+  {
+    id: "plab-stage-07",
+    number: "07",
+    title: "07 PLAB 1 — Written Exam",
+    summary:
+      "180 multiple-choice questions assessing knowledge needed for safe medical practice in the UK.",
+    isExam: true,
+    passNextStageId: "plab-stage-08",
+    fees: [
+      { item: "PLAB 1 Examination Fee", amount: "£283*" },
+      { item: "Plabable Question Bank / Mock Practice", amount: "~£30 – £60" },
+    ],
+    details: [
+      "180 multiple-choice questions (single best answer format) over 3 hours.",
+      "Assesses the knowledge needed for safe medical practice in the UK, mapped to the GMC blueprint.",
+      "Pass mark is not a fixed number and is determined through the GMC's standard-setting process for each sitting.",
+      "Common preparation resource: Plabable (question banks, categories, and mocks).",
+      "Important Update for Ghanaian Candidates: PLAB 1 will no longer be offered in Accra from February 2027. Ghanaian candidates will need to select another available PLAB 1 location (such as Nigeria, Kenya, South Africa, or travel to the UK). Always check GMC Online for current test centre availability before booking.",
+    ],
+    altOption: {
+      title: "What to Do If You Don’t Pass PLAB 1",
+      description:
+        "Under GMC regulations, candidates are permitted up to 4 attempts at PLAB 1. Do not rush to rebook immediately without diagnosing what went wrong.",
+      introPoints: [
+        "Under current GMC rules, you can take PLAB 1 up to 4 times.",
+        "Don’t immediately book another exam date. First, take time to understand what went wrong and identify the areas that need improvement.",
+      ],
+      sections: [
+        {
+          heading: "Identify the Reason for the Failed Attempt",
+          subtext: "Consider whether the main challenge was:",
+          items: [
+            "Inadequate clinical knowledge or content gaps across key specialties (General Medicine, Surgery, Paediatrics, O&G, Psychiatry)",
+            "Difficulty interpreting Single Best Answer (SBA) scenario stems under timed pressure",
+            "Poor time management across the 180 questions (averaging 1 minute per question)",
+            "Test anxiety or inadequate exam stamina during the 3-hour sitting",
+            "Insufficient practice questions and timed mocks before the exam",
+            "Weak performance on timed question-bank mock assessments prior to test day",
+          ],
+        },
+        {
+          heading: "Rebuild Your Preparation",
+          subtext:
+            "A failed attempt should lead to a change in strategy, rather than simply repeating the same study schedule.",
+          items: [
+            "Work specifically on timing and exam stamina if these were weaknesses.",
+            "Complete more practice questions and carefully review your incorrect answers and clinical rationale.",
+            "Use reputable question banks (such as Plabable) and official GMC sample questions to monitor progress.",
+            "Identify and address recurring specialty weaknesses before scheduling another exam.",
+          ],
+        },
+      ],
+      callout: {
+        title: "Most Importantly",
+        content:
+          "Don’t rush to rebook the examination. Your readiness should be based on objective practice performance, improvement in your weak areas, and confidence that your mock exam scores consistently exceed the standard-setting threshold.",
+      },
+      actionSteps: [
+        "Analyze your score breakdown to target weak clinical specialties.",
+        "Practice timed questions daily and thoroughly review incorrect answers.",
+        "Consistently exceed pass marks on full mocks before booking your retake.",
+      ],
+    },
+  },
+  {
+    id: "plab-stage-08",
+    number: "08",
+    title: "08 PLAB 2 — Clinical Exam (Manchester)",
+    summary:
+      "16-station objective structured clinical exam (OSCE) in Manchester reflecting real-life NHS practice.",
+    isExam: true,
+    passNextStageId: "plab-stage-09",
+    fees: [
+      { item: "PLAB 2 Examination Fee (2026 GMC listing)", amount: "£1,036*" },
+      { item: "UK Standard Visitor Visa", amount: "£115*" },
+      { item: "Manchester Travel & Accommodation", amount: "~£1,200 – £2,000" },
+      { item: "Optional PLAB 2 Preparation Academy", amount: "~£500 – £750" },
+    ],
+    details: [
+      "Key Point: PLAB 2 can be booked after your PLAB 1 result has been officially issued.",
+      "Important: You must pass PLAB 2 within two years of passing PLAB 1.",
+      "16 clinical scenarios; each station lasts 8 minutes (with 1.5 minutes reading time before each station).",
+      "Designed to reflect real-life clinical practice in an NHS environment.",
+      "Currently held at the GMC assessment centre in Manchester, UK.",
+      "PLAB 2 preparation academies are optional and are not affiliated with or required by the GMC. They provide practical OSCE practice mock exams and clinical simulation. Candidates may choose an academy based on their individual learning needs and budget.",
+    ],
+    altOption: {
+      title: "What to Do If You Don’t Pass PLAB 2",
+      description:
+        "PLAB 2 evaluates clinical management, interpersonal skills, and patient communication in an NHS environment.",
+      introPoints: [
+        "Candidates have up to 4 attempts at PLAB 2, provided all attempts occur within 2 years of passing PLAB 1.",
+        "Review your GMC examiner report showing performance across Data Gathering, Management, and Interpersonal Skills.",
+      ],
+      sections: [
+        {
+          heading: "Analyze the Clinical Station Deficits",
+          items: [
+            "Lack of patient-centred communication and exploring patient ICE (Ideas, Concerns, Expectations)",
+            "Difficulty completing full consultations within the 8-minute limit",
+            "Robotic or overly rehearsed communication without natural active listening",
+            "Unfamiliarity with NHS referral pathways, patient autonomy, and safety netting guidelines",
+          ],
+        },
+        {
+          heading: "Refine Your OSCE Technique",
+          items: [
+            "Practice live simulation with study partners under strict 8-minute station timers.",
+            "Focus on bedside manner, empathy, active listening, and clear management explanations in plain language.",
+            "Keep close track of your PLAB 1 validity expiration date (2 years) when scheduling a retake.",
+          ],
+        },
+      ],
+      callout: {
+        title: "Two-Year Window Reminder",
+        content:
+          "Remember that you must pass PLAB 2 within two years of passing PLAB 1. Factor this deadline into your retake timing.",
+      },
+      actionSteps: [
+        "Review station feedback to identify marks lost across communication or data gathering.",
+        "Conduct daily timed mock simulations with active peer feedback.",
+        "Ensure your retake is scheduled within the 2-year PLAB 1 validity window.",
+      ],
+    },
+  },
+  {
+    id: "plab-stage-09",
+    number: "09",
+    title: "09 Apply for GMC Registration",
+    summary:
+      "Apply for full or provisional registration with a licence to practise on the official UK Medical Register.",
+    fees: [
+      { item: "GMC Registration with Licence to Practise", amount: "£455*" },
+      { item: "Certificate of Good Standing (CGS)", amount: "Variable" },
+    ],
+    details: [
+      "After passing PLAB 1 and PLAB 2, apply for GMC registration with a licence to practise via GMC Online.",
+      "Completed internship/housemanship generally supports an application for full registration.",
+      "Applicants without an internship may be eligible for provisional registration if they meet GMC requirements.",
+      "Requirements may include: Valid passport/identity documentation, PMQ, English-language evidence, Certificate of Good Standing, internship/housemanship details, and other evidence requested by the GMC.",
+      "Once approved, your name is added to the medical register.",
+      "You receive a GMC reference number.",
+      "You can practise medicine in the UK with the appropriate registration and licence to practise.",
+    ],
+  },
+  {
+    id: "plab-stage-10",
+    number: "10",
+    title: "10 Apply for Jobs",
+    summary:
+      "Set up profiles on NHS Jobs, search for suitable medical posts, and prepare competitive applications.",
+    fees: [
+      { item: "Health and Care Worker Visa", amount: "~£284 – £551" },
+      { item: "Immigration Health Surcharge (IHS)", amount: "Exempt for NHS healthcare workers" },
+    ],
+    details: [
+      "Set up profiles on NHS Jobs (jobs.nhs.uk) and relevant NHS Trust/Health Board career pages (e.g. Trac Jobs).",
+      "Search for suitable medical posts (e.g., FY2 Stand-alone, Trust Grade Doctor, Junior Clinical Fellow).",
+      "GMC registration does not automatically provide a job.",
+      "Job opportunities vary by specialty, location, and time.",
+      "Build a strong NHS-style CV, participate in clinical audits/QIP, secure reliable references, and prepare for structured NHS interviews.",
+    ],
+  },
+];
+
+export const plabBudgetBreakdown = [
+  { item: "PLAB 1 Examination (listed 2026 GMC fee)", fee: "£283*", category: "Examinations" },
+  { item: "PLAB 2 Examination (listed 2026 GMC fee)", fee: "£1,036*", category: "Examinations" },
+  {
+    item: "MyIntealth Account & Identity Confirmation",
+    fee: "$110* (~£88)",
+    category: "Primary-Source Verification",
+  },
+  {
+    item: "EPIC Portfolio Establishment",
+    fee: "$35* (~£28)",
+    category: "Primary-Source Verification",
+  },
+  {
+    item: "EPIC Document Upload & Verification (per credential)",
+    fee: "$35* (~£28)",
+    category: "Primary-Source Verification",
+  },
+  {
+    item: "OET Medicine Examination",
+    fee: "~£587 (AUD $587)",
+    category: "English Language Proficiency",
+  },
+  {
+    item: "IELTS Academic Examination (alternative)",
+    fee: "~£195 – £220",
+    category: "English Language Proficiency",
+  },
+  {
+    item: "GMC Registration Application (with Licence to Practise)",
+    fee: "£455*",
+    category: "GMC Registration",
+  },
+  {
+    item: "UK Standard Visitor Visa (PLAB 2 test & course)",
+    fee: "£115*",
+    category: "Travel & Visas",
+  },
+  {
+    item: "Travel, Flights & Manchester Accommodation (PLAB 2)",
+    fee: "~£1,200 – £2,000",
+    category: "Travel & Visas",
+  },
+  {
+    item: "Optional PLAB 2 Preparation Academy Course",
+    fee: "~£500 – £750",
+    category: "Preparation (Optional)",
+  },
+  {
+    item: "Health & Care Worker Visa (upon job offer)",
+    fee: "~£284 – £551",
+    category: "Employment & Work Visa",
+  },
+];
+
+export const plabKeyNotes = [
+  "PLAB is only the beginning. Passing the exams and obtaining GMC registration does not guarantee a UK medical job.",
+  "Be prepared for a competitive job market. Employment has become more difficult for international medical graduates, particularly those seeking their first NHS position.",
+  "Have a plan beyond PLAB. Start thinking early about your CV, portfolio, clinical experience, references and preferred specialty.",
+  "Be flexible. Your first UK job may not be in your preferred specialty or location.",
+  "Stay informed. UK recruitment policies and requirements can change, so regularly check official GMC and NHS sources.",
+  "Plan your finances and timeline carefully. Consider examination fees, travel, GMC registration, visa costs and the possibility of spending time applying for jobs after registration.",
+  "Don't choose PLAB solely because it appears easier or cheaper than other international pathways. Consider whether the UK pathway fits your long-term career goals.",
+];
+
+export const plabGhanaNotice = {
+  title: "Important Update for Ghanaian Candidates",
+  point1: "PLAB 1 IN ACCRA: PLAB 1 will no longer be offered in Accra from February 2027.",
+  point2:
+    "WHAT THIS MEANS: Ghanaian candidates will need to select another available PLAB 1 location. Examples include Nigeria, Kenya, South Africa and other listed locations—or travel to the UK.",
+  point3: "BEFORE BOOKING: Always check GMC Online for current availability before booking.",
+};
+

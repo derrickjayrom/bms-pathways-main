@@ -1903,12 +1903,16 @@ export function SubscriptionModal({
   onSuccess,
   siteSettings,
   initialMode = "subscribe",
+  pathwayId = "us-residency",
+  pathwayName = "U.S. Residency Pathway",
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess: (sub?: PathwaySubscription) => void;
   siteSettings: BmsSiteSettings;
   initialMode?: "subscribe" | "verify";
+  pathwayId?: string;
+  pathwayName?: string;
 }) {
   const [view, setView] = useState<"subscribe" | "whatsapp_prompt" | "verify">(initialMode);
   const [name, setName] = useState("");
@@ -1943,7 +1947,7 @@ export function SubscriptionModal({
         fullName: name,
         email,
         phoneWhatsApp: phone,
-        pathwayId: "us-residency",
+        pathwayId: pathwayId || "us-residency",
       });
 
       if (res.success && res.data) {
@@ -2306,3 +2310,5 @@ export function SubscriptionModal({
     </Dialog>
   );
 }
+
+export { UkPlabPathwayPage } from "./uk-plab-pathway";

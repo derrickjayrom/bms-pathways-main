@@ -261,44 +261,43 @@ export function HomePage() {
               </div>
             </div>
 
-            {/* Card 2: Other International Pathways */}
+            {/* Card 2: U.K. PLAB Pathway */}
             <div className="rounded-2xl border border-border/80 bg-card p-7 shadow-xs flex flex-col justify-between hover:shadow-md hover:border-[#10B981]/60 transition-all">
               <div>
                 <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-1.5 text-2xl">
-                    <span>🇬🇧</span>
-                    <span>🇨🇦</span>
-                    <span>🇦🇺</span>
-                  </div>
-                  <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-stone-100 text-stone-700">
-                    Global Routes
+                  <span className="text-3xl">🇬🇧</span>
+                  <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800">
+                    Interactive Roadmap
                   </span>
                 </div>
-                <h3 className="text-xl font-bold text-foreground">Other International Pathways</h3>
+                <h3 className="text-xl font-bold text-foreground">U.K. PLAB Pathway</h3>
                 <p className="mt-2.5 text-sm text-muted-foreground leading-relaxed">
-                  Explore licensing exams, eligibility, and postgraduate training routes across the
-                  UK (PLAB/UKMLA), Canada, Australia, and global health destinations.
+                  Complete 10-stage journey for international medical graduates: PMQ checking,
+                  English test (OET/IELTS), EPIC verification, PLAB 1 &amp; 2 in Manchester, GMC
+                  registration, and NHS jobs.
                 </p>
                 <div className="mt-4 flex flex-wrap gap-1.5">
                   <span className="text-xs bg-stone-100 px-2 py-0.5 rounded font-medium text-stone-700">
-                    UK (PLAB)
+                    PLAB 1 &amp; 2
                   </span>
                   <span className="text-xs bg-stone-100 px-2 py-0.5 rounded font-medium text-stone-700">
-                    Canada
+                    EPIC Verification
                   </span>
                   <span className="text-xs bg-stone-100 px-2 py-0.5 rounded font-medium text-stone-700">
-                    Australia
+                    GMC Registration
+                  </span>
+                  <span className="text-xs bg-stone-100 px-2 py-0.5 rounded font-medium text-stone-700">
+                    NHS Jobs
                   </span>
                 </div>
               </div>
               <div className="mt-6 pt-5 border-t border-border/70">
                 <Button
                   asChild
-                  variant="outline"
-                  className="w-full font-bold h-11 rounded-xl border-stone-300 hover:border-[#10B981] hover:text-[#10B981]"
+                  className="w-full bg-[#10B981] hover:bg-[#059669] text-white font-bold h-11 rounded-xl shadow-xs"
                 >
-                  <Link to="/career-exploration">
-                    Explore Other Pathways <ArrowRight className="ml-2 size-4" />
+                  <Link to="/career-exploration/uk-residency">
+                    Map U.K. Pathway <ArrowRight className="ml-2 size-4" />
                   </Link>
                 </Button>
               </div>
@@ -1935,4 +1934,4 @@ export function ContactPage() {
   );
 }
 
-export { CareerExplorationPage, UsResidencyPathwayPage } from "./career-exploration";
+export { CareerExplorationPage, UsResidencyPathwayPage, UkPlabPathwayPage } from "./career-exploration";

@@ -522,8 +522,18 @@ export interface UsmleRoadmapStage {
   passNextStageId?: string;
   altOption?: {
     title: string;
-    description: string;
-    actionSteps: string[];
+    description?: string;
+    introPoints?: string[];
+    sections?: {
+      heading: string;
+      subtext?: string;
+      items?: string[];
+    }[];
+    callout?: {
+      title: string;
+      content: string;
+    };
+    actionSteps?: string[];
   };
   interviewQuestions?: string[];
 }
@@ -612,13 +622,54 @@ export const usmleRoadmapStages: UsmleRoadmapStage[] = [
       "If you did not pass: Follow the 'What to do' guidance below.",
     ],
     altOption: {
-      title: "What to do: Step 1 Preparation Recovery & Retake Guidance",
+      title: "What to Do If You Don’t Pass USMLE Step 1",
       description:
-        "Step 1 is scored as Pass/Fail. If not passed, reset your preparation strategy before retaking.",
+        "A failed attempt should lead to an intentional change in strategy, rather than simply repeating the same study schedule.",
+      introPoints: [
+        "Under current USMLE rules, you can take the same Step up to 3 times within a 12-month period. A fourth attempt has additional waiting requirements: at least 12 months after the first attempt and 6 months after the most recent attempt.",
+        "Don’t immediately book another exam. First, take time to understand what went wrong and identify the areas that need improvement.",
+      ],
+      sections: [
+        {
+          heading: "Identify the Reason for the Failed Attempt",
+          subtext: "Consider whether the main challenge was:",
+          items: [
+            "Inadequate knowledge or content gaps",
+            "Difficulty interpreting questions",
+            "Poor time management",
+            "Test anxiety or inadequate exam stamina",
+            "Insufficient practice questions",
+            "Weak performance on NBME/UWorld assessments before the exam",
+          ],
+        },
+        {
+          heading: "If Content Knowledge Was the Problem",
+          items: [
+            "Review your USMLE performance/diagnostic report to identify weak organ systems and disciplines.",
+            "Focus your study on these specific weaknesses rather than restarting the entire preparation blindly.",
+          ],
+        },
+        {
+          heading: "Rebuild Your Preparation",
+          subtext:
+            "A failed attempt should lead to a change in strategy, rather than simply repeating the same study schedule.",
+          items: [
+            "Work specifically on timing and exam stamina if these were weaknesses.",
+            "Complete more practice questions and carefully review your incorrect answers.",
+            "Use NBME assessments to monitor progress and assess readiness for a retake.",
+            "Identify and address recurring weaknesses before scheduling another exam.",
+          ],
+        },
+      ],
+      callout: {
+        title: "Most Importantly",
+        content:
+          "Don’t rush to rebook the examination. Your readiness should be based on objective practice performance, improvement in your weak areas, and confidence that you are adequately prepared for another attempt.",
+      },
       actionSteps: [
-        "Analyze the diagnostic performance report to locate weak organ systems and disciplines.",
-        "Use official USMLE sample materials and core learning resources: UWorld, AMBOSS, ANKI Flashcards, First Aid, Boards & Beyond, NBME Self-Assessments.",
-        "Observe FSMB attempt limits and waiting periods before registering for a retake.",
+        "Review your diagnostic report to pinpoint weak organ systems and disciplines.",
+        "Diagnose timing, test stamina, anxiety, or question interpretation issues.",
+        "Complete targeted practice questions and rigorously review all incorrect answers.",
         "Ensure consistent passing scores on NBME practice exams before scheduling your next attempt.",
       ],
     },

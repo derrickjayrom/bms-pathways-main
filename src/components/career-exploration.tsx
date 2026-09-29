@@ -1306,26 +1306,107 @@ export function UsResidencyPathwayPage() {
 
                               {/* ALTERNATIVE RECOVERY OPTION AS SHOWN IN USER NOTES */}
                               {showAlt && stage.altOption && (
-                                <div className="mt-5 rounded-2xl border-2 border-amber-300 bg-amber-50/95 p-6 sm:p-7 text-amber-950 shadow-xs animate-in fade-in duration-200">
-                                  <div className="flex items-center gap-2.5 mb-2 font-bold text-amber-900">
-                                    <AlertCircle className="size-5 text-amber-600 shrink-0" />
-                                    <h4 className="text-base sm:text-lg font-bold text-amber-950">
-                                      {stage.altOption.title}
-                                    </h4>
+                                <div className="mt-5 rounded-2xl border-2 border-amber-300 bg-gradient-to-b from-amber-50/95 to-amber-100/40 p-5 sm:p-7 text-amber-950 shadow-sm animate-in fade-in duration-200">
+                                  <div className="flex flex-wrap items-center justify-between gap-3 mb-4 pb-3.5 border-b border-amber-200">
+                                    <div className="flex items-center gap-3 font-bold text-amber-900">
+                                      <div className="flex size-10 items-center justify-center rounded-xl bg-amber-200/80 text-amber-800 border border-amber-300 shadow-2xs">
+                                        <AlertCircle className="size-5" />
+                                      </div>
+                                      <div>
+                                        <h4 className="text-base sm:text-lg font-bold text-amber-950 leading-snug">
+                                          {stage.altOption.title}
+                                        </h4>
+                                        <span className="text-xs font-semibold text-amber-700 uppercase tracking-wider">
+                                          Strategic Remediation &amp; Recovery Protocol
+                                        </span>
+                                      </div>
+                                    </div>
                                   </div>
-                                  <p className="mb-3 text-sm sm:text-base text-amber-900 leading-relaxed font-normal">
-                                    {stage.altOption.description}
-                                  </p>
-                                  <ul className="space-y-2 list-disc list-inside text-sm sm:text-base text-amber-900 mb-5 font-medium">
-                                    {stage.altOption.actionSteps.map((step, sIdx) => (
-                                      <li key={sIdx}>{step}</li>
-                                    ))}
-                                  </ul>
-                                  <div className="pt-4 border-t border-amber-200 flex justify-end">
+
+                                  {stage.altOption.description && (
+                                    <p className="mb-4 text-sm sm:text-base text-amber-900 leading-relaxed font-normal">
+                                      {stage.altOption.description}
+                                    </p>
+                                  )}
+
+                                  {stage.altOption.introPoints && stage.altOption.introPoints.length > 0 && (
+                                    <div className="mb-5 rounded-xl bg-white/80 border border-amber-200 p-4 sm:p-5 space-y-2.5 shadow-2xs">
+                                      {stage.altOption.introPoints.map((point, pIdx) => (
+                                        <div
+                                          key={pIdx}
+                                          className="flex items-start gap-2.5 text-xs sm:text-sm text-amber-950 font-medium leading-relaxed"
+                                        >
+                                          <span className="mt-1 size-2 rounded-full bg-amber-500 shrink-0" />
+                                          <span>{point}</span>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
+
+                                  {stage.altOption.sections && stage.altOption.sections.length > 0 && (
+                                    <div className="space-y-4 my-4">
+                                      {stage.altOption.sections.map((sec, sIdx) => (
+                                        <div
+                                          key={sIdx}
+                                          className="rounded-xl border border-amber-200/90 bg-white/90 p-4 sm:p-5 shadow-2xs transition-all hover:border-amber-300"
+                                        >
+                                          <h5 className="text-sm sm:text-base font-bold text-amber-950 flex items-center gap-2 mb-1">
+                                            <span className="flex size-2 rounded-full bg-amber-600" />
+                                            {sec.heading}
+                                          </h5>
+                                          {sec.subtext && (
+                                            <p className="text-xs sm:text-sm text-amber-800/90 mb-3 font-medium italic">
+                                              {sec.subtext}
+                                            </p>
+                                          )}
+                                          {sec.items && sec.items.length > 0 && (
+                                            <ul className="space-y-2 text-xs sm:text-sm text-stone-800 font-medium pl-1">
+                                              {sec.items.map((item, iIdx) => (
+                                                <li key={iIdx} className="flex items-start gap-2.5">
+                                                  <span className="text-amber-600 font-bold shrink-0 leading-tight">
+                                                    •
+                                                  </span>
+                                                  <span className="leading-relaxed">{item}</span>
+                                                </li>
+                                              ))}
+                                            </ul>
+                                          )}
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
+
+                                  {/* Fallback to simple actionSteps if no sections exist */}
+                                  {(!stage.altOption.sections || stage.altOption.sections.length === 0) &&
+                                    stage.altOption.actionSteps &&
+                                    stage.altOption.actionSteps.length > 0 && (
+                                      <ul className="space-y-2 list-disc list-inside text-sm sm:text-base text-amber-900 mb-5 font-medium">
+                                        {stage.altOption.actionSteps.map((step, sIdx) => (
+                                          <li key={sIdx}>{step}</li>
+                                        ))}
+                                      </ul>
+                                    )}
+
+                                  {stage.altOption.callout && (
+                                    <div className="my-5 rounded-xl border-2 border-amber-400 bg-amber-100/90 p-4 sm:p-5 text-amber-950 shadow-2xs">
+                                      <div className="flex items-center gap-2 font-bold text-amber-900 text-sm sm:text-base mb-1.5">
+                                        <Info className="size-4.5 text-amber-700 shrink-0" />
+                                        <span>{stage.altOption.callout.title}</span>
+                                      </div>
+                                      <p className="text-xs sm:text-sm text-amber-900 leading-relaxed font-semibold">
+                                        {stage.altOption.callout.content}
+                                      </p>
+                                    </div>
+                                  )}
+
+                                  <div className="pt-4 border-t border-amber-200 flex flex-col sm:flex-row items-center justify-between gap-3">
+                                    <span className="text-xs text-amber-800 font-medium text-center sm:text-left">
+                                      Take your time to address root weaknesses before proceeding.
+                                    </span>
                                     <Button
                                       size="default"
                                       onClick={() => handlePassStage(stage.id, idx + 1)}
-                                      className="bg-amber-700 hover:bg-amber-800 text-white font-bold h-10 px-5 text-sm rounded-lg shadow-xs"
+                                      className="bg-amber-700 hover:bg-amber-800 text-white font-bold h-10 px-5 text-sm rounded-lg shadow-xs shrink-0 w-full sm:w-auto"
                                     >
                                       When Ready / Passed: Continue to Next Stage{" "}
                                       <ArrowRight className="ml-2 size-4" />

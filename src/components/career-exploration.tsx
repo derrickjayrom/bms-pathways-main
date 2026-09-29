@@ -72,10 +72,7 @@ import {
 export function CareerExplorationPage() {
   return (
     <>
-      <PageIntro
-        eyebrow="CAREER PATHWAYS"
-        title="International Pathways"
-      >
+      <PageIntro eyebrow="CAREER PATHWAYS" title="International Pathways">
         Explore structured stages, licensing requirements, and roadmaps for international medical
         careers.
       </PageIntro>
@@ -135,7 +132,10 @@ export function CareerExplorationPage() {
 
                 <div className="pt-4 border-t border-border/60">
                   {pathway.isDeveloped ? (
-                    <Button asChild className="w-full h-11 bg-[#10B981] hover:bg-[#059669] text-white font-bold text-sm rounded-xl shadow-xs">
+                    <Button
+                      asChild
+                      className="w-full h-11 bg-[#10B981] hover:bg-[#059669] text-white font-bold text-sm rounded-xl shadow-xs"
+                    >
                       <Link to={pathway.href}>
                         Explore Roadmap <ArrowRight className="ml-2 size-4" />
                       </Link>
@@ -266,12 +266,14 @@ export function UsResidencyPathwayPage() {
           const newRecord = payload.new as Partial<PathwaySubscription> | null;
 
           const isMatching =
-            (oldRecord && (oldRecord.id === current.id || oldRecord.reference_code === current.reference_code)) ||
-            (newRecord && (
-              newRecord.id === current.id ||
-              newRecord.reference_code === current.reference_code ||
-              (newRecord.email && newRecord.email.toLowerCase() === current.email?.toLowerCase())
-            ));
+            (oldRecord &&
+              (oldRecord.id === current.id ||
+                oldRecord.reference_code === current.reference_code)) ||
+            (newRecord &&
+              (newRecord.id === current.id ||
+                newRecord.reference_code === current.reference_code ||
+                (newRecord.email &&
+                  newRecord.email.toLowerCase() === current.email?.toLowerCase())));
 
           if (isMatching) {
             if (payload.eventType === "DELETE") {
@@ -309,7 +311,7 @@ export function UsResidencyPathwayPage() {
               }
             }
           }
-        }
+        },
       )
       .subscribe();
 
@@ -339,7 +341,8 @@ export function UsResidencyPathwayPage() {
         });
       } else {
         toast.error("Access Required", {
-          description: "Your subscription is not active or has been revoked. Please subscribe or verify status.",
+          description:
+            "Your subscription is not active or has been revoked. Please subscribe or verify status.",
         });
       }
       setModalMode("subscribe");
@@ -512,7 +515,8 @@ export function UsResidencyPathwayPage() {
       icon: GraduationCap,
       checkCompleted: (ids: string[]) => ids.includes("stage-01"),
       cardStyle: {
-        background: "linear-gradient(135deg, rgba(16, 185, 129, 0.40) 0%, rgba(16, 185, 129, 0.28) 100%)",
+        background:
+          "linear-gradient(135deg, rgba(16, 185, 129, 0.40) 0%, rgba(16, 185, 129, 0.28) 100%)",
         borderColor: "rgba(16, 185, 129, 0.70)",
       },
       badgeStyle: {
@@ -529,7 +533,8 @@ export function UsResidencyPathwayPage() {
       icon: UserCheck,
       checkCompleted: (ids: string[]) => ids.includes("stage-02"),
       cardStyle: {
-        background: "linear-gradient(135deg, rgba(16, 185, 129, 0.32) 0%, rgba(16, 185, 129, 0.22) 100%)",
+        background:
+          "linear-gradient(135deg, rgba(16, 185, 129, 0.32) 0%, rgba(16, 185, 129, 0.22) 100%)",
         borderColor: "rgba(16, 185, 129, 0.58)",
       },
       badgeStyle: {
@@ -546,7 +551,8 @@ export function UsResidencyPathwayPage() {
       icon: FileCheck,
       checkCompleted: (ids: string[]) => ids.includes("stage-03"),
       cardStyle: {
-        background: "linear-gradient(135deg, rgba(16, 185, 129, 0.25) 0%, rgba(16, 185, 129, 0.16) 100%)",
+        background:
+          "linear-gradient(135deg, rgba(16, 185, 129, 0.25) 0%, rgba(16, 185, 129, 0.16) 100%)",
         borderColor: "rgba(16, 185, 129, 0.46)",
       },
       badgeStyle: {
@@ -563,7 +569,8 @@ export function UsResidencyPathwayPage() {
       icon: Stethoscope,
       checkCompleted: (ids: string[]) => ids.includes("stage-05") || ids.includes("stage-07"),
       cardStyle: {
-        background: "linear-gradient(135deg, rgba(16, 185, 129, 0.19) 0%, rgba(16, 185, 129, 0.11) 100%)",
+        background:
+          "linear-gradient(135deg, rgba(16, 185, 129, 0.19) 0%, rgba(16, 185, 129, 0.11) 100%)",
         borderColor: "rgba(16, 185, 129, 0.36)",
       },
       badgeStyle: {
@@ -583,7 +590,8 @@ export function UsResidencyPathwayPage() {
       icon: Award,
       checkCompleted: (ids: string[]) => ids.includes("stage-09"),
       cardStyle: {
-        background: "linear-gradient(135deg, rgba(16, 185, 129, 0.14) 0%, rgba(16, 185, 129, 0.07) 100%)",
+        background:
+          "linear-gradient(135deg, rgba(16, 185, 129, 0.14) 0%, rgba(16, 185, 129, 0.07) 100%)",
         borderColor: "rgba(16, 185, 129, 0.28)",
       },
       badgeStyle: {
@@ -600,7 +608,8 @@ export function UsResidencyPathwayPage() {
       icon: Send,
       checkCompleted: (ids: string[]) => ids.includes("stage-10"),
       cardStyle: {
-        background: "linear-gradient(135deg, rgba(16, 185, 129, 0.09) 0%, rgba(16, 185, 129, 0.04) 100%)",
+        background:
+          "linear-gradient(135deg, rgba(16, 185, 129, 0.09) 0%, rgba(16, 185, 129, 0.04) 100%)",
         borderColor: "rgba(16, 185, 129, 0.20)",
       },
       badgeStyle: {
@@ -617,7 +626,8 @@ export function UsResidencyPathwayPage() {
       icon: MessageSquare,
       checkCompleted: (ids: string[]) => ids.includes("stage-11"),
       cardStyle: {
-        background: "linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, rgba(16, 185, 129, 0.02) 100%)",
+        background:
+          "linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, rgba(16, 185, 129, 0.02) 100%)",
         borderColor: "rgba(16, 185, 129, 0.14)",
       },
       badgeStyle: {
@@ -658,9 +668,7 @@ export function UsResidencyPathwayPage() {
   };
 
   const currentStage = usmleRoadmapStages[activeStageIndex];
-  const progressPercent = Math.round(
-    (completedStageIds.length / usmleRoadmapStages.length) * 100,
-  );
+  const progressPercent = Math.round((completedStageIds.length / usmleRoadmapStages.length) * 100);
 
   return (
     <div className="bg-background min-h-screen">
@@ -668,7 +676,10 @@ export function UsResidencyPathwayPage() {
       <div className="border-b border-border/70 bg-stone-50/70 py-3.5">
         <div className="mx-auto max-w-7xl px-5 lg:px-8 flex items-center justify-between text-xs sm:text-sm">
           <div className="flex items-center gap-2 text-muted-foreground">
-            <Link to="/career-exploration" className="hover:text-foreground transition-colors font-medium">
+            <Link
+              to="/career-exploration"
+              className="hover:text-foreground transition-colors font-medium"
+            >
               Career Exploration
             </Link>
             <span>/</span>
@@ -721,9 +732,9 @@ export function UsResidencyPathwayPage() {
               Your step-by-step roadmap to U.S. residency
             </h1>
             <blockquote className="mt-5 text-base sm:text-lg text-muted-foreground leading-relaxed border-l-4 border-[#10B981] pl-4 italic">
-              “Thinking about residency in the United States? This BMS pathway breaks the journey into
-              manageable stages—from medical school and USMLE preparation to ECFMG Certification,
-              residency applications, interviews and the NRMP Match”
+              “Thinking about residency in the United States? This BMS pathway breaks the journey
+              into manageable stages—from medical school and USMLE preparation to ECFMG
+              Certification, residency applications, interviews and the NRMP Match”
             </blockquote>
 
             <div className="mt-8 flex flex-wrap items-center gap-3.5">
@@ -767,8 +778,7 @@ export function UsResidencyPathwayPage() {
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   <span className="inline-flex items-center gap-1.5 text-xs font-bold text-stone-700 bg-stone-100 px-3 py-1.5 rounded-lg border border-stone-200/60">
-                    <Sparkles size={13} className="text-[#10B981]" />
-                    8 Sequential Milestones
+                    <Sparkles size={13} className="text-[#10B981]" />8 Sequential Milestones
                   </span>
                 </div>
               </div>
@@ -948,7 +958,8 @@ export function UsResidencyPathwayPage() {
               {/* FOOTER CAPTION & NOTE */}
               <div className="mt-4 pt-3 border-t border-stone-200/60 flex items-center justify-between text-xs text-muted-foreground">
                 <p className="italic">
-                  Note: Preparation activities overlap. Certification and program application deadlines differ across cycles.
+                  Note: Preparation activities overlap. Certification and program application
+                  deadlines differ across cycles.
                 </p>
               </div>
             </div>
@@ -985,13 +996,19 @@ export function UsResidencyPathwayPage() {
                 Unlock the Complete 8-Stage Interactive Roadmap
               </h3>
               <p className="mt-3 text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-                Step-by-step guidance through USMLE Step 1, Step 2 CK, OET, ECFMG certification, clinical electives, ERAS applications, and the NRMP Match with alternative branch pathways and downloadable resources.
+                Step-by-step guidance through USMLE Step 1, Step 2 CK, OET, ECFMG certification,
+                clinical electives, ERAS applications, and the NRMP Match with alternative branch
+                pathways and downloadable resources.
               </p>
 
               {siteSettings.subscription_price && (
                 <div className="mt-5 inline-flex items-center gap-2 bg-white border border-stone-200/90 rounded-2xl px-5 py-2.5 shadow-2xs">
-                  <span className="text-xs font-extrabold text-muted-foreground uppercase tracking-wider">Access Fee:</span>
-                  <span className="text-base font-black text-[#10B981]">{siteSettings.subscription_price}</span>
+                  <span className="text-xs font-extrabold text-muted-foreground uppercase tracking-wider">
+                    Access Fee:
+                  </span>
+                  <span className="text-base font-black text-[#10B981]">
+                    {siteSettings.subscription_price}
+                  </span>
                   <span className="text-xs text-muted-foreground">(Lifetime Full Access)</span>
                 </div>
               )}
@@ -1038,304 +1055,324 @@ export function UsResidencyPathwayPage() {
             <>
               {/* SEQUENCE PROGRESS TRACKER BAR */}
               <div className="max-w-4xl lg:max-w-5xl mx-auto mb-10 rounded-2xl border border-stone-200/90 bg-card p-5 sm:p-6 shadow-xs">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-sm mb-4">
-              <div>
-                <span className="font-bold text-foreground">Sequential Progress: </span>
-                <span className="text-[#10B981] font-extrabold text-base">
-                  Stage {activeStageIndex + 1} of {usmleRoadmapStages.length}
-                </span>
-                <span className="text-foreground font-semibold ml-1.5 hidden sm:inline">
-                  — {currentStage?.title.replace(/^\d+\s*/, "")}
-                </span>
-                <span className="text-muted-foreground ml-2 text-xs sm:text-sm font-medium">
-                  ({completedStageIds.length} passed)
-                </span>
-              </div>
-              <div className="flex items-center gap-4">
-                <span className="font-mono font-black text-xl text-[#10B981]">{progressPercent}%</span>
-                {completedStageIds.length > 0 && (
-                  <button
-                    onClick={handleResetSequence}
-                    className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground text-xs sm:text-sm font-semibold cursor-pointer transition-colors"
-                  >
-                    <RotateCcw size={14} /> Reset Progress
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {/* PROGRESS BAR */}
-            <div className="h-2.5 w-full rounded-full bg-stone-100 overflow-hidden">
-              <div
-                className="h-full bg-[#10B981] transition-all duration-300 rounded-full"
-                style={{ width: `${progressPercent}%` }}
-              />
-            </div>
-
-            {/* MINI STAGE DOTS STEPPER */}
-            <div className="mt-5 flex items-center justify-between gap-1.5 overflow-x-auto py-1">
-              {usmleRoadmapStages.map((s, sIdx) => {
-                const isPassed = completedStageIds.includes(s.id);
-                const isCurrent = sIdx === activeStageIndex;
-
-                return (
-                  <button
-                    key={s.id}
-                    onClick={() => {
-                      setActiveStageIndex(sIdx);
-                      const el = document.getElementById(`stage-card-${sIdx}`);
-                      if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
-                    }}
-                    title={s.title}
-                    className={`size-8 sm:size-9 rounded-lg flex items-center justify-center text-xs font-bold shrink-0 transition-all ${
-                      isPassed
-                        ? "bg-[#10B981] text-white shadow-2xs"
-                        : isCurrent
-                          ? "bg-stone-900 text-white ring-2 ring-[#10B981]"
-                          : "bg-stone-100 text-stone-700 hover:bg-stone-200"
-                    }`}
-                  >
-                    {isPassed ? "✓" : s.number}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* SEQUENTIAL CARDS FLOW - MODERATE SIZES & HIGH LEGIBILITY */}
-          <div className="max-w-4xl lg:max-w-5xl mx-auto space-y-6">
-            {usmleRoadmapStages.map((stage, idx) => {
-              const isCurrent = idx === activeStageIndex;
-              const isCompleted = completedStageIds.includes(stage.id);
-              const showAlt = showAltOptionForStage === stage.id;
-              const isExpanded = isCurrent
-                ? !activeStageDetailsHidden
-                : expandedStageId === stage.id;
-              const cleanTitle = stage.title.replace(/^\d+\s*/, "");
-
-              return (
-                <div key={stage.id} id={`stage-card-${idx}`} className="relative scroll-mt-24">
-                  <div
-                    className={`rounded-2xl border p-6 sm:p-8 transition-all duration-200 bg-card ${
-                      isCurrent
-                        ? "border-2 border-[#10B981] shadow-md ring-2 ring-[#10B981]/20 bg-emerald-50/[0.06]"
-                        : isCompleted
-                          ? "border-emerald-300/70 bg-emerald-50/15"
-                          : "border-stone-200/90 opacity-95"
-                    }`}
-                  >
-                    {/* CARD HEADER */}
-                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-5">
-                      <div className="flex items-start gap-4 sm:gap-5 flex-1">
-                        <span
-                          className={`grid size-12 sm:size-14 shrink-0 place-items-center rounded-xl font-black text-lg sm:text-xl shadow-xs ${
-                            isCompleted
-                              ? "bg-[#10B981] text-white"
-                              : isCurrent
-                                ? "bg-stone-900 text-white"
-                                : "bg-stone-100 text-stone-700 border border-stone-200"
-                          }`}
-                        >
-                          {isCompleted ? "✓" : stage.number}
-                        </span>
-
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2.5 flex-wrap">
-                            <h3 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight leading-snug">
-                              {cleanTitle}
-                            </h3>
-                            {isCompleted && (
-                              <Badge className="bg-emerald-100 text-emerald-800 border-emerald-300 text-xs px-2.5 py-0.5 font-bold">
-                                Passed / Completed ✓
-                              </Badge>
-                            )}
-                            {isCurrent && (
-                              <Badge className="bg-stone-900 text-white text-xs px-2.5 py-0.5 font-bold">
-                                Active Stage
-                              </Badge>
-                            )}
-                          </div>
-                          <p className="mt-1.5 text-sm sm:text-base text-stone-600 font-normal leading-relaxed">
-                            {stage.summary}
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* TOGGLE EXPANSION / DETAILS */}
-                      <div className="shrink-0 flex items-center gap-2 self-start sm:self-auto">
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => {
-                            if (isCurrent) {
-                              setActiveStageDetailsHidden((prev) => !prev);
-                            } else {
-                              setExpandedStageId(expandedStageId === stage.id ? null : stage.id);
-                            }
-                          }}
-                          className="text-sm font-bold text-[#10B981] hover:text-[#059669] hover:bg-emerald-50 px-3 py-1.5 rounded-lg"
-                        >
-                          {isExpanded ? "Hide Details" : "View Guidance"}
-                        </Button>
-                      </div>
-                    </div>
-
-                    {/* EXPANDABLE STAGE GUIDANCE & FEES */}
-                    {isExpanded && (
-                      <div className="mt-6 pt-6 border-t border-border/70 space-y-6 animate-in fade-in duration-200">
-                        <div>
-                          <h4 className="text-xs sm:text-sm font-bold text-stone-900 uppercase tracking-wider mb-3">
-                            Guidance & Requirements
-                          </h4>
-                          <ul className="space-y-3 text-sm sm:text-base text-stone-800 leading-relaxed">
-                            {stage.details.map((d, dIdx) => (
-                              <li key={dIdx} className="flex items-start gap-3">
-                                <CheckCircle2 className="size-5 text-[#10B981] shrink-0 mt-0.5" />
-                                <span className="font-normal">{d}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-
-                        {stage.fees && stage.fees.length > 0 && (
-                          <div className="rounded-xl border border-stone-200/90 bg-stone-50/95 p-5 sm:p-6">
-                            <h4 className="text-xs sm:text-sm font-bold text-stone-900 uppercase tracking-wider mb-3">
-                              Associated Official Fees
-                            </h4>
-                            <div className="space-y-2">
-                              {stage.fees.map((f) => (
-                                <div key={f.item} className="flex justify-between items-center text-sm sm:text-base py-1.5 border-b border-border/50 last:border-0">
-                                  <span className="text-stone-700 font-medium">{f.item}</span>
-                                  <span className="font-mono font-bold text-stone-900">{f.amount}</span>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-
-                        {stage.interviewQuestions && (
-                          <div className="rounded-xl border border-stone-200/90 bg-stone-50/95 p-5 sm:p-6">
-                            <h4 className="text-xs sm:text-sm font-bold text-stone-900 uppercase tracking-wider mb-3">
-                              Core Questions to Prepare For (PDF Slide 11)
-                            </h4>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm sm:text-base text-stone-800">
-                              {stage.interviewQuestions.map((q, qIdx) => (
-                                <div key={qIdx} className="flex items-start gap-2.5">
-                                  <span className="font-bold text-[#10B981] shrink-0">{qIdx + 1}.</span>
-                                  <span className="font-medium">{q}</span>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                      </div>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-sm mb-4">
+                  <div>
+                    <span className="font-bold text-foreground">Sequential Progress: </span>
+                    <span className="text-[#10B981] font-extrabold text-base">
+                      Stage {activeStageIndex + 1} of {usmleRoadmapStages.length}
+                    </span>
+                    <span className="text-foreground font-semibold ml-1.5 hidden sm:inline">
+                      — {currentStage?.title.replace(/^\d+\s*/, "")}
+                    </span>
+                    <span className="text-muted-foreground ml-2 text-xs sm:text-sm font-medium">
+                      ({completedStageIds.length} passed)
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <span className="font-mono font-black text-xl text-[#10B981]">
+                      {progressPercent}%
+                    </span>
+                    {completedStageIds.length > 0 && (
+                      <button
+                        onClick={handleResetSequence}
+                        className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground text-xs sm:text-sm font-semibold cursor-pointer transition-colors"
+                      >
+                        <RotateCcw size={14} /> Reset Progress
+                      </button>
                     )}
+                  </div>
+                </div>
 
-                    {/* SEQUENTIAL PROGRESSION CONTROLS */}
-                    <div className="mt-6 pt-6 border-t border-border/70">
-                      {stage.isExam ? (
-                        <div>
-                          <p className="text-sm sm:text-base font-bold text-foreground mb-3">
-                            Stage Checkpoint: Did you pass this exam?
-                          </p>
-                          <div className="flex flex-wrap items-center gap-3.5">
-                            <Button
-                              size="default"
-                              onClick={() => handlePassStage(stage.id, idx + 1)}
-                              className="bg-[#10B981] hover:bg-[#059669] text-white font-bold h-11 sm:h-12 px-6 text-sm sm:text-base rounded-xl shadow-xs"
+                {/* PROGRESS BAR */}
+                <div className="h-2.5 w-full rounded-full bg-stone-100 overflow-hidden">
+                  <div
+                    className="h-full bg-[#10B981] transition-all duration-300 rounded-full"
+                    style={{ width: `${progressPercent}%` }}
+                  />
+                </div>
+
+                {/* MINI STAGE DOTS STEPPER */}
+                <div className="mt-5 flex items-center justify-between gap-1.5 overflow-x-auto py-1">
+                  {usmleRoadmapStages.map((s, sIdx) => {
+                    const isPassed = completedStageIds.includes(s.id);
+                    const isCurrent = sIdx === activeStageIndex;
+
+                    return (
+                      <button
+                        key={s.id}
+                        onClick={() => {
+                          setActiveStageIndex(sIdx);
+                          const el = document.getElementById(`stage-card-${sIdx}`);
+                          if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+                        }}
+                        title={s.title}
+                        className={`size-8 sm:size-9 rounded-lg flex items-center justify-center text-xs font-bold shrink-0 transition-all ${
+                          isPassed
+                            ? "bg-[#10B981] text-white shadow-2xs"
+                            : isCurrent
+                              ? "bg-stone-900 text-white ring-2 ring-[#10B981]"
+                              : "bg-stone-100 text-stone-700 hover:bg-stone-200"
+                        }`}
+                      >
+                        {isPassed ? "✓" : s.number}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* SEQUENTIAL CARDS FLOW - MODERATE SIZES & HIGH LEGIBILITY */}
+              <div className="max-w-4xl lg:max-w-5xl mx-auto space-y-6">
+                {usmleRoadmapStages.map((stage, idx) => {
+                  const isCurrent = idx === activeStageIndex;
+                  const isCompleted = completedStageIds.includes(stage.id);
+                  const showAlt = showAltOptionForStage === stage.id;
+                  const isExpanded = isCurrent
+                    ? !activeStageDetailsHidden
+                    : expandedStageId === stage.id;
+                  const cleanTitle = stage.title.replace(/^\d+\s*/, "");
+
+                  return (
+                    <div key={stage.id} id={`stage-card-${idx}`} className="relative scroll-mt-24">
+                      <div
+                        className={`rounded-2xl border p-6 sm:p-8 transition-all duration-200 bg-card ${
+                          isCurrent
+                            ? "border-2 border-[#10B981] shadow-md ring-2 ring-[#10B981]/20 bg-emerald-50/[0.06]"
+                            : isCompleted
+                              ? "border-emerald-300/70 bg-emerald-50/15"
+                              : "border-stone-200/90 opacity-95"
+                        }`}
+                      >
+                        {/* CARD HEADER */}
+                        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-5">
+                          <div className="flex items-start gap-4 sm:gap-5 flex-1">
+                            <span
+                              className={`grid size-12 sm:size-14 shrink-0 place-items-center rounded-xl font-black text-lg sm:text-xl shadow-xs ${
+                                isCompleted
+                                  ? "bg-[#10B981] text-white"
+                                  : isCurrent
+                                    ? "bg-stone-900 text-white"
+                                    : "bg-stone-100 text-stone-700 border border-stone-200"
+                              }`}
                             >
-                              <CheckCircle2 className="mr-2 size-5" /> Passed — Continue to Next Stage
-                            </Button>
-                            <Button
-                              size="default"
-                              variant="outline"
-                              onClick={() => handleToggleAltOption(stage.id)}
-                              className="h-11 sm:h-12 px-6 text-sm sm:text-base font-bold border-2 border-amber-300 text-amber-950 hover:bg-amber-50 rounded-xl"
-                            >
-                              <AlertCircle className="mr-2 size-5 text-amber-600" />
-                              {showAlt ? "Hide What to do" : "Did Not Pass? What to do"}
-                            </Button>
+                              {isCompleted ? "✓" : stage.number}
+                            </span>
+
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2.5 flex-wrap">
+                                <h3 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight leading-snug">
+                                  {cleanTitle}
+                                </h3>
+                                {isCompleted && (
+                                  <Badge className="bg-emerald-100 text-emerald-800 border-emerald-300 text-xs px-2.5 py-0.5 font-bold">
+                                    Passed / Completed ✓
+                                  </Badge>
+                                )}
+                                {isCurrent && (
+                                  <Badge className="bg-stone-900 text-white text-xs px-2.5 py-0.5 font-bold">
+                                    Active Stage
+                                  </Badge>
+                                )}
+                              </div>
+                              <p className="mt-1.5 text-sm sm:text-base text-stone-600 font-normal leading-relaxed">
+                                {stage.summary}
+                              </p>
+                            </div>
                           </div>
 
-                          {/* ALTERNATIVE RECOVERY OPTION AS SHOWN IN USER NOTES */}
-                          {showAlt && stage.altOption && (
-                            <div className="mt-5 rounded-2xl border-2 border-amber-300 bg-amber-50/95 p-6 sm:p-7 text-amber-950 shadow-xs animate-in fade-in duration-200">
-                              <div className="flex items-center gap-2.5 mb-2 font-bold text-amber-900">
-                                <AlertCircle className="size-5 text-amber-600 shrink-0" />
-                                <h4 className="text-base sm:text-lg font-bold text-amber-950">{stage.altOption.title}</h4>
-                              </div>
-                              <p className="mb-3 text-sm sm:text-base text-amber-900 leading-relaxed font-normal">
-                                {stage.altOption.description}
-                              </p>
-                              <ul className="space-y-2 list-disc list-inside text-sm sm:text-base text-amber-900 mb-5 font-medium">
-                                {stage.altOption.actionSteps.map((step, sIdx) => (
-                                  <li key={sIdx}>{step}</li>
+                          {/* TOGGLE EXPANSION / DETAILS */}
+                          <div className="shrink-0 flex items-center gap-2 self-start sm:self-auto">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => {
+                                if (isCurrent) {
+                                  setActiveStageDetailsHidden((prev) => !prev);
+                                } else {
+                                  setExpandedStageId(
+                                    expandedStageId === stage.id ? null : stage.id,
+                                  );
+                                }
+                              }}
+                              className="text-sm font-bold text-[#10B981] hover:text-[#059669] hover:bg-emerald-50 px-3 py-1.5 rounded-lg"
+                            >
+                              {isExpanded ? "Hide Details" : "View Guidance"}
+                            </Button>
+                          </div>
+                        </div>
+
+                        {/* EXPANDABLE STAGE GUIDANCE & FEES */}
+                        {isExpanded && (
+                          <div className="mt-6 pt-6 border-t border-border/70 space-y-6 animate-in fade-in duration-200">
+                            <div>
+                              <h4 className="text-xs sm:text-sm font-bold text-stone-900 uppercase tracking-wider mb-3">
+                                Guidance & Requirements
+                              </h4>
+                              <ul className="space-y-3 text-sm sm:text-base text-stone-800 leading-relaxed">
+                                {stage.details.map((d, dIdx) => (
+                                  <li key={dIdx} className="flex items-start gap-3">
+                                    <CheckCircle2 className="size-5 text-[#10B981] shrink-0 mt-0.5" />
+                                    <span className="font-normal">{d}</span>
+                                  </li>
                                 ))}
                               </ul>
-                              <div className="pt-4 border-t border-amber-200 flex justify-end">
+                            </div>
+
+                            {stage.fees && stage.fees.length > 0 && (
+                              <div className="rounded-xl border border-stone-200/90 bg-stone-50/95 p-5 sm:p-6">
+                                <h4 className="text-xs sm:text-sm font-bold text-stone-900 uppercase tracking-wider mb-3">
+                                  Associated Official Fees
+                                </h4>
+                                <div className="space-y-2">
+                                  {stage.fees.map((f) => (
+                                    <div
+                                      key={f.item}
+                                      className="flex justify-between items-center text-sm sm:text-base py-1.5 border-b border-border/50 last:border-0"
+                                    >
+                                      <span className="text-stone-700 font-medium">{f.item}</span>
+                                      <span className="font-mono font-bold text-stone-900">
+                                        {f.amount}
+                                      </span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
+                            {stage.interviewQuestions && (
+                              <div className="rounded-xl border border-stone-200/90 bg-stone-50/95 p-5 sm:p-6">
+                                <h4 className="text-xs sm:text-sm font-bold text-stone-900 uppercase tracking-wider mb-3">
+                                  Core Questions to Prepare For (PDF Slide 11)
+                                </h4>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm sm:text-base text-stone-800">
+                                  {stage.interviewQuestions.map((q, qIdx) => (
+                                    <div key={qIdx} className="flex items-start gap-2.5">
+                                      <span className="font-bold text-[#10B981] shrink-0">
+                                        {qIdx + 1}.
+                                      </span>
+                                      <span className="font-medium">{q}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* SEQUENTIAL PROGRESSION CONTROLS */}
+                        <div className="mt-6 pt-6 border-t border-border/70">
+                          {stage.isExam ? (
+                            <div>
+                              <p className="text-sm sm:text-base font-bold text-foreground mb-3">
+                                Stage Checkpoint: Did you pass this exam?
+                              </p>
+                              <div className="flex flex-wrap items-center gap-3.5">
                                 <Button
                                   size="default"
                                   onClick={() => handlePassStage(stage.id, idx + 1)}
-                                  className="bg-amber-700 hover:bg-amber-800 text-white font-bold h-10 px-5 text-sm rounded-lg shadow-xs"
+                                  className="bg-[#10B981] hover:bg-[#059669] text-white font-bold h-11 sm:h-12 px-6 text-sm sm:text-base rounded-xl shadow-xs"
                                 >
-                                  When Ready / Passed: Continue to Next Stage <ArrowRight className="ml-2 size-4" />
+                                  <CheckCircle2 className="mr-2 size-5" /> Passed — Continue to Next
+                                  Stage
+                                </Button>
+                                <Button
+                                  size="default"
+                                  variant="outline"
+                                  onClick={() => handleToggleAltOption(stage.id)}
+                                  className="h-11 sm:h-12 px-6 text-sm sm:text-base font-bold border-2 border-amber-300 text-amber-950 hover:bg-amber-50 rounded-xl"
+                                >
+                                  <AlertCircle className="mr-2 size-5 text-amber-600" />
+                                  {showAlt ? "Hide What to do" : "Did Not Pass? What to do"}
                                 </Button>
                               </div>
+
+                              {/* ALTERNATIVE RECOVERY OPTION AS SHOWN IN USER NOTES */}
+                              {showAlt && stage.altOption && (
+                                <div className="mt-5 rounded-2xl border-2 border-amber-300 bg-amber-50/95 p-6 sm:p-7 text-amber-950 shadow-xs animate-in fade-in duration-200">
+                                  <div className="flex items-center gap-2.5 mb-2 font-bold text-amber-900">
+                                    <AlertCircle className="size-5 text-amber-600 shrink-0" />
+                                    <h4 className="text-base sm:text-lg font-bold text-amber-950">
+                                      {stage.altOption.title}
+                                    </h4>
+                                  </div>
+                                  <p className="mb-3 text-sm sm:text-base text-amber-900 leading-relaxed font-normal">
+                                    {stage.altOption.description}
+                                  </p>
+                                  <ul className="space-y-2 list-disc list-inside text-sm sm:text-base text-amber-900 mb-5 font-medium">
+                                    {stage.altOption.actionSteps.map((step, sIdx) => (
+                                      <li key={sIdx}>{step}</li>
+                                    ))}
+                                  </ul>
+                                  <div className="pt-4 border-t border-amber-200 flex justify-end">
+                                    <Button
+                                      size="default"
+                                      onClick={() => handlePassStage(stage.id, idx + 1)}
+                                      className="bg-amber-700 hover:bg-amber-800 text-white font-bold h-10 px-5 text-sm rounded-lg shadow-xs"
+                                    >
+                                      When Ready / Passed: Continue to Next Stage{" "}
+                                      <ArrowRight className="ml-2 size-4" />
+                                    </Button>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            // Standard sequential progression button
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                              <span className="text-xs sm:text-sm font-semibold text-muted-foreground">
+                                {isCompleted ? "Stage Completed ✓" : "Sequential progression"}
+                              </span>
+                              {idx < usmleRoadmapStages.length - 1 ? (
+                                <Button
+                                  size="default"
+                                  variant={isCompleted ? "outline" : "default"}
+                                  onClick={() => handlePassStage(stage.id, idx + 1)}
+                                  className={
+                                    isCompleted
+                                      ? "h-11 sm:h-12 px-6 text-sm sm:text-base font-bold border-stone-300 rounded-xl"
+                                      : "bg-[#10B981] hover:bg-[#059669] text-white font-bold h-11 sm:h-12 px-6 text-sm sm:text-base rounded-xl shadow-xs"
+                                  }
+                                >
+                                  Continue to Next Stage <ArrowRight className="ml-2 size-4" />
+                                </Button>
+                              ) : (
+                                <Button
+                                  size="default"
+                                  onClick={() => handlePassStage(stage.id, idx)}
+                                  className="bg-[#10B981] hover:bg-[#059669] text-white font-bold h-11 sm:h-12 px-8 text-base rounded-xl shadow-sm"
+                                >
+                                  <CheckCircle2 className="mr-2 size-5" /> Complete Roadmap
+                                </Button>
+                              )}
                             </div>
                           )}
                         </div>
-                      ) : (
-                        // Standard sequential progression button
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                          <span className="text-xs sm:text-sm font-semibold text-muted-foreground">
-                            {isCompleted ? "Stage Completed ✓" : "Sequential progression"}
+                      </div>
+
+                      {/* DOWN ARROW CONNECTOR */}
+                      {idx < usmleRoadmapStages.length - 1 && (
+                        <div className="flex flex-col items-center my-3 text-muted-foreground/60">
+                          <div className="w-0.5 h-4 bg-border/80" />
+                          <span className="text-lg sm:text-xl font-bold text-[#10B981] my-0.5">
+                            ↓
                           </span>
-                          {idx < usmleRoadmapStages.length - 1 ? (
-                            <Button
-                              size="default"
-                              variant={isCompleted ? "outline" : "default"}
-                              onClick={() => handlePassStage(stage.id, idx + 1)}
-                              className={
-                                isCompleted
-                                  ? "h-11 sm:h-12 px-6 text-sm sm:text-base font-bold border-stone-300 rounded-xl"
-                                  : "bg-[#10B981] hover:bg-[#059669] text-white font-bold h-11 sm:h-12 px-6 text-sm sm:text-base rounded-xl shadow-xs"
-                              }
-                            >
-                              Continue to Next Stage <ArrowRight className="ml-2 size-4" />
-                            </Button>
-                          ) : (
-                            <Button
-                              size="default"
-                              onClick={() => handlePassStage(stage.id, idx)}
-                              className="bg-[#10B981] hover:bg-[#059669] text-white font-bold h-11 sm:h-12 px-8 text-base rounded-xl shadow-sm"
-                            >
-                              <CheckCircle2 className="mr-2 size-5" /> Complete Roadmap
-                            </Button>
-                          )}
+                          <div className="w-0.5 h-4 bg-border/80" />
                         </div>
                       )}
                     </div>
-                  </div>
-
-                  {/* DOWN ARROW CONNECTOR */}
-                  {idx < usmleRoadmapStages.length - 1 && (
-                    <div className="flex flex-col items-center my-3 text-muted-foreground/60">
-                      <div className="w-0.5 h-4 bg-border/80" />
-                      <span className="text-lg sm:text-xl font-bold text-[#10B981] my-0.5">↓</span>
-                      <div className="w-0.5 h-4 bg-border/80" />
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+                  );
+                })}
+              </div>
             </>
           )}
         </div>
       </section>
 
       {/* DOWNLOADABLE PATHWAY RESOURCES & STUDY MATERIALS */}
-      <section id="pathway-resources-section" className="py-14 sm:py-20 bg-stone-900 border-t border-stone-800 text-stone-100">
+      <section
+        id="pathway-resources-section"
+        className="py-14 sm:py-20 bg-stone-900 border-t border-stone-800 text-stone-100"
+      >
         <div className="mx-auto max-w-7xl px-5 lg:px-8">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10 pb-6 border-b border-stone-800">
             <div>
@@ -1349,7 +1386,8 @@ export function UsResidencyPathwayPage() {
                 Pathway Guides, Checklists & Workbooks
               </h2>
               <p className="mt-2 text-sm text-stone-400 max-w-2xl leading-relaxed">
-                Download the complete guides, USMLE study schedules, and application templates prepared by BMS mentors.
+                Download the complete guides, USMLE study schedules, and application templates
+                prepared by BMS mentors.
                 {!isSubscribed && " Subscribe to unlock all premium materials with one click."}
               </p>
             </div>
@@ -1392,7 +1430,9 @@ export function UsResidencyPathwayPage() {
                   Complete U.S. Residency Pathway Guide
                 </h3>
                 <p className="mt-2 text-xs text-stone-400 leading-relaxed">
-                  End-to-end official roadmap breakdown covering USMLE Step 1 & 2 CK, ECFMG Intealth, USCE clinical rotations, ERAS CV, personal statement, and the NRMP Match.
+                  End-to-end official roadmap breakdown covering USMLE Step 1 & 2 CK, ECFMG
+                  Intealth, USCE clinical rotations, ERAS CV, personal statement, and the NRMP
+                  Match.
                 </p>
                 <div className="mt-4 flex items-center gap-2 text-[11px] text-stone-500 font-mono">
                   <span>PDF Document</span>
@@ -1442,9 +1482,7 @@ export function UsResidencyPathwayPage() {
                         )}
                       </div>
 
-                      <h3 className="text-lg font-bold text-white leading-snug">
-                        {res.title}
-                      </h3>
+                      <h3 className="text-lg font-bold text-white leading-snug">{res.title}</h3>
 
                       {res.description && (
                         <p className="mt-2 text-xs text-stone-400 leading-relaxed line-clamp-3">
@@ -1520,7 +1558,9 @@ export function UsResidencyPathwayPage() {
                       <td className="px-5 sm:px-6 py-3.5 font-bold text-foreground whitespace-nowrap">
                         {m.date}
                       </td>
-                      <td className="px-5 sm:px-6 py-3.5 text-stone-800 font-medium leading-relaxed">{m.milestone}</td>
+                      <td className="px-5 sm:px-6 py-3.5 text-stone-800 font-medium leading-relaxed">
+                        {m.milestone}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -1624,23 +1664,33 @@ export function UsResidencyPathwayPage() {
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckCircle2 size={18} className="text-[#10B981] shrink-0 mt-0.5" />
-                  <span className="font-medium">Know the eligibility and documentation requirements before paying fees.</span>
+                  <span className="font-medium">
+                    Know the eligibility and documentation requirements before paying fees.
+                  </span>
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckCircle2 size={18} className="text-[#10B981] shrink-0 mt-0.5" />
-                  <span className="font-medium">Prepare strategically for Step 1 and Step 2 CK.</span>
+                  <span className="font-medium">
+                    Prepare strategically for Step 1 and Step 2 CK.
+                  </span>
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckCircle2 size={18} className="text-[#10B981] shrink-0 mt-0.5" />
-                  <span className="font-medium">Build a well-rounded IMG profile—not only exam scores.</span>
+                  <span className="font-medium">
+                    Build a well-rounded IMG profile—not only exam scores.
+                  </span>
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckCircle2 size={18} className="text-[#10B981] shrink-0 mt-0.5" />
-                  <span className="font-medium">Research programs carefully and track deadlines.</span>
+                  <span className="font-medium">
+                    Research programs carefully and track deadlines.
+                  </span>
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckCircle2 size={18} className="text-[#10B981] shrink-0 mt-0.5" />
-                  <span className="font-medium">Use interviews to communicate your experiences, goals and fit with the program.</span>
+                  <span className="font-medium">
+                    Use interviews to communicate your experiences, goals and fit with the program.
+                  </span>
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckCircle2 size={18} className="text-[#10B981] shrink-0 mt-0.5" />
@@ -1789,9 +1839,13 @@ export function SubscriptionModal({
             "If you have already sent payment on WhatsApp, please give our admin a moment to confirm receipt.",
         });
       } else if (res.status === "rejected") {
-        toast.error("This subscription request was marked as rejected. Please contact admin on WhatsApp.");
+        toast.error(
+          "This subscription request was marked as rejected. Please contact admin on WhatsApp.",
+        );
       } else {
-        toast.error(res.errorMessage || "No subscription record found for this email or reference code.");
+        toast.error(
+          res.errorMessage || "No subscription record found for this email or reference code.",
+        );
       }
     } catch (err) {
       console.error(err);
@@ -1833,7 +1887,8 @@ export function SubscriptionModal({
                 Subscribe to Unlock Pathway &amp; Guide
               </DialogTitle>
               <DialogDescription className="text-xs text-muted-foreground pt-1 leading-relaxed">
-                Get full access to all 8 sequential milestones, exam strategies, alternative clinical pathways, and the high-resolution downloadable guide.
+                Get full access to all 8 sequential milestones, exam strategies, alternative
+                clinical pathways, and the high-resolution downloadable guide.
               </DialogDescription>
             </DialogHeader>
 
@@ -1931,7 +1986,8 @@ export function SubscriptionModal({
                 Confirm Payment on WhatsApp
               </DialogTitle>
               <DialogDescription className="text-xs text-muted-foreground pt-1">
-                Your request has been recorded! Follow the two quick steps below to activate your account.
+                Your request has been recorded! Follow the two quick steps below to activate your
+                account.
               </DialogDescription>
             </DialogHeader>
 
@@ -1964,7 +2020,8 @@ export function SubscriptionModal({
                   1
                 </span>
                 <p>
-                  Click below to message our admin on WhatsApp with your reference code: <strong>{createdSub.reference_code}</strong>.
+                  Click below to message our admin on WhatsApp with your reference code:{" "}
+                  <strong>{createdSub.reference_code}</strong>.
                 </p>
               </div>
               <div className="flex items-start gap-2.5">
@@ -1980,7 +2037,8 @@ export function SubscriptionModal({
                   3
                 </span>
                 <p>
-                  Admin will approve your account. Once done, click <strong>&quot;Check My Status&quot;</strong> below to start!
+                  Admin will approve your account. Once done, click{" "}
+                  <strong>&quot;Check My Status&quot;</strong> below to start!
                 </p>
               </div>
             </div>
@@ -2049,7 +2107,8 @@ export function SubscriptionModal({
               {verifyPendingSub && (
                 <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800 space-y-2">
                   <p className="font-semibold">
-                    Payment Pending: Request <strong>{verifyPendingSub.reference_code}</strong> is currently waiting for admin confirmation.
+                    Payment Pending: Request <strong>{verifyPendingSub.reference_code}</strong> is
+                    currently waiting for admin confirmation.
                   </p>
                   <a
                     href={buildWhatsAppLink(
@@ -2059,7 +2118,7 @@ export function SubscriptionModal({
                         code: verifyPendingSub.reference_code,
                         email: verifyPendingSub.email,
                         name: verifyPendingSub.full_name,
-                      }
+                      },
                     )}
                     target="_blank"
                     rel="noreferrer"

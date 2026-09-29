@@ -30,6 +30,7 @@ import {
   X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { CTA, IconCard, PageIntro, SectionHeading } from "@/components/site";
 import {
   events,
@@ -192,7 +193,10 @@ export function HomePage() {
       </section>
 
       {/* 2.5 "INTERESTS: MAP YOUR MEDICAL CAREER" */}
-      <section id="interests" className="py-16 lg:py-20 bg-stone-50/80 border-y border-border/70 scroll-mt-12">
+      <section
+        id="interests"
+        className="py-16 lg:py-20 bg-stone-50/80 border-y border-border/70 scroll-mt-12"
+      >
         <div className="mx-auto max-w-7xl px-5 lg:px-8">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
             <div className="max-w-3xl">
@@ -207,7 +211,11 @@ export function HomePage() {
                 Explore step-by-step pathways tailored to your interests.
               </p>
             </div>
-            <Button asChild variant="outline" className="border-stone-300 font-bold self-start md:self-auto rounded-xl">
+            <Button
+              asChild
+              variant="outline"
+              className="border-stone-300 font-bold self-start md:self-auto rounded-xl"
+            >
               <Link to="/career-exploration">
                 View All Pathways <ArrowRight className="ml-2 size-4 text-[#10B981]" />
               </Link>
@@ -226,17 +234,26 @@ export function HomePage() {
                 </div>
                 <h3 className="text-xl font-bold text-foreground">U.S. Residency Pathway</h3>
                 <p className="mt-2.5 text-sm text-muted-foreground leading-relaxed">
-                  Complete 14-stage journey for international medical graduates: USMLE Step 1 & 2 CK,
-                  ECFMG certification, Intealth, ERAS, interviews, and NRMP Match.
+                  Complete 14-stage journey for international medical graduates: USMLE Step 1 & 2
+                  CK, ECFMG certification, Intealth, ERAS, interviews, and NRMP Match.
                 </p>
                 <div className="mt-4 flex flex-wrap gap-1.5">
-                  <span className="text-xs bg-stone-100 px-2 py-0.5 rounded font-medium text-stone-700">USMLE Step 1 & 2</span>
-                  <span className="text-xs bg-stone-100 px-2 py-0.5 rounded font-medium text-stone-700">ECFMG</span>
-                  <span className="text-xs bg-stone-100 px-2 py-0.5 rounded font-medium text-stone-700">NRMP Match</span>
+                  <span className="text-xs bg-stone-100 px-2 py-0.5 rounded font-medium text-stone-700">
+                    USMLE Step 1 & 2
+                  </span>
+                  <span className="text-xs bg-stone-100 px-2 py-0.5 rounded font-medium text-stone-700">
+                    ECFMG
+                  </span>
+                  <span className="text-xs bg-stone-100 px-2 py-0.5 rounded font-medium text-stone-700">
+                    NRMP Match
+                  </span>
                 </div>
               </div>
               <div className="mt-6 pt-5 border-t border-border/70">
-                <Button asChild className="w-full bg-[#10B981] hover:bg-[#059669] text-white font-bold h-11 rounded-xl shadow-xs">
+                <Button
+                  asChild
+                  className="w-full bg-[#10B981] hover:bg-[#059669] text-white font-bold h-11 rounded-xl shadow-xs"
+                >
                   <Link to="/career-exploration/us-residency">
                     Map U.S. Pathway <ArrowRight className="ml-2 size-4" />
                   </Link>
@@ -259,17 +276,27 @@ export function HomePage() {
                 </div>
                 <h3 className="text-xl font-bold text-foreground">Other International Pathways</h3>
                 <p className="mt-2.5 text-sm text-muted-foreground leading-relaxed">
-                  Explore licensing exams, eligibility, and postgraduate training routes across the UK
-                  (PLAB/UKMLA), Canada, Australia, and global health destinations.
+                  Explore licensing exams, eligibility, and postgraduate training routes across the
+                  UK (PLAB/UKMLA), Canada, Australia, and global health destinations.
                 </p>
                 <div className="mt-4 flex flex-wrap gap-1.5">
-                  <span className="text-xs bg-stone-100 px-2 py-0.5 rounded font-medium text-stone-700">UK (PLAB)</span>
-                  <span className="text-xs bg-stone-100 px-2 py-0.5 rounded font-medium text-stone-700">Canada</span>
-                  <span className="text-xs bg-stone-100 px-2 py-0.5 rounded font-medium text-stone-700">Australia</span>
+                  <span className="text-xs bg-stone-100 px-2 py-0.5 rounded font-medium text-stone-700">
+                    UK (PLAB)
+                  </span>
+                  <span className="text-xs bg-stone-100 px-2 py-0.5 rounded font-medium text-stone-700">
+                    Canada
+                  </span>
+                  <span className="text-xs bg-stone-100 px-2 py-0.5 rounded font-medium text-stone-700">
+                    Australia
+                  </span>
                 </div>
               </div>
               <div className="mt-6 pt-5 border-t border-border/70">
-                <Button asChild variant="outline" className="w-full font-bold h-11 rounded-xl border-stone-300 hover:border-[#10B981] hover:text-[#10B981]">
+                <Button
+                  asChild
+                  variant="outline"
+                  className="w-full font-bold h-11 rounded-xl border-stone-300 hover:border-[#10B981] hover:text-[#10B981]"
+                >
                   <Link to="/career-exploration">
                     Explore Other Pathways <ArrowRight className="ml-2 size-4" />
                   </Link>
@@ -292,13 +319,23 @@ export function HomePage() {
                   fellowships, research, and healthcare leadership.
                 </p>
                 <div className="mt-4 flex flex-wrap gap-1.5">
-                  <span className="text-xs bg-stone-100 px-2 py-0.5 rounded font-medium text-stone-700">Residency</span>
-                  <span className="text-xs bg-stone-100 px-2 py-0.5 rounded font-medium text-stone-700">Fellowships</span>
-                  <span className="text-xs bg-stone-100 px-2 py-0.5 rounded font-medium text-stone-700">Programs</span>
+                  <span className="text-xs bg-stone-100 px-2 py-0.5 rounded font-medium text-stone-700">
+                    Residency
+                  </span>
+                  <span className="text-xs bg-stone-100 px-2 py-0.5 rounded font-medium text-stone-700">
+                    Fellowships
+                  </span>
+                  <span className="text-xs bg-stone-100 px-2 py-0.5 rounded font-medium text-stone-700">
+                    Programs
+                  </span>
                 </div>
               </div>
               <div className="mt-6 pt-5 border-t border-border/70">
-                <Button asChild variant="outline" className="w-full font-bold h-11 rounded-xl border-stone-300 hover:border-[#10B981] hover:text-[#10B981]">
+                <Button
+                  asChild
+                  variant="outline"
+                  className="w-full font-bold h-11 rounded-xl border-stone-300 hover:border-[#10B981] hover:text-[#10B981]"
+                >
                   <Link to="/programs">
                     Explore Specializations <ArrowRight className="ml-2 size-4" />
                   </Link>
@@ -924,9 +961,7 @@ export function ProgramsPage() {
                       <Icon className="size-6" />
                     </div>
                     <h3 className="text-xl font-bold text-foreground">{p.title}</h3>
-                    <p className="mt-3 text-sm text-muted-foreground leading-relaxed">
-                      {p.text}
-                    </p>
+                    <p className="mt-3 text-sm text-muted-foreground leading-relaxed">{p.text}</p>
                   </div>
                   <div className="mt-8">
                     <Link
@@ -1221,15 +1256,20 @@ export function ResourcesPage() {
     const list: MedicalResource[] = [...resources];
     uploaded.forEach((u) => {
       const existingIdx = list.findIndex(
-        (x) => x.title.toLowerCase().trim() === u.title.toLowerCase().trim()
+        (x) => x.title.toLowerCase().trim() === u.title.toLowerCase().trim(),
       );
       const converted: MedicalResource = {
         title: u.title,
         cat: u.category,
         type: u.resource_type,
         href: u.pathway_id === "us-residency" ? "/career-exploration/us-residency" : undefined,
-        description: u.description || `${u.category} · ${u.resource_type} (${u.file_size || "PDF"})`,
-        badge: u.is_primary_guide ? "★ Primary Guide" : u.is_gated ? "Members Only" : "Free Download",
+        description:
+          u.description || `${u.category} · ${u.resource_type} (${u.file_size || "PDF"})`,
+        badge: u.is_primary_guide
+          ? "★ Primary Guide"
+          : u.is_gated
+            ? "Members Only"
+            : "Free Download",
         directUrl: u.file_url,
         fileSize: u.file_size,
         isGated: u.is_gated,
@@ -1246,7 +1286,7 @@ export function ResourcesPage() {
 
   const cats = useMemo(
     () => ["All", ...Array.from(new Set(mergedResources.map((r) => r.cat)))],
-    [mergedResources]
+    [mergedResources],
   );
   const [active, setActive] = useState("All");
   const [query, setQuery] = useState("");
@@ -1264,7 +1304,8 @@ export function ResourcesPage() {
     if (r.isGated) {
       if (!isSubscribed) {
         toast.info("Subscription required", {
-          description: "This premium resource is reserved for verified members. Please subscribe or verify your access.",
+          description:
+            "This premium resource is reserved for verified members. Please subscribe or verify your access.",
         });
         setModalMode("subscribe");
         setSubscriptionOpen(true);
@@ -1284,7 +1325,8 @@ export function ResourcesPage() {
           });
         } else {
           toast.error("Subscription Expired or Revoked", {
-            description: "Your access has expired or was revoked. Please verify or renew your subscription.",
+            description:
+              "Your access has expired or was revoked. Please verify or renew your subscription.",
           });
         }
         setModalMode("subscribe");

@@ -70,7 +70,9 @@ export function AdminSubscriptionsDashboard() {
   const [showPasscode, setShowPasscode] = useState(false);
   const [authError, setAuthError] = useState("");
 
-  const [activeTab, setActiveTab] = useState<"subscriptions" | "resources" | "settings">("subscriptions");
+  const [activeTab, setActiveTab] = useState<"subscriptions" | "resources" | "settings">(
+    "subscriptions",
+  );
   const [subscriptions, setSubscriptions] = useState<PathwaySubscription[]>([]);
   const [settings, setSettings] = useState<BmsSiteSettings>(DEFAULT_SETTINGS);
   const [loading, setLoading] = useState(true);
@@ -96,7 +98,9 @@ export function AdminSubscriptionsDashboard() {
 
   // Filters & search
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "approved" | "rejected">("all");
+  const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "approved" | "rejected">(
+    "all",
+  );
 
   // Editable settings form state
   const [settingsForm, setSettingsForm] = useState<BmsSiteSettings>(DEFAULT_SETTINGS);
@@ -208,12 +212,16 @@ export function AdminSubscriptionsDashboard() {
         prev.map((item) =>
           item.id === sub.id
             ? { ...item, status: "approved", approved_at: new Date().toISOString() }
-            : item
-        )
+            : item,
+        ),
       );
 
       // Offer immediate WhatsApp message
-      const notifyUrl = buildAdminWhatsAppReplyLink(sub.phone_whatsapp, sub.full_name, sub.reference_code);
+      const notifyUrl = buildAdminWhatsAppReplyLink(
+        sub.phone_whatsapp,
+        sub.full_name,
+        sub.reference_code,
+      );
       toast("WhatsApp Confirmation Ready", {
         description: `Click to message ${sub.full_name} on WhatsApp that their access is approved.`,
         action: {
@@ -229,12 +237,21 @@ export function AdminSubscriptionsDashboard() {
 
   // Action: Revoke
   const handleRevoke = async (sub: PathwaySubscription) => {
-    if (!confirm(`Revoke access for ${sub.full_name} (${sub.reference_code})? Their access will immediately lock.`)) return;
+    if (
+      !confirm(
+        `Revoke access for ${sub.full_name} (${sub.reference_code})? Their access will immediately lock.`,
+      )
+    )
+      return;
     const ok = await updateSubscriptionStatus(sub.id, "pending", null, settings.admin_passcode);
     if (ok) {
-      toast.info(`Revoked access for ${sub.full_name}. Status reverted to pending and access locked.`);
+      toast.info(
+        `Revoked access for ${sub.full_name}. Status reverted to pending and access locked.`,
+      );
       setSubscriptions((prev) =>
-        prev.map((item) => (item.id === sub.id ? { ...item, status: "pending", approved_at: null } : item))
+        prev.map((item) =>
+          item.id === sub.id ? { ...item, status: "pending", approved_at: null } : item,
+        ),
       );
     } else {
       toast.error("Failed to revoke access");
@@ -243,12 +260,19 @@ export function AdminSubscriptionsDashboard() {
 
   // Action: Reject
   const handleReject = async (sub: PathwaySubscription) => {
-    if (!confirm(`Are you sure you want to mark ${sub.full_name}'s request as rejected? Their access will immediately lock.`)) return;
+    if (
+      !confirm(
+        `Are you sure you want to mark ${sub.full_name}'s request as rejected? Their access will immediately lock.`,
+      )
+    )
+      return;
     const ok = await updateSubscriptionStatus(sub.id, "rejected", null, settings.admin_passcode);
     if (ok) {
       toast.info(`Marked ${sub.full_name} as rejected. Access has been locked.`);
       setSubscriptions((prev) =>
-        prev.map((item) => (item.id === sub.id ? { ...item, status: "rejected", approved_at: null } : item))
+        prev.map((item) =>
+          item.id === sub.id ? { ...item, status: "rejected", approved_at: null } : item,
+        ),
       );
     } else {
       toast.error("Failed to update status");
@@ -257,7 +281,12 @@ export function AdminSubscriptionsDashboard() {
 
   // Action: Delete
   const handleDelete = async (sub: PathwaySubscription) => {
-    if (!confirm(`Permanently delete request for ${sub.full_name} (${sub.reference_code})? This will permanently delete their record and immediately lock access.`)) return;
+    if (
+      !confirm(
+        `Permanently delete request for ${sub.full_name} (${sub.reference_code})? This will permanently delete their record and immediately lock access.`,
+      )
+    )
+      return;
     const ok = await deleteSubscription(sub.id, settings.admin_passcode);
     if (ok) {
       toast.success("Subscription record permanently deleted");
@@ -271,7 +300,7 @@ export function AdminSubscriptionsDashboard() {
   const handleResetDevice = async (sub: PathwaySubscription) => {
     if (
       !confirm(
-        `Reset registered device for ${sub.full_name} (${sub.reference_code})?\n\nThis will unbind "${sub.last_device_name || "current device"}" so the legitimate owner can activate on their new phone or computer.`
+        `Reset registered device for ${sub.full_name} (${sub.reference_code})?\n\nThis will unbind "${sub.last_device_name || "current device"}" so the legitimate owner can activate on their new phone or computer.`,
       )
     )
       return;
@@ -283,10 +312,8 @@ export function AdminSubscriptionsDashboard() {
       });
       setSubscriptions((prev) =>
         prev.map((item) =>
-          item.id === sub.id
-            ? { ...item, bound_device_id: null, last_device_name: null }
-            : item
-        )
+          item.id === sub.id ? { ...item, bound_device_id: null, last_device_name: null } : item,
+        ),
       );
     } else {
       toast.error(`Failed to reset device: ${res.error || "Unknown error"}`);
@@ -300,7 +327,10 @@ export function AdminSubscriptionsDashboard() {
 
     try {
       const p1 = updateSiteSetting("whatsapp_number", settingsForm.whatsapp_number);
-      const p2 = updateSiteSetting("whatsapp_default_message", settingsForm.whatsapp_default_message);
+      const p2 = updateSiteSetting(
+        "whatsapp_default_message",
+        settingsForm.whatsapp_default_message,
+      );
       const p3 = updateSiteSetting("subscription_price", settingsForm.subscription_price);
       const p4 = updateSiteSetting("admin_passcode", settingsForm.admin_passcode);
       const p5 = updateSiteSetting("guide_pdf_url", settingsForm.guide_pdf_url || "");
@@ -312,9 +342,11 @@ export function AdminSubscriptionsDashboard() {
       if (failures.length === 0) {
         setSettings(settingsForm);
         setMissingTables([]);
-        toast.success("Settings saved successfully! WhatsApp, pricing, and guide settings updated.");
+        toast.success(
+          "Settings saved successfully! WhatsApp, pricing, and guide settings updated.",
+        );
       } else {
-        const firstError = failures[0].error || "";
+        const firstError = failures[0]?.error || "";
         if (
           firstError.includes("Could not find the table") ||
           firstError.includes("schema cache") ||
@@ -322,7 +354,8 @@ export function AdminSubscriptionsDashboard() {
         ) {
           setMissingTables((prev) => Array.from(new Set([...prev, "bms_settings"])));
           toast.error("Database tables have not been created in Supabase yet!", {
-            description: "Table 'bms_settings' was not found. Please click 'Copy SQL Script' in the banner and run it in your Supabase SQL Editor.",
+            description:
+              "Table 'bms_settings' was not found. Please click 'Copy SQL Script' in the banner and run it in your Supabase SQL Editor.",
             duration: 9000,
           });
         } else {
@@ -363,7 +396,8 @@ export function AdminSubscriptionsDashboard() {
         }));
         setStorageError(null);
         toast.success("Complete Guide PDF uploaded successfully!", {
-          description: "Subscribers can now click 'DOWNLOAD COMPLETE GUIDE' to download this file directly.",
+          description:
+            "Subscribers can now click 'DOWNLOAD COMPLETE GUIDE' to download this file directly.",
         });
       } else {
         const errorMsg = res.error || "Check Supabase Storage";
@@ -375,7 +409,8 @@ export function AdminSubscriptionsDashboard() {
           errorMsg.toLowerCase().includes("nosuchbucket")
         ) {
           toast.error("Upload failed: Supabase Storage bucket policy needed", {
-            description: "The 'pathway-guides' storage bucket or its RLS policy is not configured yet. Copy the Storage SQL below and run it in Supabase.",
+            description:
+              "The 'pathway-guides' storage bucket or its RLS policy is not configured yet. Copy the Storage SQL below and run it in Supabase.",
             duration: 8000,
           });
         } else {
@@ -568,9 +603,7 @@ export function AdminSubscriptionsDashboard() {
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-950/80 text-emerald-400 border border-emerald-800/50 mb-3">
               <Lock size={12} /> Restricted Admin Portal
             </div>
-            <h1 className="text-2xl font-black text-white tracking-tight">
-              BMS Pathways Admin
-            </h1>
+            <h1 className="text-2xl font-black text-white tracking-tight">BMS Pathways Admin</h1>
             <p className="text-xs text-stone-400 mt-1">
               Enter your admin passcode to manage subscriptions and WhatsApp settings.
             </p>
@@ -701,10 +734,14 @@ export function AdminSubscriptionsDashboard() {
                     Setup Required: Database Tables Missing in Supabase
                   </h4>
                   <p className="text-xs text-amber-200/90 mt-1 max-w-2xl leading-relaxed">
-                    The tables <code>public.bms_settings</code> and <code>public.pathway_subscriptions</code> have not been created yet in your Supabase project. Settings cannot be saved and subscription requests cannot be stored until this SQL script is executed.
+                    The tables <code>public.bms_settings</code> and{" "}
+                    <code>public.pathway_subscriptions</code> have not been created yet in your
+                    Supabase project. Settings cannot be saved and subscription requests cannot be
+                    stored until this SQL script is executed.
                   </p>
                   <p className="text-xs text-amber-300 font-semibold mt-2">
-                    How to fix: Click &ldquo;Copy SQL Script&rdquo; below &rarr; Open your Supabase SQL Editor &rarr; Paste &amp; click &ldquo;Run&rdquo;.
+                    How to fix: Click &ldquo;Copy SQL Script&rdquo; below &rarr; Open your Supabase
+                    SQL Editor &rarr; Paste &amp; click &ldquo;Run&rdquo;.
                   </p>
                 </div>
               </div>
@@ -764,7 +801,9 @@ export function AdminSubscriptionsDashboard() {
               <CheckCircle2 size={16} className="text-emerald-400" />
             </div>
             <div className="text-3xl font-black text-emerald-300">{counts.approved}</div>
-            <div className="text-xs text-emerald-200/70 mt-1">Active full roadmap & guide access</div>
+            <div className="text-xs text-emerald-200/70 mt-1">
+              Active full roadmap & guide access
+            </div>
           </div>
 
           {/* Card 4: WhatsApp Active Number */}
@@ -839,7 +878,10 @@ export function AdminSubscriptionsDashboard() {
             <div className="bg-stone-900 border border-stone-800 rounded-2xl p-4 flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
               {/* Search */}
               <div className="relative flex-1 max-w-md">
-                <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" />
+                <Search
+                  size={16}
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400"
+                />
                 <Input
                   placeholder="Search by student name, email, phone, or BMS code..."
                   value={searchQuery}
@@ -902,9 +944,12 @@ export function AdminSubscriptionsDashboard() {
             ) : filteredSubscriptions.length === 0 ? (
               <div className="bg-stone-900 border border-stone-800 rounded-2xl p-12 text-center text-stone-400">
                 <Users size={32} className="mx-auto mb-3 text-stone-500" />
-                <h3 className="text-base font-bold text-stone-200">No requests match this filter</h3>
+                <h3 className="text-base font-bold text-stone-200">
+                  No requests match this filter
+                </h3>
                 <p className="text-xs text-stone-500 mt-1 max-w-sm mx-auto">
-                  When students click &quot;Subscribe &amp; Download Guide&quot; on the pathway page, their details and reference code will appear right here.
+                  When students click &quot;Subscribe &amp; Download Guide&quot; on the pathway
+                  page, their details and reference code will appear right here.
                 </p>
               </div>
             ) : (
@@ -918,7 +963,7 @@ export function AdminSubscriptionsDashboard() {
                   const approveWhatsAppUrl = buildAdminWhatsAppReplyLink(
                     sub.phone_whatsapp,
                     sub.full_name,
-                    sub.reference_code
+                    sub.reference_code,
                   );
 
                   return (
@@ -984,7 +1029,12 @@ export function AdminSubscriptionsDashboard() {
                           {sub.bound_device_id ? (
                             <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-stone-800 border border-stone-700 text-stone-300 font-medium">
                               <Smartphone size={12} className="text-emerald-400" />
-                              <span>Locked to: <strong className="text-white">{sub.last_device_name || "1 Registered Device"}</strong></span>
+                              <span>
+                                Locked to:{" "}
+                                <strong className="text-white">
+                                  {sub.last_device_name || "1 Registered Device"}
+                                </strong>
+                              </span>
                               {sub.last_accessed_at && (
                                 <span className="text-stone-500 font-mono text-[10px]">
                                   (Active: {new Date(sub.last_accessed_at).toLocaleDateString()})
@@ -999,7 +1049,8 @@ export function AdminSubscriptionsDashboard() {
                           )}
                           {Boolean(sub.device_reset_count && sub.device_reset_count > 0) && (
                             <span className="text-[10px] text-stone-500 font-mono">
-                              ({sub.device_reset_count} device reset{sub.device_reset_count === 1 ? "" : "s"})
+                              ({sub.device_reset_count} device reset
+                              {sub.device_reset_count === 1 ? "" : "s"})
                             </span>
                           )}
                         </div>
@@ -1098,7 +1149,9 @@ export function AdminSubscriptionsDashboard() {
                     Resource Library & File Manager
                   </h3>
                   <p className="text-xs text-stone-400 mt-1 max-w-2xl leading-relaxed">
-                    Upload multiple study guides, USMLE schedules, checklists, CV templates, and workbooks. Files are securely stored in Supabase Storage and can be gated for subscribers or made free for all visitors.
+                    Upload multiple study guides, USMLE schedules, checklists, CV templates, and
+                    workbooks. Files are securely stored in Supabase Storage and can be gated for
+                    subscribers or made free for all visitors.
                   </p>
                 </div>
 
@@ -1130,8 +1183,12 @@ export function AdminSubscriptionsDashboard() {
                   <Upload size={16} />
                 </div>
                 <div>
-                  <h4 className="text-base font-extrabold text-white">Upload New Guide or Material</h4>
-                  <p className="text-xs text-stone-400">Add a new PDF, checklist, or template to the platform</p>
+                  <h4 className="text-base font-extrabold text-white">
+                    Upload New Guide or Material
+                  </h4>
+                  <p className="text-xs text-stone-400">
+                    Add a new PDF, checklist, or template to the platform
+                  </p>
                 </div>
               </div>
 
@@ -1165,7 +1222,8 @@ export function AdminSubscriptionsDashboard() {
                       </div>
                       {selectedResourceFile && (
                         <span className="text-xs text-emerald-400 font-mono font-medium truncate max-w-xs self-center">
-                          {selectedResourceFile.name} ({Math.round(selectedResourceFile.size / 1024)} KB)
+                          {selectedResourceFile.name} (
+                          {Math.round(selectedResourceFile.size / 1024)} KB)
                         </span>
                       )}
                     </div>
@@ -1180,17 +1238,23 @@ export function AdminSubscriptionsDashboard() {
                       type="text"
                       placeholder="e.g. USMLE Step 1 12-Week High-Yield Study Schedule"
                       value={newResourceForm.title}
-                      onChange={(e) => setNewResourceForm({ ...newResourceForm, title: e.target.value })}
+                      onChange={(e) =>
+                        setNewResourceForm({ ...newResourceForm, title: e.target.value })
+                      }
                       className="bg-stone-950 border-stone-700 text-white text-sm focus:border-emerald-500"
                     />
                   </div>
 
                   {/* Category */}
                   <div>
-                    <Label className="text-xs font-bold text-stone-300 mb-1.5 block">Category</Label>
+                    <Label className="text-xs font-bold text-stone-300 mb-1.5 block">
+                      Category
+                    </Label>
                     <select
                       value={newResourceForm.category}
-                      onChange={(e) => setNewResourceForm({ ...newResourceForm, category: e.target.value })}
+                      onChange={(e) =>
+                        setNewResourceForm({ ...newResourceForm, category: e.target.value })
+                      }
                       className="w-full h-10 px-3 rounded-xl bg-stone-950 border border-stone-700 text-white text-xs font-medium focus:border-emerald-500 focus:outline-hidden"
                     >
                       <option value="U.S. Residency">U.S. Residency</option>
@@ -1205,10 +1269,14 @@ export function AdminSubscriptionsDashboard() {
 
                   {/* Resource Type */}
                   <div>
-                    <Label className="text-xs font-bold text-stone-300 mb-1.5 block">Resource Type</Label>
+                    <Label className="text-xs font-bold text-stone-300 mb-1.5 block">
+                      Resource Type
+                    </Label>
                     <select
                       value={newResourceForm.resource_type}
-                      onChange={(e) => setNewResourceForm({ ...newResourceForm, resource_type: e.target.value })}
+                      onChange={(e) =>
+                        setNewResourceForm({ ...newResourceForm, resource_type: e.target.value })
+                      }
                       className="w-full h-10 px-3 rounded-xl bg-stone-950 border border-stone-700 text-white text-xs font-medium focus:border-emerald-500 focus:outline-hidden"
                     >
                       <option value="Complete Guide">Complete Guide</option>
@@ -1229,7 +1297,9 @@ export function AdminSubscriptionsDashboard() {
                       rows={2}
                       placeholder="Brief note explaining how students should use this guide or checklist..."
                       value={newResourceForm.description}
-                      onChange={(e) => setNewResourceForm({ ...newResourceForm, description: e.target.value })}
+                      onChange={(e) =>
+                        setNewResourceForm({ ...newResourceForm, description: e.target.value })
+                      }
                       className="w-full px-3.5 py-2.5 rounded-xl bg-stone-950 border border-stone-700 text-white text-xs leading-relaxed focus:border-emerald-500 focus:outline-hidden"
                     />
                   </div>
@@ -1240,13 +1310,16 @@ export function AdminSubscriptionsDashboard() {
                       Or Direct File URL (Optional fallback)
                     </Label>
                     <p className="text-[11px] text-stone-500 mb-1.5">
-                      If the file is already uploaded to Google Drive, AWS S3, or Supabase, paste the link here.
+                      If the file is already uploaded to Google Drive, AWS S3, or Supabase, paste
+                      the link here.
                     </p>
                     <Input
                       type="url"
                       placeholder="https://..."
                       value={newResourceForm.direct_url}
-                      onChange={(e) => setNewResourceForm({ ...newResourceForm, direct_url: e.target.value })}
+                      onChange={(e) =>
+                        setNewResourceForm({ ...newResourceForm, direct_url: e.target.value })
+                      }
                       className="bg-stone-950 border-stone-700 text-white text-xs font-mono"
                     />
                   </div>
@@ -1259,7 +1332,9 @@ export function AdminSubscriptionsDashboard() {
                           type="radio"
                           name="access_level"
                           checked={newResourceForm.is_gated}
-                          onChange={() => setNewResourceForm({ ...newResourceForm, is_gated: true })}
+                          onChange={() =>
+                            setNewResourceForm({ ...newResourceForm, is_gated: true })
+                          }
                           className="accent-emerald-500"
                         />
                         <span className="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
@@ -1273,7 +1348,9 @@ export function AdminSubscriptionsDashboard() {
                           type="radio"
                           name="access_level"
                           checked={!newResourceForm.is_gated}
-                          onChange={() => setNewResourceForm({ ...newResourceForm, is_gated: false })}
+                          onChange={() =>
+                            setNewResourceForm({ ...newResourceForm, is_gated: false })
+                          }
                           className="accent-blue-500"
                         />
                         <span className="text-xs font-bold text-blue-400 flex items-center gap-1.5">
@@ -1288,7 +1365,10 @@ export function AdminSubscriptionsDashboard() {
                         type="checkbox"
                         checked={newResourceForm.is_primary_guide}
                         onChange={(e) =>
-                          setNewResourceForm({ ...newResourceForm, is_primary_guide: e.target.checked })
+                          setNewResourceForm({
+                            ...newResourceForm,
+                            is_primary_guide: e.target.checked,
+                          })
                         }
                         className="rounded accent-emerald-500"
                       />
@@ -1316,7 +1396,10 @@ export function AdminSubscriptionsDashboard() {
             {/* SEARCH AND FILTER BAR */}
             <div className="bg-stone-900 border border-stone-800 rounded-2xl p-4 flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
               <div className="relative flex-1 max-w-md">
-                <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" />
+                <Search
+                  size={16}
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400"
+                />
                 <Input
                   type="text"
                   placeholder="Search resources by title, category, or file..."
@@ -1397,7 +1480,9 @@ export function AdminSubscriptionsDashboard() {
                           )}
                         </div>
 
-                        <h4 className="text-base font-extrabold text-white truncate">{res.title}</h4>
+                        <h4 className="text-base font-extrabold text-white truncate">
+                          {res.title}
+                        </h4>
 
                         {res.description && (
                           <p className="text-xs text-stone-400 mt-1 line-clamp-2 leading-relaxed">
@@ -1476,7 +1561,8 @@ export function AdminSubscriptionsDashboard() {
                 WhatsApp Payment & Access Configuration
               </h3>
               <p className="text-xs text-stone-400 mt-1">
-                Updates saved here directly control the WhatsApp chat links and modal prompts on the public website.
+                Updates saved here directly control the WhatsApp chat links and modal prompts on the
+                public website.
               </p>
             </div>
 
@@ -1487,7 +1573,10 @@ export function AdminSubscriptionsDashboard() {
                   Admin WhatsApp Phone Number (with Country Code) *
                 </Label>
                 <p className="text-xs text-stone-500 mb-2">
-                  Include your international country code (e.g. <code className="text-emerald-400">+233240000000</code> for Ghana or <code className="text-emerald-400">+1...</code> for US). Users will be redirected to chat with this number.
+                  Include your international country code (e.g.{" "}
+                  <code className="text-emerald-400">+233240000000</code> for Ghana or{" "}
+                  <code className="text-emerald-400">+1...</code> for US). Users will be redirected
+                  to chat with this number.
                 </p>
                 <div className="flex gap-2">
                   <Input
@@ -1516,7 +1605,8 @@ export function AdminSubscriptionsDashboard() {
                   Display Price / Subscription Fee Notice
                 </Label>
                 <p className="text-xs text-stone-500 mb-2">
-                  Displayed in the subscription modal before payment confirmation (e.g. &quot;$25 / GHS 350&quot; or &quot;GHS 300 (Lifetime Access)&quot;).
+                  Displayed in the subscription modal before payment confirmation (e.g. &quot;$25 /
+                  GHS 350&quot; or &quot;GHS 300 (Lifetime Access)&quot;).
                 </p>
                 <Input
                   value={settingsForm.subscription_price}
@@ -1534,7 +1624,12 @@ export function AdminSubscriptionsDashboard() {
                   Default Pre-filled WhatsApp Message Template
                 </Label>
                 <p className="text-xs text-stone-500 mb-2">
-                  Available placeholder tags: <code className="text-emerald-400 font-bold">&#123;code&#125;</code> (Reference Code), <code className="text-emerald-400 font-bold">&#123;email&#125;</code> (Student Email), <code className="text-emerald-400 font-bold">&#123;name&#125;</code> (Student Name).
+                  Available placeholder tags:{" "}
+                  <code className="text-emerald-400 font-bold">&#123;code&#125;</code> (Reference
+                  Code), <code className="text-emerald-400 font-bold">&#123;email&#125;</code>{" "}
+                  (Student Email),{" "}
+                  <code className="text-emerald-400 font-bold">&#123;name&#125;</code> (Student
+                  Name).
                 </p>
                 <textarea
                   rows={3}
@@ -1545,17 +1640,26 @@ export function AdminSubscriptionsDashboard() {
                   className="w-full bg-stone-950 border border-stone-700 text-white rounded-xl p-3 text-xs sm:text-sm focus:border-emerald-500 focus:outline-hidden"
                 />
                 <div className="mt-2 p-3 bg-stone-950/70 border border-stone-800 rounded-xl">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-stone-500">Live Preview:</span>
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-stone-500">
+                    Live Preview:
+                  </span>
                   <p className="text-xs text-stone-300 mt-1 italic">
-                    &ldquo;{buildWhatsAppLink(settingsForm.whatsapp_number, settingsForm.whatsapp_default_message, {
-                      code: "BMS-8391",
-                      email: "student@example.com",
-                      name: "Dr. Ama Mensah",
-                    }).split("text=")[1] ? decodeURIComponent(buildWhatsAppLink(settingsForm.whatsapp_number, settingsForm.whatsapp_default_message, {
-                      code: "BMS-8391",
-                      email: "student@example.com",
-                      name: "Dr. Ama Mensah",
-                    }).split("text=")[1]) : settingsForm.whatsapp_default_message}&rdquo;
+                    &ldquo;
+                    {(() => {
+                      const textParam = buildWhatsAppLink(
+                        settingsForm.whatsapp_number,
+                        settingsForm.whatsapp_default_message,
+                        {
+                          code: "BMS-8391",
+                          email: "student@example.com",
+                          name: "Dr. Ama Mensah",
+                        },
+                      ).split("text=")[1];
+                      return textParam
+                        ? decodeURIComponent(textParam)
+                        : settingsForm.whatsapp_default_message;
+                    })()}
+                    &rdquo;
                   </p>
                 </div>
               </div>
@@ -1573,7 +1677,8 @@ export function AdminSubscriptionsDashboard() {
                   )}
                 </div>
                 <p className="text-xs text-stone-500 mb-3">
-                  Upload the official PDF file that subscribers will download when clicking &ldquo;DOWNLOAD COMPLETE GUIDE&rdquo;.
+                  Upload the official PDF file that subscribers will download when clicking
+                  &ldquo;DOWNLOAD COMPLETE GUIDE&rdquo;.
                 </p>
 
                 {/* Storage RLS Error Banner */}
@@ -1586,11 +1691,11 @@ export function AdminSubscriptionsDashboard() {
                           Supabase Storage Bucket & RLS Setup Required
                         </p>
                         <p className="text-rose-200/90 mt-1 leading-relaxed">
-                          The error <code>{storageError}</code> occurs because the Supabase storage bucket <code>pathway-guides</code> has not been created or lacks a Row-Level Security (RLS) policy allowing uploads.
+                          The error <code>{storageError}</code> occurs because the Supabase storage
+                          bucket <code>pathway-guides</code> has not been created or lacks a
+                          Row-Level Security (RLS) policy allowing uploads.
                         </p>
-                        <p className="text-rose-100 font-semibold mt-2">
-                          Fix in 10 seconds:
-                        </p>
+                        <p className="text-rose-100 font-semibold mt-2">Fix in 10 seconds:</p>
                         <ol className="list-decimal list-inside text-rose-200/90 space-y-1 mt-1">
                           <li>Click &ldquo;Copy Storage Fix SQL&rdquo; below.</li>
                           <li>Open your Supabase SQL Editor and paste it.</li>
@@ -1602,7 +1707,9 @@ export function AdminSubscriptionsDashboard() {
                             size="sm"
                             onClick={() => {
                               navigator.clipboard.writeText(BMS_STORAGE_FIX_SQL);
-                              toast.success("Storage SQL script copied! Now paste & run in Supabase SQL Editor.");
+                              toast.success(
+                                "Storage SQL script copied! Now paste & run in Supabase SQL Editor.",
+                              );
                             }}
                             className="bg-rose-600 hover:bg-rose-500 text-white font-bold h-8 text-xs rounded-lg"
                           >
@@ -1712,7 +1819,8 @@ export function AdminSubscriptionsDashboard() {
                     Direct PDF Download Link (Optional URL)
                   </Label>
                   <p className="text-[11px] text-stone-500 mb-2">
-                    You can also provide an external direct link to the guide (e.g. Google Drive direct download, Cloudinary, AWS S3, or Supabase public URL).
+                    You can also provide an external direct link to the guide (e.g. Google Drive
+                    direct download, Cloudinary, AWS S3, or Supabase public URL).
                   </p>
                   <Input
                     type="url"
@@ -1728,9 +1836,7 @@ export function AdminSubscriptionsDashboard() {
 
               {/* Setting 4: Admin Passcode */}
               <div className="pt-4 border-t border-stone-800">
-                <Label className="text-xs font-bold text-stone-200">
-                  Admin Portal Passcode
-                </Label>
+                <Label className="text-xs font-bold text-stone-200">Admin Portal Passcode</Label>
                 <p className="text-xs text-stone-500 mb-2">
                   The password used to log into this /admin/subscriptions dashboard.
                 </p>

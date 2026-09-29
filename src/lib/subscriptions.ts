@@ -9,13 +9,13 @@ export interface PathwaySubscription {
   phone_whatsapp: string;
   pathway_id: string;
   status: "pending" | "approved" | "rejected";
-  amount_paid?: string;
-  approved_at?: string | null;
-  notes?: string | null;
-  bound_device_id?: string | null;
-  last_device_name?: string | null;
-  last_accessed_at?: string | null;
-  device_reset_count?: number;
+  amount_paid?: string | undefined;
+  approved_at?: string | null | undefined;
+  notes?: string | null | undefined;
+  bound_device_id?: string | null | undefined;
+  last_device_name?: string | null | undefined;
+  last_accessed_at?: string | null | undefined;
+  device_reset_count?: number | undefined;
 }
 
 export interface BmsResourceItem {
@@ -23,13 +23,13 @@ export interface BmsResourceItem {
   title: string;
   category: string;
   resource_type: string;
-  description?: string;
+  description?: string | undefined;
   file_url: string;
   filename: string;
-  file_size?: string;
+  file_size?: string | undefined;
   is_gated: boolean;
-  is_primary_guide?: boolean;
-  pathway_id?: string;
+  is_primary_guide?: boolean | undefined;
+  pathway_id?: string | undefined;
   created_at: string;
 }
 
@@ -38,8 +38,8 @@ export interface BmsSiteSettings {
   whatsapp_default_message: string;
   subscription_price: string;
   admin_passcode: string;
-  guide_pdf_url?: string;
-  guide_pdf_filename?: string;
+  guide_pdf_url?: string | undefined;
+  guide_pdf_filename?: string | undefined;
 }
 
 export const DEFAULT_SETTINGS: BmsSiteSettings = {
@@ -118,7 +118,7 @@ export async function getSiteSettings(): Promise<BmsSiteSettings> {
     if (data && data.length > 0) {
       data.forEach((row: { key: string; value: string }) => {
         if (row.key in settings) {
-          (settings as Record<string, string>)[row.key] = row.value;
+          (settings as unknown as Record<string, string>)[row.key] = row.value;
         }
       });
     }
@@ -131,7 +131,7 @@ export async function getSiteSettings(): Promise<BmsSiteSettings> {
 
 export async function updateSiteSetting(
   key: keyof BmsSiteSettings | string,
-  value: string
+  value: string,
 ): Promise<{ success: boolean; error?: string }> {
   try {
     if (!supabase) return { success: false, error: "Database client is not initialized" };
@@ -158,17 +158,24 @@ export async function updateSiteSetting(
 export async function checkDatabaseSetup(): Promise<{
   tablesExist: boolean;
   missingTables: string[];
-  error?: string;
+  error?: string | undefined;
 }> {
   try {
     if (!supabase) {
-      return { tablesExist: false, missingTables: ["bms_settings", "pathway_subscriptions"], error: "No connection" };
+      return {
+        tablesExist: false,
+        missingTables: ["bms_settings", "pathway_subscriptions"],
+        error: "No connection",
+      };
     }
 
     const missing: string[] = [];
 
     const { error: settingsErr } = await supabase.from("bms_settings").select("key").limit(1);
-    if (settingsErr && (settingsErr.code === "PGRST205" || settingsErr.message.includes("schema cache"))) {
+    if (
+      settingsErr &&
+      (settingsErr.code === "PGRST205" || settingsErr.message.includes("schema cache"))
+    ) {
       missing.push("bms_settings");
     }
 
@@ -184,12 +191,16 @@ export async function checkDatabaseSetup(): Promise<{
     };
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : "Database check failed";
-    return { tablesExist: false, missingTables: ["bms_settings", "pathway_subscriptions"], error: msg };
+    return {
+      tablesExist: false,
+      missingTables: ["bms_settings", "pathway_subscriptions"],
+      error: msg,
+    };
   }
 }
 
 export async function uploadGuidePdf(
-  file: File
+  file: File,
 ): Promise<{ success: boolean; url?: string; filename?: string; error?: string }> {
   try {
     if (!supabase) return { success: false, error: "Database client is not initialized" };
@@ -248,8 +259,14 @@ export async function uploadGuidePdf(
 
 export async function uploadAnyResourceFile(
   file: File,
-  folder = "resources"
-): Promise<{ success: boolean; url?: string; filename?: string; sizeFormatted?: string; error?: string }> {
+  folder = "resources",
+): Promise<{
+  success: boolean;
+  url?: string;
+  filename?: string;
+  sizeFormatted?: string;
+  error?: string;
+}> {
   try {
     if (!supabase) return { success: false, error: "Database client is not initialized" };
 
@@ -367,7 +384,7 @@ export async function getAllUploadedResources(): Promise<BmsResourceItem[]> {
 }
 
 export async function saveUploadedResource(
-  item: Omit<BmsResourceItem, "id" | "created_at">
+  item: Omit<BmsResourceItem, "id" | "created_at">,
 ): Promise<{ success: boolean; item?: BmsResourceItem; error?: string }> {
   try {
     if (!supabase) return { success: false, error: "Database not connected" };
@@ -445,7 +462,7 @@ export async function deleteUploadedResource(id: string): Promise<boolean> {
 
     if (target?.is_primary_guide) {
       const nextPrimary = updated.find(
-        (r) => r.pathway_id === "us-residency" || r.category === "U.S. Residency"
+        (r) => r.pathway_id === "us-residency" || r.category === "U.S. Residency",
       );
       if (nextPrimary) {
         nextPrimary.is_primary_guide = true;
@@ -725,7 +742,7 @@ export function cleanPhoneNumber(phone: string): string {
 export function buildWhatsAppLink(
   phoneNumber: string,
   templateMessage: string,
-  params: { code?: string; email?: string; name?: string }
+  params: { code?: string; email?: string; name?: string },
 ): string {
   const cleanNumber = cleanPhoneNumber(phoneNumber);
   let message = templateMessage;
@@ -747,7 +764,7 @@ export function buildWhatsAppLink(
 export function buildAdminWhatsAppReplyLink(
   userPhone: string,
   userName: string,
-  referenceCode: string
+  referenceCode: string,
 ): string {
   const cleanNumber = cleanPhoneNumber(userPhone);
   const msg = `Hello ${userName}! Your payment has been confirmed by BMS. Your access to the U.S. Residency Pathway Roadmap and Downloadable Complete Guide is now APPROVED! (Reference: ${referenceCode}). You can visit the website, enter your email, and start exploring right away. Let us know if you need any guidance!`;
@@ -803,7 +820,7 @@ export async function submitSubscriptionRequest(payload: {
 export async function verifySubscriptionStatus(
   query: string,
   customDeviceId?: string,
-  customDeviceName?: string
+  customDeviceName?: string,
 ): Promise<{
   status: "approved" | "pending" | "rejected" | "not_found" | "device_mismatch";
   subscription?: PathwaySubscription;
@@ -811,7 +828,8 @@ export async function verifySubscriptionStatus(
   errorMessage?: string;
 }> {
   const clean = query.trim().toLowerCase();
-  if (!clean) return { status: "not_found", errorMessage: "Please enter your email or reference code." };
+  if (!clean)
+    return { status: "not_found", errorMessage: "Please enter your email or reference code." };
 
   const currentDeviceId = customDeviceId || getOrCreateDeviceId();
   const currentDeviceName = customDeviceName || getDeviceFriendlyName();
@@ -832,7 +850,10 @@ export async function verifySubscriptionStatus(
     const { data, error } = await queryBuilder.order("created_at", { ascending: false });
 
     if (error || !data || data.length === 0) {
-      return { status: "not_found", errorMessage: "No subscription record found for this email or reference code." };
+      return {
+        status: "not_found",
+        errorMessage: "No subscription record found for this email or reference code.",
+      };
     }
 
     // If multiple entries exist, prioritize 'approved', then 'pending', else most recent
@@ -919,13 +940,13 @@ export async function verifySubscriptionStatus(
 // ---------------------------------------------------------------------------
 
 export interface SavedSubscriptionSession {
-  id?: string;
+  id?: string | undefined;
   email: string;
   reference_code: string;
   full_name: string;
   status: string;
   verified_at: string;
-  bound_device_id?: string | null;
+  bound_device_id?: string | null | undefined;
 }
 
 export function saveSubscribedSession(sub: PathwaySubscription): void {
@@ -1103,18 +1124,21 @@ export async function updateSubscriptionStatus(
   id: string,
   status: "approved" | "pending" | "rejected",
   notes?: string | null,
-  adminPasscode?: string
+  adminPasscode?: string,
 ): Promise<boolean> {
   try {
     if (!supabase) return false;
 
     if (adminPasscode) {
-      const { data: rpcData, error: rpcError } = await supabase.rpc("bms_admin_update_subscription", {
-        p_admin_passcode: adminPasscode,
-        p_subscription_id: id,
-        p_status: status,
-        p_notes: notes ?? null,
-      });
+      const { data: rpcData, error: rpcError } = await supabase.rpc(
+        "bms_admin_update_subscription",
+        {
+          p_admin_passcode: adminPasscode,
+          p_subscription_id: id,
+          p_status: status,
+          p_notes: notes ?? null,
+        },
+      );
 
       if (!rpcError && rpcData?.success) {
         return true;
@@ -1127,15 +1151,12 @@ export async function updateSubscriptionStatus(
     };
 
     if (status === "approved") {
-      payload.approved_at = new Date().toISOString();
+      payload["approved_at"] = new Date().toISOString();
     } else {
-      payload.approved_at = null;
+      payload["approved_at"] = null;
     }
 
-    const { error } = await supabase
-      .from("pathway_subscriptions")
-      .update(payload)
-      .eq("id", id);
+    const { error } = await supabase.from("pathway_subscriptions").update(payload).eq("id", id);
 
     if (error) {
       console.error("Error updating status:", error);
@@ -1154,20 +1175,20 @@ export async function deleteSubscription(id: string, adminPasscode?: string): Pr
     if (!supabase) return false;
 
     if (adminPasscode) {
-      const { data: rpcData, error: rpcError } = await supabase.rpc("bms_admin_delete_subscription", {
-        p_admin_passcode: adminPasscode,
-        p_subscription_id: id,
-      });
+      const { data: rpcData, error: rpcError } = await supabase.rpc(
+        "bms_admin_delete_subscription",
+        {
+          p_admin_passcode: adminPasscode,
+          p_subscription_id: id,
+        },
+      );
 
       if (!rpcError && rpcData?.success) {
         return true;
       }
     }
 
-    const { error } = await supabase
-      .from("pathway_subscriptions")
-      .delete()
-      .eq("id", id);
+    const { error } = await supabase.from("pathway_subscriptions").delete().eq("id", id);
 
     if (error) {
       console.error("Error deleting subscription:", error);
@@ -1183,17 +1204,20 @@ export async function deleteSubscription(id: string, adminPasscode?: string): Pr
 
 export async function resetSubscriptionDevice(
   subId: string,
-  adminPasscode?: string
+  adminPasscode?: string,
 ): Promise<{ success: boolean; error?: string }> {
   try {
     if (!supabase) return { success: false, error: "Database not connected" };
 
     if (adminPasscode) {
-      const { data: rpcData, error: rpcError } = await supabase.rpc("bms_admin_update_subscription", {
-        p_admin_passcode: adminPasscode,
-        p_subscription_id: subId,
-        p_reset_device: true,
-      });
+      const { data: rpcData, error: rpcError } = await supabase.rpc(
+        "bms_admin_update_subscription",
+        {
+          p_admin_passcode: adminPasscode,
+          p_subscription_id: subId,
+          p_reset_device: true,
+        },
+      );
 
       if (!rpcError && rpcData?.success) {
         return { success: true };

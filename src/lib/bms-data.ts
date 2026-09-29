@@ -18,6 +18,7 @@ import {
   Target,
   Trophy,
   Users,
+  type LucideIcon,
 } from "lucide-react";
 export const pillars = [
   {
@@ -100,12 +101,7 @@ export const audiences = [
   "Professionals ready to mentor and give back",
   "Organizations building the future of healthcare",
 ];
-export const programCategories = [
-  "All",
-  "Career Exploration",
-  "Career Development",
-  "Mentorship",
-];
+export const programCategories = ["All", "Career Exploration", "Career Development", "Mentorship"];
 export interface TeamMember {
   role: string;
   name: string;
@@ -189,12 +185,12 @@ export interface MedicalResource {
   title: string;
   cat: string;
   type: string;
-  href?: string;
-  badge?: string;
-  description?: string;
-  directUrl?: string;
-  fileSize?: string;
-  isGated?: boolean;
+  href?: string | undefined;
+  badge?: string | undefined;
+  description?: string | undefined;
+  directUrl?: string | undefined;
+  fileSize?: string | undefined;
+  isGated?: boolean | undefined;
 }
 
 export const resources: MedicalResource[] = [
@@ -242,11 +238,11 @@ export const brandValues = ["Mentorship", "Exposure", "Opportunity", "Excellence
 
 export interface ResourceCardItem {
   title: string;
-  icon: any;
+  icon: LucideIcon;
   description: string;
   buttonText: string;
   href: string;
-  interests?: { label: string; href: string }[];
+  interests?: { label: string; href: string }[] | undefined;
 }
 
 export const resourceCards: ResourceCardItem[] = [
@@ -438,7 +434,12 @@ export const internationalPathways: InternationalPathwayItem[] = [
     href: "/career-exploration/us-residency",
     badge: "Interactive Roadmap Available",
     isDeveloped: true,
-    highlights: ["USMLE Step 1 & 2 CK", "MyIntealth / ECFMG", "ERAS & NRMP Match", "IMG Holistic Review"],
+    highlights: [
+      "USMLE Step 1 & 2 CK",
+      "MyIntealth / ECFMG",
+      "ERAS & NRMP Match",
+      "IMG Holistic Review",
+    ],
   },
   {
     id: "uk-residency",
@@ -450,7 +451,12 @@ export const internationalPathways: InternationalPathwayItem[] = [
     href: "/career-exploration/uk-residency",
     badge: "Coming Soon",
     isDeveloped: false,
-    highlights: ["PLAB / UKMLA Exam", "GMC Registration", "NHS Foundation Training", "Specialty Training (ST)"],
+    highlights: [
+      "PLAB / UKMLA Exam",
+      "GMC Registration",
+      "NHS Foundation Training",
+      "Specialty Training (ST)",
+    ],
   },
   {
     id: "canada-residency",
@@ -462,7 +468,12 @@ export const internationalPathways: InternationalPathwayItem[] = [
     href: "/career-exploration/canada-residency",
     badge: "Coming Soon",
     isDeveloped: false,
-    highlights: ["MCCQE Part 1 & NAC OSCE", "CaRMS R-1 Match", "Provincial Eligibility", "Return of Service (ROS)"],
+    highlights: [
+      "MCCQE Part 1 & NAC OSCE",
+      "CaRMS R-1 Match",
+      "Provincial Eligibility",
+      "Return of Service (ROS)",
+    ],
   },
   {
     id: "australia-residency",
@@ -474,7 +485,12 @@ export const internationalPathways: InternationalPathwayItem[] = [
     href: "/career-exploration/australia-residency",
     badge: "Coming Soon",
     isDeveloped: false,
-    highlights: ["AMC MCQ & Clinical", "Competent Authority Route", "AHPRA Registration", "Junior Doctor Placement"],
+    highlights: [
+      "AMC MCQ & Clinical",
+      "Competent Authority Route",
+      "AHPRA Registration",
+      "Junior Doctor Placement",
+    ],
   },
   {
     id: "other-international",
@@ -486,7 +502,12 @@ export const internationalPathways: InternationalPathwayItem[] = [
     href: "/career-exploration/other-opportunities",
     badge: "Coming Soon",
     isDeveloped: false,
-    highlights: ["Global Health Fellowships", "Clinical Observerships", "Research Postdocs", "Non-Degree Credentials"],
+    highlights: [
+      "Global Health Fellowships",
+      "Clinical Observerships",
+      "Research Postdocs",
+      "Non-Degree Credentials",
+    ],
   },
 ];
 
@@ -527,11 +548,8 @@ export const usmleRoadmapStages: UsmleRoadmapStage[] = [
     id: "stage-02",
     number: "02",
     title: "Establish MyIntealth Identity & Apply for ECFMG Certification",
-    summary:
-      "Create your central MyIntealth account and complete notarized identity verification.",
-    fees: [
-      { item: "MyIntealth account-establishment fee", amount: "Approx. $110*" },
-    ],
+    summary: "Create your central MyIntealth account and complete notarized identity verification.",
+    fees: [{ item: "MyIntealth account-establishment fee", amount: "Approx. $110*" }],
     details: [
       "Create a MyIntealth account (Approx. $110* account-establishment fee).",
       "Prepare personal information, medical school information, current unexpired passport and recent digital photograph.",
@@ -650,8 +668,7 @@ export const usmleRoadmapStages: UsmleRoadmapStage[] = [
     id: "stage-08",
     number: "08",
     title: "08 Build a Competitive IMG Profile",
-    summary:
-      "Develop research, U.S. clinical experience, leadership, and meaningful experiences.",
+    summary: "Develop research, U.S. clinical experience, leadership, and meaningful experiences.",
     details: [
       "Research projects, publications and presentations.",
       "U.S. clinical experience where eligible: observerships, clinical rotations and other supervised experiences.",
@@ -687,7 +704,10 @@ export const usmleRoadmapStages: UsmleRoadmapStage[] = [
     fees: [
       { item: "ERAS token through MyIntealth", amount: "$185" },
       { item: "USMLE transcript", amount: "$70 per season" },
-      { item: "ERAS applications, per specialty", amount: "$11 each (programs 1–30), then $30 each" },
+      {
+        item: "ERAS applications, per specialty",
+        amount: "$11 each (programs 1–30), then $30 each",
+      },
     ],
     details: [
       "Prepare your residency application through ERAS. Obtain an ERAS token through MyIntealth ($185).",
@@ -730,11 +750,8 @@ export const usmleRoadmapStages: UsmleRoadmapStage[] = [
     id: "stage-12",
     number: "12",
     title: "12 NRMP RANK ORDER LIST",
-    summary:
-      "Rank programs according to your genuine preferences and submit your certified list.",
-    fees: [
-      { item: "NRMP standard registration", amount: "$85" },
-    ],
+    summary: "Rank programs according to your genuine preferences and submit your certified list.",
+    fees: [{ item: "NRMP standard registration", amount: "$85" }],
     details: [
       "Rank Order List (ROL): Rank the programs you interviewed with according to your own preferences.",
       "Rank only programs where you are willing to train. A Match commitment is binding under NRMP rules.",
@@ -746,8 +763,7 @@ export const usmleRoadmapStages: UsmleRoadmapStage[] = [
     id: "stage-13",
     number: "13",
     title: "13 MATCH DAY",
-    summary:
-      "Discover whether you matched, find out your matched program, and celebrate.",
+    summary: "Discover whether you matched, find out your matched program, and celebrate.",
     details: [
       "Find out whether you matched and, if matched, the program where you will begin residency training.",
       "Matching does not guarantee your first choice.",
@@ -757,8 +773,7 @@ export const usmleRoadmapStages: UsmleRoadmapStage[] = [
     id: "stage-14",
     number: "14",
     title: "14 BEGIN U.S. RESIDENCY TRAINING",
-    summary:
-      "Complete onboarding, credentialing/licensing, and start residency training.",
+    summary: "Complete onboarding, credentialing/licensing, and start residency training.",
     details: [
       "Complete onboarding, licensing/credentialing and start residency training.",
       "Complete visa processing (J-1/H-1B) and institutional requirements.",
@@ -767,28 +782,79 @@ export const usmleRoadmapStages: UsmleRoadmapStage[] = [
 ];
 
 export const usmleMatchDates2027 = [
-  { date: "2 September 2026", milestone: "ERAS application submission opens", note: "Applicants can begin submitting applications to ACGME programs" },
-  { date: "15 September 2026", milestone: "NRMP registration opens", note: "Register for the Match through R3 system ($85 standard fee)" },
-  { date: "23 September 2026", milestone: "Programs begin reviewing ERAS applications", note: "Programs access all submitted applications simultaneously; submit before this date" },
-  { date: "31 January 2027", milestone: "2027 Pathways application deadline (ET)", note: "Deadline for submitting ECFMG Pathways applications and supporting documents" },
-  { date: "3 March 2027, 9 p.m. ET", milestone: "NRMP rank-list certification deadline", note: "Final cutoff to enter and certify your Rank Order List; changes cannot be made after" },
-  { date: "15 March 2027", milestone: "Match status released / Match Week begins", note: "Applicants learn whether they matched; SOAP begins for eligible unmatched candidates" },
-  { date: "19 March 2027", milestone: "Match Day: program placement released", note: "Exact program results released at 12:00 PM ET across the United States" },
+  {
+    date: "2 September 2026",
+    milestone: "ERAS application submission opens",
+    note: "Applicants can begin submitting applications to ACGME programs",
+  },
+  {
+    date: "15 September 2026",
+    milestone: "NRMP registration opens",
+    note: "Register for the Match through R3 system ($85 standard fee)",
+  },
+  {
+    date: "23 September 2026",
+    milestone: "Programs begin reviewing ERAS applications",
+    note: "Programs access all submitted applications simultaneously; submit before this date",
+  },
+  {
+    date: "31 January 2027",
+    milestone: "2027 Pathways application deadline (ET)",
+    note: "Deadline for submitting ECFMG Pathways applications and supporting documents",
+  },
+  {
+    date: "3 March 2027, 9 p.m. ET",
+    milestone: "NRMP rank-list certification deadline",
+    note: "Final cutoff to enter and certify your Rank Order List; changes cannot be made after",
+  },
+  {
+    date: "15 March 2027",
+    milestone: "Match status released / Match Week begins",
+    note: "Applicants learn whether they matched; SOAP begins for eligible unmatched candidates",
+  },
+  {
+    date: "19 March 2027",
+    milestone: "Match Day: program placement released",
+    note: "Exact program results released at 12:00 PM ET across the United States",
+  },
 ];
 
 export const usmleBudgetBreakdown = [
   { item: "MyIntealth account establishment", fee: "$110", category: "ECFMG / Intealth" },
   { item: "ECFMG certification application", fee: "$580", category: "ECFMG / Intealth" },
-  { item: "Credential verification ($110 per document)", fee: "$220", category: "ECFMG / Intealth" },
-  { item: "Step 1 examination (outside US and Canada)", fee: "$905 ($695 + $210 international fee)", category: "Examinations" },
-  { item: "Step 2 CK examination (outside US and Canada)", fee: "$930 ($695 + $235 international fee)", category: "Examinations" },
+  {
+    item: "Credential verification ($110 per document)",
+    fee: "$220",
+    category: "ECFMG / Intealth",
+  },
+  {
+    item: "Step 1 examination (outside US and Canada)",
+    fee: "$905 ($695 + $210 international fee)",
+    category: "Examinations",
+  },
+  {
+    item: "Step 2 CK examination (outside US and Canada)",
+    fee: "$930 ($695 + $235 international fee)",
+    category: "Examinations",
+  },
   { item: "OET Medicine examination", fee: "~$450", category: "Examinations" },
   { item: "2027 Pathways application", fee: "$945", category: "ECFMG / Intealth" },
   { item: "ERAS token via MyIntealth", fee: "$185", category: "Application & Match" },
-  { item: "ERAS applications (programs 1–30)", fee: "$11 each ($330 for 30 programs)", category: "Application & Match" },
-  { item: "ERAS applications (beyond 30 programs)", fee: "$30 each (e.g. $1,200 for 40 additional)", category: "Application & Match" },
+  {
+    item: "ERAS applications (programs 1–30)",
+    fee: "$11 each ($330 for 30 programs)",
+    category: "Application & Match",
+  },
+  {
+    item: "ERAS applications (beyond 30 programs)",
+    fee: "$30 each (e.g. $1,200 for 40 additional)",
+    category: "Application & Match",
+  },
   { item: "USMLE transcript transmission", fee: "$70 per season", category: "Application & Match" },
   { item: "NRMP standard registration", fee: "$85", category: "Application & Match" },
-  { item: "Step 3 (when taken in US/territories)", fee: "$955", category: "Licensing (Optional for Match)" },
+  {
+    item: "Step 3 (when taken in US/territories)",
+    fee: "$955",
+    category: "Licensing (Optional for Match)",
+  },
 ];
-

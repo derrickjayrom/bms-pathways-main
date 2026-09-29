@@ -28,6 +28,7 @@ import {
   Globe,
   FileText,
   Info,
+  Star,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -55,6 +56,7 @@ import {
   submitSubscriptionRequest,
   verifySubscriptionStatus,
   validateActiveSubscription,
+  hasPathwayAccess,
   buildWhatsAppLink,
   saveSubscribedSession,
   getSavedSubscriptionSession,
@@ -188,7 +190,7 @@ export function UsResidencyPathwayPage() {
     getAllUploadedResources().then((res) => setPathwayResources(res));
 
     // Live verification against Supabase on page load
-    validateActiveSubscription().then((result) => {
+    validateActiveSubscription("us-residency").then((result) => {
       if (result.isValid && result.subscription) {
         setIsSubscribed(true);
         setActiveSession({
@@ -199,6 +201,7 @@ export function UsResidencyPathwayPage() {
           status: result.subscription.status,
           verified_at: new Date().toISOString(),
           bound_device_id: result.subscription.bound_device_id,
+          pathway_id: result.subscription.pathway_id,
         });
       } else {
         setIsSubscribed(false);
@@ -219,7 +222,7 @@ export function UsResidencyPathwayPage() {
   useEffect(() => {
     const handleRevalidate = () => {
       if (typeof document !== "undefined" && document.visibilityState === "visible") {
-        validateActiveSubscription().then((result) => {
+        validateActiveSubscription("us-residency").then((result) => {
           if (!result.isValid) {
             setIsSubscribed(false);
             setActiveSession(null);
@@ -232,6 +235,7 @@ export function UsResidencyPathwayPage() {
               full_name: result.subscription.full_name,
               status: result.subscription.status,
               verified_at: new Date().toISOString(),
+              pathway_id: result.subscription.pathway_id,
             });
           }
         });
@@ -329,7 +333,7 @@ export function UsResidencyPathwayPage() {
     }
 
     // Pre-flight live verification before proceeding
-    const check = await validateActiveSubscription();
+    const check = await validateActiveSubscription("us-residency");
     if (!check.isValid) {
       setIsSubscribed(false);
       setActiveSession(null);
@@ -339,6 +343,11 @@ export function UsResidencyPathwayPage() {
             check.reason ||
             "This subscription belongs to another device. Sharing accounts across multiple users is strictly prohibited.",
           duration: 9000,
+        });
+      } else if (check.status === "pathway_mismatch") {
+        toast.warning("Pathway Upgrade Required", {
+          description: check.reason,
+          duration: 7000,
         });
       } else {
         toast.error("Access Required", {
@@ -365,7 +374,7 @@ export function UsResidencyPathwayPage() {
     }
 
     // Pre-flight live verification before download
-    const check = await validateActiveSubscription();
+    const check = await validateActiveSubscription("us-residency");
     if (!check.isValid) {
       setIsSubscribed(false);
       setActiveSession(null);
@@ -375,6 +384,11 @@ export function UsResidencyPathwayPage() {
             check.reason ||
             "This subscription belongs to another device. Sharing accounts across multiple users is strictly prohibited.",
           duration: 9000,
+        });
+      } else if (check.status === "pathway_mismatch") {
+        toast.warning("Pathway Upgrade Required", {
+          description: check.reason,
+          duration: 7000,
         });
       } else {
         toast.error("Access Required", {
@@ -398,7 +412,7 @@ export function UsResidencyPathwayPage() {
       }
 
       // Pre-flight live verification before downloading gated resource
-      const check = await validateActiveSubscription();
+      const check = await validateActiveSubscription("us-residency");
       if (!check.isValid) {
         setIsSubscribed(false);
         setActiveSession(null);
@@ -408,6 +422,11 @@ export function UsResidencyPathwayPage() {
               check.reason ||
               "This subscription belongs to another device. Sharing accounts across multiple users is strictly prohibited.",
             duration: 9000,
+          });
+        } else if (check.status === "pathway_mismatch") {
+          toast.warning("Pathway Upgrade Required", {
+            description: check.reason,
+            duration: 7000,
           });
         } else {
           toast.error("Access Required", {
@@ -688,8 +707,18 @@ export function UsResidencyPathwayPage() {
           </div>
           <div>
             {isSubscribed ? (
-              <span className="flex items-center gap-1.5 font-bold text-[#10B981] text-xs sm:text-sm">
-                <Unlock size={14} /> Full Access Unlocked
+              <span className="flex items-center gap-1.5 font-bold text-xs sm:text-sm">
+                {activeSession?.pathway_id === "all-pathways" ? (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300 shadow-2xs">
+                    <Star size={13} className="text-amber-600 fill-amber-500" />
+                    All-Access Pass Unlocked
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100/90 text-emerald-800 border border-emerald-300/80">
+                    <Unlock size={14} className="text-[#10B981]" />
+                    Full Access Unlocked
+                  </span>
+                )}
                 {activeSession?.full_name && (
                   <span className="text-xs text-muted-foreground hidden sm:inline font-normal">
                     ({activeSession.full_name})
@@ -1915,6 +1944,7 @@ export function SubscriptionModal({
   pathwayName?: string;
 }) {
   const [view, setView] = useState<"subscribe" | "whatsapp_prompt" | "verify">(initialMode);
+  const [selectedTier, setSelectedTier] = useState<"single" | "all">("all");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -1933,6 +1963,9 @@ export function SubscriptionModal({
     }
   }, [open, initialMode]);
 
+  const singlePrice = siteSettings.subscription_price || "$25 / GHS 350";
+  const allAccessPrice = siteSettings.all_access_price || "$40 / GHS 550";
+
   // Handle new request
   const handleSubmitSubscription = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1941,13 +1974,14 @@ export function SubscriptionModal({
       return;
     }
 
+    const chosenPathwayId = selectedTier === "all" ? "all-pathways" : pathwayId || "us-residency";
     setSubmitting(true);
     try {
       const res = await submitSubscriptionRequest({
         fullName: name,
         email,
         phoneWhatsApp: phone,
-        pathwayId: pathwayId || "us-residency",
+        pathwayId: chosenPathwayId,
       });
 
       if (res.success && res.data) {
@@ -1975,13 +2009,24 @@ export function SubscriptionModal({
 
     setVerifying(true);
     try {
-      const res = await verifySubscriptionStatus(q);
+      const res = await verifySubscriptionStatus(q, undefined, undefined, pathwayId);
 
       if (res.status === "approved" && res.subscription) {
+        const isAll =
+          res.subscription.pathway_id === "all-pathways" || res.subscription.pathway_id === "all";
         toast.success("Payment verified! Access is now unlocked.", {
-          description: "Welcome to the U.S. Residency Pathway Roadmap & Complete Guide.",
+          description: isAll
+            ? "⭐ All-Access Pass active: You have full access to both U.S. Residency & U.K. PLAB Pathways!"
+            : `Welcome to the ${pathwayName} Roadmap & Complete Guide.`,
         });
         onSuccess(res.subscription);
+      } else if (res.status === "pathway_mismatch") {
+        toast.warning("Pathway Mismatch Notice", {
+          description:
+            res.errorMessage ||
+            `Your active pass is for another pathway. You can purchase single access for ${pathwayName} or upgrade to the All-Access Pass.`,
+          duration: 9000,
+        });
       } else if (res.status === "device_mismatch") {
         toast.error("Security Alert: Device Mismatch", {
           description:
@@ -2013,16 +2058,33 @@ export function SubscriptionModal({
   };
 
   // Generated WhatsApp chat link
+  const isCreatedAllAccess = createdSub
+    ? createdSub.pathway_id === "all-pathways" || createdSub.pathway_id === "all"
+    : selectedTier === "all";
+
+  const chosenPrice = isCreatedAllAccess ? allAccessPrice : singlePrice;
+  const chosenTierLabel = isCreatedAllAccess
+    ? "All-Access Pass (U.S. Residency + U.K. PLAB)"
+    : `${pathwayName} Only`;
+
+  const customTemplateMessage = isCreatedAllAccess
+    ? "Hello BMS! I would like to activate my subscription for the All-Access Pass (U.S. Residency + U.K. PLAB) [{price}]. My reference code is: {code} and email: {email}."
+    : "Hello BMS! I would like to activate my subscription for the {pathway} Roadmap & Complete Guide [{price}]. My reference code is: {code} and email: {email}.";
+
   const whatsAppUrl = createdSub
-    ? buildWhatsAppLink(siteSettings.whatsapp_number, siteSettings.whatsapp_default_message, {
+    ? buildWhatsAppLink(siteSettings.whatsapp_number, customTemplateMessage, {
         code: createdSub.reference_code,
         email: createdSub.email,
         name: createdSub.full_name,
+        pathway: pathwayName,
+        price: chosenPrice,
       })
-    : buildWhatsAppLink(siteSettings.whatsapp_number, siteSettings.whatsapp_default_message, {
+    : buildWhatsAppLink(siteSettings.whatsapp_number, customTemplateMessage, {
         code: "PENDING",
         email: email || "student@example.com",
         name: name || "Student",
+        pathway: pathwayName,
+        price: chosenPrice,
       });
 
   const handleCopyCode = (code: string) => {
@@ -2041,24 +2103,68 @@ export function SubscriptionModal({
                 <Sparkles className="size-6" />
               </div>
               <DialogTitle className="text-xl font-black text-foreground">
-                Subscribe to Unlock Pathway &amp; Guide
+                Unlock Pathway &amp; Official Guide
               </DialogTitle>
               <DialogDescription className="text-xs text-muted-foreground pt-1 leading-relaxed">
-                Get full access to all 8 sequential milestones, exam strategies, alternative
-                clinical pathways, and the high-resolution downloadable guide.
+                Choose to unlock this pathway individually, or get the All-Access Pass for both
+                U.S. and U.K. clinical roadmaps.
               </DialogDescription>
             </DialogHeader>
 
-            {siteSettings.subscription_price && (
-              <div className="mt-4 p-3 bg-emerald-50/70 border border-emerald-200/80 rounded-xl flex items-center justify-between text-xs">
-                <span className="font-bold text-emerald-900">Access Fee:</span>
-                <span className="font-extrabold text-[#10B981] text-sm font-mono">
-                  {siteSettings.subscription_price}
-                </span>
-              </div>
-            )}
+            {/* TIER SELECTION CARDS */}
+            <div className="mt-4 space-y-2">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                Select Your Plan:
+              </span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                {/* Option A: Single Pathway */}
+                <button
+                  type="button"
+                  onClick={() => setSelectedTier("single")}
+                  className={`p-3 rounded-xl border text-left transition-all cursor-pointer relative ${
+                    selectedTier === "single"
+                      ? "border-[#10B981] bg-emerald-50/80 ring-2 ring-emerald-500/20 shadow-xs"
+                      : "border-stone-200 hover:border-stone-300 bg-white"
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-stone-900">Single Pathway</span>
+                    <span className="font-extrabold text-[#10B981] text-xs font-mono">
+                      {singlePrice}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-stone-600 mt-1 leading-snug">
+                    Unlocks <strong>{pathwayName}</strong> &amp; guides.
+                  </p>
+                </button>
 
-            <form onSubmit={handleSubmitSubscription} className="space-y-3.5 mt-4">
+                {/* Option B: All-Access Pass */}
+                <button
+                  type="button"
+                  onClick={() => setSelectedTier("all")}
+                  className={`p-3 rounded-xl border text-left transition-all cursor-pointer relative ${
+                    selectedTier === "all"
+                      ? "border-amber-500 bg-amber-50/70 ring-2 ring-amber-500/25 shadow-xs"
+                      : "border-stone-200 hover:border-stone-300 bg-white"
+                  }`}
+                >
+                  <div className="absolute -top-2.5 right-2 bg-gradient-to-r from-amber-500 to-amber-600 text-white text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full shadow-xs">
+                    ★ Best Value
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-stone-900">All-Access Pass</span>
+                    <span className="font-extrabold text-amber-600 text-xs font-mono">
+                      {allAccessPrice}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-stone-600 mt-1 leading-snug">
+                    Unlocks <strong>BOTH</strong> U.S. &amp; U.K. Pathways.
+                  </p>
+                </button>
+              </div>
+            </div>
+
+            <form onSubmit={handleSubmitSubscription} className="space-y-3 mt-4">
               <div>
                 <Label htmlFor="sub-name" className="text-xs font-bold text-foreground">
                   Full Name *
@@ -2112,9 +2218,17 @@ export function SubscriptionModal({
                 <Button
                   type="submit"
                   disabled={submitting}
-                  className="w-full bg-[#10B981] hover:bg-[#059669] text-white font-bold h-11 rounded-xl shadow-xs text-sm cursor-pointer"
+                  className={`w-full text-white font-bold h-11 rounded-xl shadow-xs text-sm cursor-pointer transition-colors ${
+                    selectedTier === "all"
+                      ? "bg-amber-600 hover:bg-amber-700"
+                      : "bg-[#10B981] hover:bg-[#059669]"
+                  }`}
                 >
-                  {submitting ? "Submitting Request..." : "Continue to WhatsApp Payment"}
+                  {submitting
+                    ? "Submitting Request..."
+                    : selectedTier === "all"
+                      ? `Continue to Pay All-Access (${allAccessPrice})`
+                      : `Continue to Pay (${singlePrice})`}
                   <ArrowRight className="ml-1.5 size-4" />
                 </Button>
               </div>
@@ -2143,13 +2257,26 @@ export function SubscriptionModal({
                 Confirm Payment on WhatsApp
               </DialogTitle>
               <DialogDescription className="text-xs text-muted-foreground pt-1">
-                Your request has been recorded! Follow the two quick steps below to activate your
+                Your request has been recorded! Follow the quick steps below to activate your
                 account.
               </DialogDescription>
             </DialogHeader>
 
             {/* Reference Code Card */}
             <div className="bg-stone-50 border border-stone-200/90 rounded-xl p-3.5 text-center">
+              <div className="flex items-center justify-center gap-1.5 mb-1.5">
+                {isCreatedAllAccess ? (
+                  <span className="inline-flex items-center gap-1 text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300">
+                    <Star size={11} className="fill-amber-500 text-amber-600" />
+                    All-Access Pass ({allAccessPrice})
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">
+                    <CheckCircle2 size={11} className="text-[#10B981]" />
+                    {pathwayName} ({singlePrice})
+                  </span>
+                )}
+              </div>
               <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
                 Your Reference Code
               </span>
@@ -2177,8 +2304,9 @@ export function SubscriptionModal({
                   1
                 </span>
                 <p>
-                  Click below to message our admin on WhatsApp with your reference code:{" "}
-                  <strong>{createdSub.reference_code}</strong>.
+                  Click below to message our admin on WhatsApp with reference code:{" "}
+                  <strong>{createdSub.reference_code}</strong> for{" "}
+                  <strong>{chosenTierLabel}</strong>.
                 </p>
               </div>
               <div className="flex items-start gap-2.5">
@@ -2186,7 +2314,8 @@ export function SubscriptionModal({
                   2
                 </span>
                 <p>
-                  Complete your payment via Mobile Money or Bank Transfer as instructed in the chat.
+                  Complete your payment of <strong>{chosenPrice}</strong> via Mobile Money or Bank
+                  Transfer as instructed in the chat.
                 </p>
               </div>
               <div className="flex items-start gap-2.5">
@@ -2209,7 +2338,7 @@ export function SubscriptionModal({
                 className="w-full inline-flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#1EBE5D] text-white font-bold h-11 px-4 rounded-xl text-sm shadow-md transition-colors"
               >
                 <MessageSquare size={17} />
-                Chat on WhatsApp to Pay
+                Chat on WhatsApp to Pay ({chosenPrice})
               </a>
 
               <Button
@@ -2275,6 +2404,7 @@ export function SubscriptionModal({
                         code: verifyPendingSub.reference_code,
                         email: verifyPendingSub.email,
                         name: verifyPendingSub.full_name,
+                        pathway: pathwayName,
                       },
                     )}
                     target="_blank"

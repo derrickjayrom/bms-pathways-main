@@ -22,6 +22,7 @@ import {
   Copy,
   Globe,
   Info,
+  Star,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -73,7 +74,7 @@ export function UkPlabPathwayPage() {
     getAllUploadedResources().then((res) => setPathwayResources(res));
 
     // Live verification against Supabase on page load
-    validateActiveSubscription().then((result) => {
+    validateActiveSubscription("uk-residency").then((result) => {
       if (result.isValid && result.subscription) {
         setIsSubscribed(true);
         setActiveSession({
@@ -84,6 +85,7 @@ export function UkPlabPathwayPage() {
           status: result.subscription.status,
           verified_at: new Date().toISOString(),
           bound_device_id: result.subscription.bound_device_id,
+          pathway_id: result.subscription.pathway_id,
         });
       } else {
         setIsSubscribed(false);
@@ -104,7 +106,7 @@ export function UkPlabPathwayPage() {
   useEffect(() => {
     const handleRevalidate = () => {
       if (typeof document !== "undefined" && document.visibilityState === "visible") {
-        validateActiveSubscription().then((result) => {
+        validateActiveSubscription("uk-residency").then((result) => {
           if (!result.isValid) {
             setIsSubscribed(false);
             setActiveSession(null);
@@ -117,6 +119,7 @@ export function UkPlabPathwayPage() {
               full_name: result.subscription.full_name,
               status: result.subscription.status,
               verified_at: new Date().toISOString(),
+              pathway_id: result.subscription.pathway_id,
             });
           }
         });
@@ -145,7 +148,7 @@ export function UkPlabPathwayPage() {
           table: "pathway_subscriptions",
         },
         () => {
-          validateActiveSubscription().then((res) => {
+          validateActiveSubscription("uk-residency").then((res) => {
             if (res.isValid && res.subscription) {
               setIsSubscribed(true);
               setActiveSession({
@@ -155,6 +158,7 @@ export function UkPlabPathwayPage() {
                 full_name: res.subscription.full_name,
                 status: res.subscription.status,
                 verified_at: new Date().toISOString(),
+                pathway_id: res.subscription.pathway_id,
               });
             } else {
               setIsSubscribed(false);
@@ -237,14 +241,46 @@ export function UkPlabPathwayPage() {
     }
   };
 
-  const handleStartRoadmap = () => {
+  const handleStartRoadmap = async () => {
+    if (!isSubscribed) {
+      setModalMode("subscribe");
+      setSubscriptionOpen(true);
+      return;
+    }
+
+    const check = await validateActiveSubscription("uk-residency");
+    if (!check.isValid) {
+      setIsSubscribed(false);
+      setActiveSession(null);
+      if (check.status === "device_mismatch") {
+        toast.error("Access Blocked: Device Mismatch", {
+          description:
+            check.reason ||
+            "This subscription belongs to another device. Sharing accounts across multiple users is strictly prohibited.",
+          duration: 9000,
+        });
+      } else if (check.status === "pathway_mismatch") {
+        toast.warning("Pathway Upgrade Required", {
+          description: check.reason,
+          duration: 7000,
+        });
+      } else {
+        toast.error("Access Required", {
+          description: "Your subscription is not active or has been revoked.",
+        });
+      }
+      setModalMode("subscribe");
+      setSubscriptionOpen(true);
+      return;
+    }
+
     const el = document.getElementById("interactive-roadmap");
     if (el) {
       el.scrollIntoView({ behavior: "smooth" });
     }
   };
 
-  const handleDownloadClick = () => {
+  const handleDownloadClick = async () => {
     if (!isSubscribed) {
       setModalMode("subscribe");
       setSubscriptionOpen(true);
@@ -252,6 +288,32 @@ export function UkPlabPathwayPage() {
         description:
           "Unlock the complete high-resolution U.K. PLAB roadmap guide and all downloadable templates.",
       });
+      return;
+    }
+
+    const check = await validateActiveSubscription("uk-residency");
+    if (!check.isValid) {
+      setIsSubscribed(false);
+      setActiveSession(null);
+      if (check.status === "device_mismatch") {
+        toast.error("Access Blocked: Device Mismatch", {
+          description:
+            check.reason ||
+            "This subscription belongs to another device. Sharing accounts across multiple users is strictly prohibited.",
+          duration: 9000,
+        });
+      } else if (check.status === "pathway_mismatch") {
+        toast.warning("Pathway Upgrade Required", {
+          description: check.reason,
+          duration: 7000,
+        });
+      } else {
+        toast.error("Access Required", {
+          description: "Your subscription is not active or has been revoked.",
+        });
+      }
+      setModalMode("subscribe");
+      setSubscriptionOpen(true);
       return;
     }
 
@@ -264,14 +326,42 @@ export function UkPlabPathwayPage() {
     }
   };
 
-  const handleDownloadResource = (resource: BmsResourceItem) => {
-    if (resource.is_gated && !isSubscribed) {
-      setModalMode("subscribe");
-      setSubscriptionOpen(true);
-      toast.info("Subscription Required", {
-        description: `Unlock "${resource.title}" by subscribing to full pathway access.`,
-      });
-      return;
+  const handleDownloadResource = async (resource: BmsResourceItem) => {
+    if (resource.is_gated) {
+      if (!isSubscribed) {
+        setModalMode("subscribe");
+        setSubscriptionOpen(true);
+        toast.info("Subscription Required", {
+          description: `Unlock "${resource.title}" by subscribing to full pathway access.`,
+        });
+        return;
+      }
+
+      const check = await validateActiveSubscription("uk-residency");
+      if (!check.isValid) {
+        setIsSubscribed(false);
+        setActiveSession(null);
+        if (check.status === "device_mismatch") {
+          toast.error("Access Blocked: Device Mismatch", {
+            description:
+              check.reason ||
+              "This subscription belongs to another device. Sharing accounts across multiple users is strictly prohibited.",
+            duration: 9000,
+          });
+        } else if (check.status === "pathway_mismatch") {
+          toast.warning("Pathway Upgrade Required", {
+            description: check.reason,
+            duration: 7000,
+          });
+        } else {
+          toast.error("Access Required", {
+            description: "Your subscription is not active or has been revoked.",
+          });
+        }
+        setModalMode("subscribe");
+        setSubscriptionOpen(true);
+        return;
+      }
     }
     window.open(resource.file_url, "_blank");
   };
@@ -444,8 +534,19 @@ export function UkPlabPathwayPage() {
           </div>
           <div>
             {isSubscribed ? (
-              <span className="flex items-center gap-1.5 font-bold text-[#10B981] text-xs sm:text-sm">
-                <Unlock size={14} /> Full Access Unlocked
+              <span className="flex items-center gap-1.5 font-bold text-xs sm:text-sm">
+                {activeSession?.pathway_id === "all-pathways" ||
+                activeSession?.pathway_id === "all" ? (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300 shadow-2xs">
+                    <Star size={13} className="text-amber-600 fill-amber-500" />
+                    All-Access Pass Unlocked
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100/90 text-emerald-800 border border-emerald-300/80">
+                    <Unlock size={14} className="text-[#10B981]" />
+                    Full Access Unlocked
+                  </span>
+                )}
                 {activeSession?.full_name && (
                   <span className="text-xs text-muted-foreground hidden sm:inline font-normal">
                     ({activeSession.full_name})

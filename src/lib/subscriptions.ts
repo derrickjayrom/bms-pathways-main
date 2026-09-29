@@ -37,6 +37,7 @@ export interface BmsSiteSettings {
   whatsapp_number: string;
   whatsapp_default_message: string;
   subscription_price: string;
+  all_access_price?: string | undefined;
   admin_passcode: string;
   guide_pdf_url?: string | undefined;
   guide_pdf_filename?: string | undefined;
@@ -45,8 +46,9 @@ export interface BmsSiteSettings {
 export const DEFAULT_SETTINGS: BmsSiteSettings = {
   whatsapp_number: "+233240000000",
   whatsapp_default_message:
-    "Hello BMS! I would like to activate my subscription for the U.S. Residency Pathway Roadmap & Complete Guide. My reference code is: {code} and email: {email}.",
+    "Hello BMS! I would like to activate my subscription for the {pathway} Roadmap & Complete Guide. My reference code is: {code} and email: {email}.",
   subscription_price: "$25 / GHS 350",
+  all_access_price: "$40 / GHS 550",
   admin_passcode: "bms-admin-2025",
   guide_pdf_url: "",
   guide_pdf_filename: "",
@@ -561,7 +563,8 @@ insert into public.bms_settings (key, value, description)
 values
   ('whatsapp_number', '+233240000000', 'Admin WhatsApp contact number with country code'),
   ('whatsapp_default_message', 'Hello BMS! I would like to activate my subscription for the U.S. Residency Pathway Roadmap & Complete Guide. My reference code is: {code} and email: {email}.', 'Template message opened when user clicks Chat on WhatsApp'),
-  ('subscription_price', '$25 / GHS 350', 'Display price for the pathway roadmap & guide access'),
+  ('subscription_price', '$25 / GHS 350', 'Display price for single pathway roadmap & guide access'),
+  ('all_access_price', '$40 / GHS 550', 'Display price for All-Access Pass (both USMLE and UK PLAB pathways)'),
   ('admin_passcode', 'bms-admin-2025', 'Passcode to access the /admin/subscriptions dashboard'),
   ('guide_pdf_url', '', 'Direct URL to download complete guide PDF'),
   ('guide_pdf_filename', '', 'Display filename of the uploaded guide PDF')
@@ -742,7 +745,14 @@ export function cleanPhoneNumber(phone: string): string {
 export function buildWhatsAppLink(
   phoneNumber: string,
   templateMessage: string,
-  params: { code?: string; email?: string; name?: string },
+  params: {
+    code?: string;
+    email?: string;
+    name?: string;
+    pathway?: string;
+    tier?: string;
+    price?: string;
+  },
 ): string {
   const cleanNumber = cleanPhoneNumber(phoneNumber);
   let message = templateMessage;
@@ -756,6 +766,15 @@ export function buildWhatsAppLink(
   if (params.name) {
     message = message.replace(/{name}/g, params.name);
   }
+  if (params.pathway) {
+    message = message.replace(/{pathway}/g, params.pathway);
+  }
+  if (params.tier) {
+    message = message.replace(/{tier}/g, params.tier);
+  }
+  if (params.price) {
+    message = message.replace(/{price}/g, params.price);
+  }
 
   const encodedText = encodeURIComponent(message.trim());
   return `https://wa.me/${cleanNumber}?text=${encodedText}`;
@@ -765,9 +784,16 @@ export function buildAdminWhatsAppReplyLink(
   userPhone: string,
   userName: string,
   referenceCode: string,
+  pathwayId?: string,
 ): string {
   const cleanNumber = cleanPhoneNumber(userPhone);
-  const msg = `Hello ${userName}! Your payment has been confirmed by BMS. Your access to the U.S. Residency Pathway Roadmap and Downloadable Complete Guide is now APPROVED! (Reference: ${referenceCode}). You can visit the website, enter your email, and start exploring right away. Let us know if you need any guidance!`;
+  const pathwayLabel =
+    pathwayId === "all-pathways" || pathwayId === "all"
+      ? "All-Access Pass (U.S. Residency + U.K. PLAB)"
+      : pathwayId === "uk-residency" || pathwayId === "uk-plab"
+        ? "U.K. PLAB Pathway"
+        : "U.S. Residency Pathway";
+  const msg = `Hello ${userName}! Your payment has been confirmed by BMS. Your access to the ${pathwayLabel} Roadmap and Downloadable Complete Guide is now APPROVED! (Reference: ${referenceCode}). You can visit the website, enter your email, and start exploring right away. Let us know if you need any guidance!`;
   return `https://wa.me/${cleanNumber}?text=${encodeURIComponent(msg)}`;
 }
 
@@ -821,8 +847,9 @@ export async function verifySubscriptionStatus(
   query: string,
   customDeviceId?: string,
   customDeviceName?: string,
+  targetPathwayId?: string,
 ): Promise<{
-  status: "approved" | "pending" | "rejected" | "not_found" | "device_mismatch";
+  status: "approved" | "pending" | "rejected" | "not_found" | "device_mismatch" | "pathway_mismatch";
   subscription?: PathwaySubscription;
   boundDeviceName?: string;
   errorMessage?: string;
@@ -856,9 +883,10 @@ export async function verifySubscriptionStatus(
       };
     }
 
-    // If multiple entries exist, prioritize 'approved', then 'pending', else most recent
-    const approved = data.find((row) => row.status === "approved");
-    const targetSub = (approved || data[0]) as PathwaySubscription;
+    // If multiple entries exist, prioritize approved entries matching targetPathwayId, then any approved, then most recent
+    const approvedSubs = (data as PathwaySubscription[]).filter((row) => row.status === "approved");
+    const matchingApproved = approvedSubs.find((row) => hasPathwayAccess(row.pathway_id, targetPathwayId));
+    const targetSub = (matchingApproved || approvedSubs[0] || data[0]) as PathwaySubscription;
 
     if (targetSub.status !== "approved") {
       return {
@@ -868,6 +896,25 @@ export async function verifySubscriptionStatus(
           targetSub.status === "pending"
             ? "Your subscription is currently pending admin verification on WhatsApp."
             : "This subscription request was marked as rejected. Please contact BMS administration.",
+      };
+    }
+
+    // CHECK PATHWAY SPECIFIC AUTHORIZATION
+    if (targetPathwayId && !hasPathwayAccess(targetSub.pathway_id, targetPathwayId)) {
+      const currentLabel =
+        targetSub.pathway_id === "us-residency" || targetSub.pathway_id === "usmle"
+          ? "U.S. Residency"
+          : targetSub.pathway_id === "uk-residency" || targetSub.pathway_id === "uk-plab"
+            ? "U.K. PLAB"
+            : targetSub.pathway_id;
+      const targetLabel =
+        targetPathwayId === "us-residency" || targetPathwayId === "usmle"
+          ? "U.S. Residency"
+          : "U.K. PLAB";
+      return {
+        status: "pathway_mismatch",
+        subscription: targetSub,
+        errorMessage: `You currently have an active subscription for the ${currentLabel} Pathway. To access the ${targetLabel} Pathway, you can purchase single access for this pathway or unlock both with the All-Access Pass.`,
       };
     }
 
@@ -947,6 +994,55 @@ export interface SavedSubscriptionSession {
   status: string;
   verified_at: string;
   bound_device_id?: string | null | undefined;
+  pathway_id?: string | undefined;
+}
+
+/**
+ * Checks whether a user's subscription pathway tier grants access to a requested target pathway.
+ * An 'all-pathways' subscription grants access to everything across the platform.
+ */
+export function hasPathwayAccess(
+  userPathwayId: string | undefined,
+  targetPathwayId?: string,
+): boolean {
+  if (!targetPathwayId) return true;
+  if (!userPathwayId) return false;
+
+  const user = userPathwayId.toLowerCase().trim();
+  const target = targetPathwayId.toLowerCase().trim();
+
+  // All-Access Pass grants complete access to all current and future pathways
+  if (
+    user === "all-pathways" ||
+    user === "all" ||
+    user === "all_access" ||
+    user === "all-access"
+  ) {
+    return true;
+  }
+
+  // Exact match
+  if (user === target) {
+    return true;
+  }
+
+  // Aliases for UK PLAB
+  if (
+    (user === "uk-plab" || user === "uk-residency") &&
+    (target === "uk-plab" || target === "uk-residency")
+  ) {
+    return true;
+  }
+
+  // Aliases for US Residency
+  if (
+    (user === "us-residency" || user === "usmle") &&
+    (target === "us-residency" || target === "usmle")
+  ) {
+    return true;
+  }
+
+  return false;
 }
 
 export function saveSubscribedSession(sub: PathwaySubscription): void {
@@ -959,6 +1055,7 @@ export function saveSubscribedSession(sub: PathwaySubscription): void {
     status: sub.status,
     verified_at: new Date().toISOString(),
     bound_device_id: sub.bound_device_id,
+    pathway_id: sub.pathway_id,
   };
   localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(payload));
   if (sub.status === "approved") {
@@ -987,9 +1084,9 @@ export function clearSubscriptionSession(): void {
   localStorage.removeItem("bms_usmle_subscribed");
 }
 
-export async function validateActiveSubscription(): Promise<{
+export async function validateActiveSubscription(targetPathwayId?: string): Promise<{
   isValid: boolean;
-  status: "approved" | "pending" | "rejected" | "not_found" | "device_mismatch";
+  status: "approved" | "pending" | "rejected" | "not_found" | "device_mismatch" | "pathway_mismatch";
   subscription?: PathwaySubscription;
   reason?: string;
 }> {
@@ -1018,21 +1115,20 @@ export async function validateActiveSubscription(): Promise<{
 
     let queryBuilder = supabase.from("pathway_subscriptions").select("*");
 
-    if (session.id) {
-      queryBuilder = queryBuilder.eq("id", session.id);
+    if (session.email) {
+      queryBuilder = queryBuilder.ilike("email", session.email.trim());
     } else if (session.reference_code && session.reference_code !== "PREVIOUS") {
       queryBuilder = queryBuilder.eq("reference_code", session.reference_code.toUpperCase());
-    } else if (session.email) {
-      queryBuilder = queryBuilder.ilike("email", session.email.trim());
+    } else if (session.id) {
+      queryBuilder = queryBuilder.eq("id", session.id);
     } else {
       clearSubscriptionSession();
       return { isValid: false, status: "not_found", reason: "No valid identifier to check" };
     }
 
-    const { data, error } = await queryBuilder.limit(1);
+    const { data, error } = await queryBuilder;
 
     if (error || !data || data.length === 0) {
-      // Record was deleted or not found in database!
       clearSubscriptionSession();
       return {
         isValid: false,
@@ -1041,10 +1137,12 @@ export async function validateActiveSubscription(): Promise<{
       };
     }
 
-    const currentSub = data[0] as PathwaySubscription;
+    // If multiple entries exist for this user, prioritize approved entries that match the requested pathway
+    const approvedSubs = (data as PathwaySubscription[]).filter((row) => row.status === "approved");
+    const matchingApproved = approvedSubs.find((row) => hasPathwayAccess(row.pathway_id, targetPathwayId));
+    const currentSub = (matchingApproved || approvedSubs[0] || data[0]) as PathwaySubscription;
 
     if (currentSub.status !== "approved") {
-      // Admin revoked (pending) or rejected this record!
       clearSubscriptionSession();
       return {
         isValid: false,
@@ -1054,9 +1152,24 @@ export async function validateActiveSubscription(): Promise<{
       };
     }
 
+    // CHECK PATHWAY SPECIFIC AUTHORIZATION
+    if (targetPathwayId && !hasPathwayAccess(currentSub.pathway_id, targetPathwayId)) {
+      return {
+        isValid: false,
+        status: "pathway_mismatch",
+        subscription: currentSub,
+        reason: `Your active subscription is for ${
+          currentSub.pathway_id === "us-residency"
+            ? "U.S. Residency"
+            : currentSub.pathway_id === "uk-residency"
+              ? "U.K. PLAB"
+              : currentSub.pathway_id
+        }. You can unlock this pathway individually or upgrade to the All-Access Pass.`,
+      };
+    }
+
     // CHECK DEVICE BINDING SECURITY
     if (currentSub.bound_device_id && currentSub.bound_device_id !== clientDeviceId) {
-      // Session does not match this physical device! Code sharing or session copying detected!
       clearSubscriptionSession();
       return {
         isValid: false,
@@ -1095,6 +1208,7 @@ export async function validateActiveSubscription(): Promise<{
     return { isValid: false, status: "not_found", reason: "Validation error" };
   }
 }
+
 
 // ---------------------------------------------------------------------------
 // 6. ADMIN OPERATIONS

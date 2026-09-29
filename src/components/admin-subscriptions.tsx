@@ -101,6 +101,9 @@ export function AdminSubscriptionsDashboard() {
   const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "approved" | "rejected">(
     "all",
   );
+  const [pathwayFilter, setPathwayFilter] = useState<
+    "all" | "all-pathways" | "us-residency" | "uk-residency"
+  >("all");
 
   // Editable settings form state
   const [settingsForm, setSettingsForm] = useState<BmsSiteSettings>(DEFAULT_SETTINGS);
@@ -332,12 +335,24 @@ export function AdminSubscriptionsDashboard() {
         settingsForm.whatsapp_default_message,
       );
       const p3 = updateSiteSetting("subscription_price", settingsForm.subscription_price);
+      const pAllAccess = updateSiteSetting(
+        "all_access_price",
+        settingsForm.all_access_price || "$40 / GHS 550",
+      );
       const p4 = updateSiteSetting("admin_passcode", settingsForm.admin_passcode);
       const p5 = updateSiteSetting("guide_pdf_url", settingsForm.guide_pdf_url || "");
       const p6 = updateSiteSetting("guide_pdf_filename", settingsForm.guide_pdf_filename || "");
 
-      const [r1, r2, r3, r4, r5, r6] = await Promise.all([p1, p2, p3, p4, p5, p6]);
-      const failures = [r1, r2, r3, r4, r5, r6].filter((r) => !r.success);
+      const [r1, r2, r3, rAllAccess, r4, r5, r6] = await Promise.all([
+        p1,
+        p2,
+        p3,
+        pAllAccess,
+        p4,
+        p5,
+        p6,
+      ]);
+      const failures = [r1, r2, r3, rAllAccess, r4, r5, r6].filter((r) => !r.success);
 
       if (failures.length === 0) {
         setSettings(settingsForm);
@@ -564,6 +579,15 @@ export function AdminSubscriptionsDashboard() {
   const filteredSubscriptions = useMemo(() => {
     return subscriptions.filter((sub) => {
       const matchesStatus = statusFilter === "all" || sub.status === statusFilter;
+      const matchesPathway =
+        pathwayFilter === "all" ||
+        (pathwayFilter === "all-pathways" &&
+          (sub.pathway_id === "all-pathways" || sub.pathway_id === "all")) ||
+        (pathwayFilter === "us-residency" &&
+          (sub.pathway_id === "us-residency" || sub.pathway_id === "usmle")) ||
+        (pathwayFilter === "uk-residency" &&
+          (sub.pathway_id === "uk-residency" || sub.pathway_id === "uk-plab"));
+
       const q = searchQuery.toLowerCase().trim();
       const matchesSearch =
         !q ||
@@ -572,9 +596,9 @@ export function AdminSubscriptionsDashboard() {
         sub.phone_whatsapp.toLowerCase().includes(q) ||
         sub.reference_code.toLowerCase().includes(q);
 
-      return matchesStatus && matchesSearch;
+      return matchesStatus && matchesPathway && matchesSearch;
     });
-  }, [subscriptions, statusFilter, searchQuery]);
+  }, [subscriptions, statusFilter, pathwayFilter, searchQuery]);
 
   // Counts
   const counts = useMemo(() => {
@@ -583,6 +607,15 @@ export function AdminSubscriptionsDashboard() {
       pending: subscriptions.filter((s) => s.status === "pending").length,
       approved: subscriptions.filter((s) => s.status === "approved").length,
       rejected: subscriptions.filter((s) => s.status === "rejected").length,
+      allAccess: subscriptions.filter(
+        (s) => s.pathway_id === "all-pathways" || s.pathway_id === "all",
+      ).length,
+      us: subscriptions.filter(
+        (s) => s.pathway_id === "us-residency" || s.pathway_id === "usmle",
+      ).length,
+      uk: subscriptions.filter(
+        (s) => s.pathway_id === "uk-residency" || s.pathway_id === "uk-plab",
+      ).length,
     };
   }, [subscriptions]);
 
@@ -875,27 +908,76 @@ export function AdminSubscriptionsDashboard() {
         {activeTab === "subscriptions" && (
           <div className="space-y-4">
             {/* SEARCH AND FILTER BAR */}
-            <div className="bg-stone-900 border border-stone-800 rounded-2xl p-4 flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
-              {/* Search */}
-              <div className="relative flex-1 max-w-md">
-                <Search
-                  size={16}
-                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400"
-                />
-                <Input
-                  placeholder="Search by student name, email, phone, or BMS code..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="bg-stone-950 border-stone-800 pl-10 text-xs sm:text-sm text-white placeholder:text-stone-500 rounded-xl"
-                />
+            <div className="bg-stone-900 border border-stone-800 rounded-2xl p-4 flex flex-col gap-3">
+              <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
+                {/* Search */}
+                <div className="relative flex-1 max-w-md">
+                  <Search
+                    size={16}
+                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400"
+                  />
+                  <Input
+                    placeholder="Search by student name, email, phone, or BMS code..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="bg-stone-950 border-stone-800 pl-10 text-xs sm:text-sm text-white placeholder:text-stone-500 rounded-xl"
+                  />
+                </div>
+
+                {/* Status Filter Buttons */}
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <button
+                    onClick={() => setStatusFilter("all")}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
+                      statusFilter === "all"
+                        ? "bg-stone-700 text-white"
+                        : "bg-stone-800 text-stone-400 hover:text-stone-200"
+                    }`}
+                  >
+                    All ({counts.all})
+                  </button>
+                  <button
+                    onClick={() => setStatusFilter("pending")}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
+                      statusFilter === "pending"
+                        ? "bg-amber-500/20 text-amber-300 border border-amber-500/40"
+                        : "bg-stone-800 text-stone-400 hover:text-stone-200"
+                    }`}
+                  >
+                    Pending ({counts.pending})
+                  </button>
+                  <button
+                    onClick={() => setStatusFilter("approved")}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
+                      statusFilter === "approved"
+                        ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40"
+                        : "bg-stone-800 text-stone-400 hover:text-stone-200"
+                    }`}
+                  >
+                    Approved ({counts.approved})
+                  </button>
+                  <button
+                    onClick={() => setStatusFilter("rejected")}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
+                      statusFilter === "rejected"
+                        ? "bg-rose-500/20 text-rose-300 border border-rose-500/40"
+                        : "bg-stone-800 text-stone-400 hover:text-stone-200"
+                    }`}
+                  >
+                    Rejected ({counts.rejected})
+                  </button>
+                </div>
               </div>
 
-              {/* Status Filter Buttons */}
-              <div className="flex flex-wrap items-center gap-1.5">
+              {/* Pathway Tier Filter */}
+              <div className="flex flex-wrap items-center gap-1.5 pt-3 border-t border-stone-800/80">
+                <span className="text-[11px] font-bold text-stone-500 uppercase tracking-wider mr-1">
+                  Access Tier:
+                </span>
                 <button
-                  onClick={() => setStatusFilter("all")}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
-                    statusFilter === "all"
+                  onClick={() => setPathwayFilter("all")}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
+                    pathwayFilter === "all"
                       ? "bg-stone-700 text-white"
                       : "bg-stone-800 text-stone-400 hover:text-stone-200"
                   }`}
@@ -903,34 +985,35 @@ export function AdminSubscriptionsDashboard() {
                   All ({counts.all})
                 </button>
                 <button
-                  onClick={() => setStatusFilter("pending")}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
-                    statusFilter === "pending"
-                      ? "bg-amber-500/20 text-amber-300 border border-amber-500/40"
-                      : "bg-stone-800 text-stone-400 hover:text-stone-200"
+                  onClick={() => setPathwayFilter("all-pathways")}
+                  className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
+                    pathwayFilter === "all-pathways"
+                      ? "bg-amber-500/30 text-amber-300 border border-amber-500/50 shadow-xs"
+                      : "bg-stone-800 text-stone-400 hover:text-amber-300"
                   }`}
                 >
-                  Pending ({counts.pending})
+                  <Star size={11} className="fill-amber-400 text-amber-400" />
+                  All-Access ({counts.allAccess})
                 </button>
                 <button
-                  onClick={() => setStatusFilter("approved")}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
-                    statusFilter === "approved"
-                      ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40"
-                      : "bg-stone-800 text-stone-400 hover:text-stone-200"
+                  onClick={() => setPathwayFilter("us-residency")}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
+                    pathwayFilter === "us-residency"
+                      ? "bg-blue-500/30 text-blue-300 border border-blue-500/50 shadow-xs"
+                      : "bg-stone-800 text-stone-400 hover:text-blue-300"
                   }`}
                 >
-                  Approved ({counts.approved})
+                  🇺🇸 U.S. Residency ({counts.us})
                 </button>
                 <button
-                  onClick={() => setStatusFilter("rejected")}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
-                    statusFilter === "rejected"
-                      ? "bg-rose-500/20 text-rose-300 border border-rose-500/40"
-                      : "bg-stone-800 text-stone-400 hover:text-stone-200"
+                  onClick={() => setPathwayFilter("uk-residency")}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
+                    pathwayFilter === "uk-residency"
+                      ? "bg-emerald-500/30 text-emerald-300 border border-emerald-500/50 shadow-xs"
+                      : "bg-stone-800 text-stone-400 hover:text-emerald-300"
                   }`}
                 >
-                  Rejected ({counts.rejected})
+                  🇬🇧 U.K. PLAB ({counts.uk})
                 </button>
               </div>
             </div>
@@ -964,6 +1047,7 @@ export function AdminSubscriptionsDashboard() {
                     sub.phone_whatsapp,
                     sub.full_name,
                     sub.reference_code,
+                    sub.pathway_id,
                   );
 
                   return (
@@ -1019,8 +1103,22 @@ export function AdminSubscriptionsDashboard() {
                             <ExternalLink size={10} />
                           </a>
                           <span>|</span>
-                          <span className="text-stone-400">
-                            Pathway: <strong className="text-stone-300">{sub.pathway_id}</strong>
+                          <span className="flex items-center gap-1.5">
+                            {sub.pathway_id === "all-pathways" || sub.pathway_id === "all" ? (
+                              <span className="inline-flex items-center gap-1 text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-amber-950/80 text-amber-300 border border-amber-800/80 shadow-2xs">
+                                <Star size={11} className="fill-amber-400 text-amber-400" />
+                                All-Access Pass (Both Pathways)
+                              </span>
+                            ) : sub.pathway_id === "uk-residency" ||
+                              sub.pathway_id === "uk-plab" ? (
+                              <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-950/80 text-emerald-300 border border-emerald-800/60">
+                                🇬🇧 U.K. PLAB Pathway
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-blue-950/80 text-blue-300 border border-blue-800/60">
+                                🇺🇸 U.S. Residency (USMLE)
+                              </span>
+                            )}
                           </span>
                         </div>
 
@@ -1599,14 +1697,14 @@ export function AdminSubscriptionsDashboard() {
                 </div>
               </div>
 
-              {/* Setting 2: Subscription Price */}
+              {/* Setting 2: Single Pathway Subscription Price */}
               <div>
                 <Label className="text-xs font-bold text-stone-200">
-                  Display Price / Subscription Fee Notice
+                  Single Pathway Access Fee (e.g. USMLE only or UK PLAB only)
                 </Label>
                 <p className="text-xs text-stone-500 mb-2">
-                  Displayed in the subscription modal before payment confirmation (e.g. &quot;$25 /
-                  GHS 350&quot; or &quot;GHS 300 (Lifetime Access)&quot;).
+                  Displayed in the subscription modal for candidates purchasing one pathway (e.g. &quot;$25 /
+                  GHS 350&quot;).
                 </p>
                 <Input
                   value={settingsForm.subscription_price}
@@ -1614,6 +1712,25 @@ export function AdminSubscriptionsDashboard() {
                     setSettingsForm({ ...settingsForm, subscription_price: e.target.value })
                   }
                   placeholder="$25 / GHS 350"
+                  className="bg-stone-950 border-stone-700 text-white text-sm max-w-md focus:border-emerald-500"
+                />
+              </div>
+
+              {/* Setting 2b: All-Access Pass Price */}
+              <div>
+                <Label className="text-xs font-bold text-stone-200 flex items-center gap-1.5">
+                  <Star size={13} className="fill-amber-400 text-amber-400" />
+                  All-Access Pass Fee (Bundle for Both U.S. &amp; U.K. Pathways)
+                </Label>
+                <p className="text-xs text-stone-500 mb-2">
+                  Fee for candidates unlocking the complete platform (e.g. &quot;$40 / GHS 550&quot;).
+                </p>
+                <Input
+                  value={settingsForm.all_access_price || ""}
+                  onChange={(e) =>
+                    setSettingsForm({ ...settingsForm, all_access_price: e.target.value })
+                  }
+                  placeholder="$40 / GHS 550"
                   className="bg-stone-950 border-stone-700 text-white text-sm max-w-md focus:border-emerald-500"
                 />
               </div>

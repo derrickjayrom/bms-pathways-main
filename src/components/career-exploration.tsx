@@ -27,6 +27,7 @@ import {
   Smartphone,
   Globe,
   FileText,
+  Info,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -1236,6 +1237,23 @@ export function UsResidencyPathwayPage() {
                                     </div>
                                   ))}
                                 </div>
+
+                                {stage.fees.some(
+                                  (f) => f.amount.includes("*") || f.item.includes("*"),
+                                ) && (
+                                  <div className="mt-3.5 pt-3 border-t border-stone-200/90 flex items-start gap-2.5 text-xs text-stone-600 leading-relaxed bg-amber-50/60 -mx-1.5 -mb-1.5 p-3 rounded-lg border border-amber-200/50">
+                                    <Info className="size-4 text-amber-700 shrink-0 mt-0.5" />
+                                    <p>
+                                      <span className="font-bold text-amber-900">
+                                        * Fee Legend &amp; Note:
+                                      </span>{" "}
+                                      Fees are approximate figures provided for educational planning
+                                      purposes and are subject to change. Always verify the current
+                                      fee directly with the relevant official organization before
+                                      making payment.
+                                    </p>
+                                  </div>
+                                )}
                               </div>
                             )}
 
@@ -1362,6 +1380,41 @@ export function UsResidencyPathwayPage() {
                     </div>
                   );
                 })}
+              </div>
+
+              {/* FEE LEGEND & IMPORTANT NOTE (PDF SLIDE 14) */}
+              <div className="mt-12 rounded-2xl border-l-4 border-l-[#10B981] border border-stone-200/90 bg-stone-50/95 p-6 sm:p-8 shadow-xs max-w-4xl lg:max-w-5xl mx-auto">
+                <div className="flex items-center gap-2.5 mb-3.5">
+                  <Info className="size-5 text-[#10B981] shrink-0" />
+                  <h3 className="text-lg sm:text-xl font-bold text-foreground tracking-tight">
+                    Fee Legend &amp; Important Note
+                  </h3>
+                </div>
+                <div className="space-y-3 text-sm sm:text-base text-stone-700 leading-relaxed">
+                  <p className="flex items-start gap-2.5">
+                    <span className="font-bold text-[#10B981] text-base leading-none mt-1">*</span>
+                    <span>
+                      <strong className="text-stone-900">Fees are approximate figures</strong>{" "}
+                      provided for educational planning purposes and are subject to change. Always
+                      verify the current fee directly with the relevant official organization before
+                      making payment.
+                    </span>
+                  </p>
+                  <p className="flex items-start gap-2.5">
+                    <span className="text-[#10B981] font-bold text-base leading-none mt-1">•</span>
+                    <span>
+                      Additional costs may include medical school administrative fees,
+                      document/courier charges, exam preparation resources, travel, accommodation,
+                      visa expenses and U.S. clinical experience costs.
+                    </span>
+                  </p>
+                  <p className="flex items-start gap-2.5">
+                    <span className="text-[#10B981] font-bold text-base leading-none mt-1">•</span>
+                    <span className="font-bold text-stone-900">
+                      Budget for the entire pathway—not just examination fees.
+                    </span>
+                  </p>
+                </div>
               </div>
             </>
           )}
@@ -1608,12 +1661,31 @@ export function UsResidencyPathwayPage() {
                 </tbody>
               </table>
             </div>
-            <div className="p-4 sm:p-5 bg-stone-50/90 border-t border-border/60 text-xs sm:text-sm text-muted-foreground space-y-1">
-              <p>
-                Also budget for OET, preparation, school/translation charges, USCE, travel,
-                accommodation and visas. Retakes and late or additional services cost extra.
+            <div className="p-5 sm:p-6 bg-stone-50/90 border-t border-border/60 text-xs sm:text-sm text-stone-700 space-y-2.5">
+              <div className="flex items-center gap-2 font-bold text-stone-900">
+                <Info size={16} className="text-[#10B981]" />
+                <span>Fee Legend &amp; Important Note</span>
+              </div>
+              <p className="flex items-start gap-2 leading-relaxed">
+                <span className="font-bold text-[#10B981]">*</span>
+                <span>
+                  <strong>Fees are approximate figures</strong> provided for educational planning
+                  purposes and are subject to change. Always verify the current fee directly with
+                  the relevant official organization before making payment.
+                </span>
               </p>
-              <p>Fees are current at verification and may change. Always confirm before payment.</p>
+              <p className="flex items-start gap-2 leading-relaxed">
+                <span className="text-[#10B981] font-bold">•</span>
+                <span>
+                  Additional costs may include medical school administrative fees, document/courier
+                  charges, exam preparation resources, travel, accommodation, visa expenses and U.S.
+                  clinical experience costs.
+                </span>
+              </p>
+              <p className="flex items-start gap-2 leading-relaxed font-semibold text-stone-900">
+                <span className="text-[#10B981] font-bold">•</span>
+                <span>Budget for the entire pathway—not just examination fees.</span>
+              </p>
             </div>
           </div>
         </div>

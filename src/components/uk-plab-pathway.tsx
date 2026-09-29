@@ -317,8 +317,9 @@ export function UkPlabPathwayPage() {
       return;
     }
 
-    if (siteSettings.guide_pdf_url) {
-      window.open(siteSettings.guide_pdf_url, "_blank");
+    const downloadUrl = siteSettings.uk_guide_pdf_url || siteSettings.guide_pdf_url;
+    if (downloadUrl) {
+      window.open(downloadUrl, "_blank");
     } else {
       toast.success("Guide downloaded successfully!", {
         description: "Official BMS U.K. PLAB Pathway Roadmap Guide (PDF).",
@@ -1403,7 +1404,15 @@ export function UkPlabPathwayPage() {
 
             {/* Custom Uploaded Resources */}
             {pathwayResources
-              .filter((r) => r.pathway_id === "uk-residency" || r.category?.toLowerCase().includes("plab"))
+              .filter(
+                (r) =>
+                  !r.is_primary_guide &&
+                  (r.pathway_id === "uk-residency" ||
+                    r.pathway_id === "all-pathways" ||
+                    r.category === "U.K. PLAB" ||
+                    r.category?.toLowerCase().includes("plab") ||
+                    r.category?.toLowerCase().includes("uk")),
+              )
               .map((res) => {
                 const isLocked = res.is_gated && !isSubscribed;
                 return (

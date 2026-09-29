@@ -1617,7 +1617,15 @@ export function UsResidencyPathwayPage() {
 
             {/* Custom Uploaded Resources */}
             {pathwayResources
-              .filter((r) => !r.is_primary_guide)
+              .filter(
+                (r) =>
+                  !r.is_primary_guide &&
+                  (r.pathway_id === "us-residency" ||
+                    r.pathway_id === "all-pathways" ||
+                    (!r.pathway_id &&
+                      r.category !== "U.K. PLAB" &&
+                      !r.category?.toLowerCase().includes("plab"))),
+              )
               .map((res) => {
                 const isLocked = res.is_gated && !isSubscribed;
                 return (

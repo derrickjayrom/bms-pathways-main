@@ -48,6 +48,7 @@ import {
   BMS_DATABASE_SETUP_SQL,
   BMS_STORAGE_FIX_SQL,
   uploadGuidePdf,
+  uploadUkGuidePdf,
   uploadAnyResourceFile,
   getAllUploadedResources,
   saveUploadedResource,
@@ -87,12 +88,12 @@ export function AdminSubscriptionsDashboard() {
   const [uploadingResource, setUploadingResource] = useState<boolean>(false);
   const [newResourceForm, setNewResourceForm] = useState({
     title: "",
-    category: "U.S. Residency",
+    category: "U.K. PLAB",
     resource_type: "Complete Guide",
     description: "",
     is_gated: true,
     is_primary_guide: false,
-    pathway_id: "us-residency",
+    pathway_id: "uk-residency",
     direct_url: "",
   });
 
@@ -109,6 +110,7 @@ export function AdminSubscriptionsDashboard() {
   const [settingsForm, setSettingsForm] = useState<BmsSiteSettings>(DEFAULT_SETTINGS);
   const [savingSettings, setSavingSettings] = useState(false);
   const [uploadingPdf, setUploadingPdf] = useState(false);
+  const [uploadingUkPdf, setUploadingUkPdf] = useState(false);
   const [storageError, setStorageError] = useState<string | null>(null);
 
   // Check existing session
@@ -342,8 +344,13 @@ export function AdminSubscriptionsDashboard() {
       const p4 = updateSiteSetting("admin_passcode", settingsForm.admin_passcode);
       const p5 = updateSiteSetting("guide_pdf_url", settingsForm.guide_pdf_url || "");
       const p6 = updateSiteSetting("guide_pdf_filename", settingsForm.guide_pdf_filename || "");
+      const pUkGuide = updateSiteSetting("uk_guide_pdf_url", settingsForm.uk_guide_pdf_url || "");
+      const pUkGuideName = updateSiteSetting(
+        "uk_guide_pdf_filename",
+        settingsForm.uk_guide_pdf_filename || "",
+      );
 
-      const [r1, r2, r3, rAllAccess, r4, r5, r6] = await Promise.all([
+      const [r1, r2, r3, rAllAccess, r4, r5, r6, rUkGuide, rUkGuideName] = await Promise.all([
         p1,
         p2,
         p3,
@@ -351,8 +358,12 @@ export function AdminSubscriptionsDashboard() {
         p4,
         p5,
         p6,
+        pUkGuide,
+        pUkGuideName,
       ]);
-      const failures = [r1, r2, r3, rAllAccess, r4, r5, r6].filter((r) => !r.success);
+      const failures = [r1, r2, r3, rAllAccess, r4, r5, r6, rUkGuide, rUkGuideName].filter(
+        (r) => !r.success,
+      );
 
       if (failures.length === 0) {
         setSettings(settingsForm);
@@ -385,7 +396,7 @@ export function AdminSubscriptionsDashboard() {
     }
   };
 
-  // Action: Handle PDF Guide Upload
+  // Action: Handle U.S. Residency PDF Guide Upload
   const handlePdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -410,10 +421,12 @@ export function AdminSubscriptionsDashboard() {
           guide_pdf_filename: res.filename || file.name,
         }));
         setStorageError(null);
-        toast.success("Complete Guide PDF uploaded successfully!", {
+        toast.success("Complete U.S. Guide PDF uploaded successfully!", {
           description:
-            "Subscribers can now click 'DOWNLOAD COMPLETE GUIDE' to download this file directly.",
+            "Subscribers can now click 'DOWNLOAD COMPLETE GUIDE' on the U.S. pathway to download this file.",
         });
+        const updated = await getAllUploadedResources();
+        setUploadedResources(updated);
       } else {
         const errorMsg = res.error || "Check Supabase Storage";
         setStorageError(errorMsg);
@@ -437,6 +450,64 @@ export function AdminSubscriptionsDashboard() {
       toast.error("Failed to upload PDF");
     } finally {
       setUploadingPdf(false);
+      e.target.value = "";
+    }
+  };
+
+  // Action: Handle U.K. PLAB PDF Guide Upload
+  const handleUkPdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.name.toLowerCase().endsWith(".pdf")) {
+      toast.error("Please select a valid PDF file.");
+      return;
+    }
+
+    setUploadingUkPdf(true);
+    try {
+      const res = await uploadUkGuidePdf(file);
+      if (res.success && res.url) {
+        setSettings((prev) => ({
+          ...prev,
+          uk_guide_pdf_url: res.url,
+          uk_guide_pdf_filename: res.filename || file.name,
+        }));
+        setSettingsForm((prev) => ({
+          ...prev,
+          uk_guide_pdf_url: res.url,
+          uk_guide_pdf_filename: res.filename || file.name,
+        }));
+        setStorageError(null);
+        toast.success("Complete U.K. PLAB Guide PDF uploaded successfully!", {
+          description:
+            "Subscribers can now click 'DOWNLOAD COMPLETE GUIDE' on the U.K. PLAB pathway to download this file.",
+        });
+        const updated = await getAllUploadedResources();
+        setUploadedResources(updated);
+      } else {
+        const errorMsg = res.error || "Check Supabase Storage";
+        setStorageError(errorMsg);
+        if (
+          errorMsg.toLowerCase().includes("row-level security") ||
+          errorMsg.toLowerCase().includes("policy") ||
+          errorMsg.toLowerCase().includes("bucket not found") ||
+          errorMsg.toLowerCase().includes("nosuchbucket")
+        ) {
+          toast.error("Upload failed: Supabase Storage bucket policy needed", {
+            description:
+              "The 'pathway-guides' storage bucket or its RLS policy is not configured yet. Copy the Storage SQL below and run it in Supabase.",
+            duration: 8000,
+          });
+        } else {
+          toast.error(`Upload failed: ${errorMsg}`);
+        }
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to upload PDF");
+    } finally {
+      setUploadingUkPdf(false);
       e.target.value = "";
     }
   };
@@ -499,12 +570,12 @@ export function AdminSubscriptionsDashboard() {
         setSelectedResourceFile(null);
         setNewResourceForm({
           title: "",
-          category: "U.S. Residency",
+          category: "U.K. PLAB",
           resource_type: "Complete Guide",
           description: "",
           is_gated: true,
           is_primary_guide: false,
-          pathway_id: "us-residency",
+          pathway_id: "uk-residency",
           direct_url: "",
         });
         const fileInput = document.getElementById("admin-new-resource-file") as HTMLInputElement;
@@ -537,11 +608,17 @@ export function AdminSubscriptionsDashboard() {
 
   // Action: Set as Primary Guide
   const handleSetPrimaryResource = async (resItem: BmsResourceItem) => {
+    const isUk = resItem.pathway_id === "uk-residency" || resItem.category === "U.K. PLAB";
     const ok = await setPrimaryResource(resItem.id);
     if (ok) {
-      toast.success(`"${resItem.title}" is now the Primary Guide!`, {
-        description: "Subscribers clicking 'DOWNLOAD COMPLETE GUIDE' will now download this file.",
-      });
+      toast.success(
+        `"${resItem.title}" is now the Primary ${isUk ? "🇬🇧 U.K. PLAB" : "🇺🇸 U.S. Residency"} Guide!`,
+        {
+          description: `Subscribers clicking 'DOWNLOAD COMPLETE GUIDE' on the ${
+            isUk ? "U.K. PLAB" : "U.S. Residency"
+          } roadmap will download this file.`,
+        },
+      );
       const updated = await getAllUploadedResources();
       setUploadedResources(updated);
       const updatedSettings = await getSiteSettings();
@@ -559,6 +636,14 @@ export function AdminSubscriptionsDashboard() {
         resourceFilter === "all" ||
         (resourceFilter === "gated" && r.is_gated) ||
         (resourceFilter === "free" && !r.is_gated) ||
+        (resourceFilter === "uk-residency" &&
+          (r.pathway_id === "uk-residency" ||
+            r.category?.toLowerCase().includes("uk") ||
+            r.category?.toLowerCase().includes("plab"))) ||
+        (resourceFilter === "U.S. Residency" &&
+          (r.pathway_id === "us-residency" ||
+            r.category?.toLowerCase().includes("u.s.") ||
+            r.category?.toLowerCase().includes("residency"))) ||
         r.category.toLowerCase().includes(resourceFilter.toLowerCase()) ||
         (r.pathway_id && r.pathway_id.toLowerCase().includes(resourceFilter.toLowerCase()));
 
@@ -1346,16 +1431,28 @@ export function AdminSubscriptionsDashboard() {
                   {/* Category */}
                   <div>
                     <Label className="text-xs font-bold text-stone-300 mb-1.5 block">
-                      Category
+                      Category *
                     </Label>
                     <select
                       value={newResourceForm.category}
-                      onChange={(e) =>
-                        setNewResourceForm({ ...newResourceForm, category: e.target.value })
-                      }
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        const autoPathway =
+                          val === "U.K. PLAB"
+                            ? "uk-residency"
+                            : val === "U.S. Residency"
+                            ? "us-residency"
+                            : newResourceForm.pathway_id;
+                        setNewResourceForm({
+                          ...newResourceForm,
+                          category: val,
+                          pathway_id: autoPathway,
+                        });
+                      }}
                       className="w-full h-10 px-3 rounded-xl bg-stone-950 border border-stone-700 text-white text-xs font-medium focus:border-emerald-500 focus:outline-hidden"
                     >
-                      <option value="U.S. Residency">U.S. Residency</option>
+                      <option value="U.K. PLAB">🇬🇧 U.K. PLAB</option>
+                      <option value="U.S. Residency">🇺🇸 U.S. Residency</option>
                       <option value="Exam Preparation">Exam Preparation</option>
                       <option value="CV & Interview">CV & Interview</option>
                       <option value="Research & Publications">Research & Publications</option>
@@ -1365,8 +1462,26 @@ export function AdminSubscriptionsDashboard() {
                     </select>
                   </div>
 
-                  {/* Resource Type */}
+                  {/* Target Pathway */}
                   <div>
+                    <Label className="text-xs font-bold text-stone-300 mb-1.5 block">
+                      Target Pathway *
+                    </Label>
+                    <select
+                      value={newResourceForm.pathway_id}
+                      onChange={(e) =>
+                        setNewResourceForm({ ...newResourceForm, pathway_id: e.target.value })
+                      }
+                      className="w-full h-10 px-3 rounded-xl bg-stone-950 border border-stone-700 text-white text-xs font-medium focus:border-emerald-500 focus:outline-hidden"
+                    >
+                      <option value="uk-residency">🇬🇧 U.K. PLAB Pathway</option>
+                      <option value="us-residency">🇺🇸 U.S. Residency Pathway</option>
+                      <option value="all-pathways">🌐 Both / All Pathways</option>
+                    </select>
+                  </div>
+
+                  {/* Resource Type */}
+                  <div className="md:col-span-2">
                     <Label className="text-xs font-bold text-stone-300 mb-1.5 block">
                       Resource Type
                     </Label>
@@ -1472,7 +1587,10 @@ export function AdminSubscriptionsDashboard() {
                       />
                       <span className="text-xs font-bold text-amber-300 flex items-center gap-1">
                         <Star size={12} />
-                        Set as Primary Pathway Guide
+                        {newResourceForm.pathway_id === "uk-residency" ||
+                        newResourceForm.category === "U.K. PLAB"
+                          ? "Set as Primary Guide for 🇬🇧 U.K. PLAB Pathway"
+                          : "Set as Primary Guide for 🇺🇸 U.S. Residency Pathway"}
                       </span>
                     </label>
                   </div>
@@ -1510,7 +1628,8 @@ export function AdminSubscriptionsDashboard() {
               <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0">
                 {[
                   { id: "all", label: "All Files" },
-                  { id: "U.S. Residency", label: "U.S. Residency" },
+                  { id: "uk-residency", label: "🇬🇧 U.K. PLAB" },
+                  { id: "U.S. Residency", label: "🇺🇸 U.S. Residency" },
                   { id: "Exam", label: "Exam Prep" },
                   { id: "CV", label: "CV & Toolkit" },
                   { id: "gated", label: "Subscribers Only" },
@@ -1559,6 +1678,20 @@ export function AdminSubscriptionsDashboard() {
                           <span className="text-[11px] font-bold uppercase tracking-wider text-gold px-2 py-0.5 rounded bg-stone-950 border border-stone-800">
                             {res.category}
                           </span>
+                          {/* Pathway badge */}
+                          {res.pathway_id === "uk-residency" || res.category === "U.K. PLAB" ? (
+                            <span className="text-[11px] font-bold text-sky-300 bg-sky-950/70 border border-sky-800/60 px-2 py-0.5 rounded-full inline-flex items-center gap-1">
+                              🇬🇧 U.K. PLAB
+                            </span>
+                          ) : res.pathway_id === "us-residency" || res.category === "U.S. Residency" ? (
+                            <span className="text-[11px] font-bold text-rose-300 bg-rose-950/70 border border-rose-800/60 px-2 py-0.5 rounded-full inline-flex items-center gap-1">
+                              🇺🇸 U.S. Residency
+                            </span>
+                          ) : res.pathway_id === "all-pathways" ? (
+                            <span className="text-[11px] font-bold text-indigo-300 bg-indigo-950/70 border border-indigo-800/60 px-2 py-0.5 rounded-full inline-flex items-center gap-1">
+                              🌐 All Pathways
+                            </span>
+                          ) : null}
                           <span className="text-[11px] font-bold text-stone-300 px-2 py-0.5 rounded bg-stone-800">
                             {res.resource_type}
                           </span>
@@ -1573,7 +1706,10 @@ export function AdminSubscriptionsDashboard() {
                           )}
                           {res.is_primary_guide && (
                             <span className="text-[11px] font-bold text-amber-300 bg-amber-950/80 border border-amber-800/60 px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 shadow-xs">
-                              <Star size={10} className="fill-amber-300" /> Primary Guide
+                              <Star size={10} className="fill-amber-300" />
+                              {res.pathway_id === "uk-residency" || res.category === "U.K. PLAB"
+                                ? "Primary U.K. Guide"
+                                : "Primary U.S. Guide"}
                             </span>
                           )}
                         </div>
@@ -1603,11 +1739,19 @@ export function AdminSubscriptionsDashboard() {
                           variant="outline"
                           size="sm"
                           onClick={() => handleSetPrimaryResource(res)}
-                          className="border-amber-900/60 text-amber-300 hover:bg-amber-950/30 text-xs h-9 rounded-xl font-bold"
-                          title="Set as the default file downloaded when students click DOWNLOAD COMPLETE GUIDE"
+                          className="border-amber-900/60 text-amber-300 hover:bg-amber-950/30 text-xs h-9 rounded-xl font-bold cursor-pointer"
+                          title={`Set as the default file downloaded when students click DOWNLOAD COMPLETE GUIDE on the ${
+                            res.pathway_id === "uk-residency" || res.category === "U.K. PLAB"
+                              ? "U.K. PLAB"
+                              : "U.S. Residency"
+                          } roadmap`}
                         >
                           <Star size={12} className="mr-1.5" />
-                          Set Primary
+                          Set Primary (
+                          {res.pathway_id === "uk-residency" || res.category === "U.K. PLAB"
+                            ? "🇬🇧 U.K."
+                            : "🇺🇸 U.S."}
+                          )
                         </Button>
                       )}
 
@@ -1781,26 +1925,21 @@ export function AdminSubscriptionsDashboard() {
                 </div>
               </div>
 
-              {/* Setting: Complete Guide PDF Upload */}
-              <div className="pt-4 border-t border-stone-800">
-                <div className="flex items-center justify-between mb-2">
-                  <Label className="text-xs font-bold text-stone-200">
-                    Complete Guide PDF Document
-                  </Label>
-                  {settings.guide_pdf_url && (
-                    <span className="text-[11px] font-bold text-emerald-400 bg-emerald-950/80 border border-emerald-800/60 px-2.5 py-0.5 rounded-full">
-                      ✓ Active PDF Online
-                    </span>
-                  )}
+              {/* Setting: Complete Guide PDF Uploads */}
+              <div className="pt-4 border-t border-stone-800 space-y-6">
+                <div>
+                  <h4 className="text-sm font-black text-white flex items-center gap-2">
+                    <FileText className="size-4 text-emerald-400" />
+                    Official Pathway Roadmap PDF Guides
+                  </h4>
+                  <p className="text-xs text-stone-500 mt-0.5">
+                    Upload or configure the official PDF downloads for the &ldquo;DOWNLOAD COMPLETE GUIDE&rdquo; hero button on each pathway.
+                  </p>
                 </div>
-                <p className="text-xs text-stone-500 mb-3">
-                  Upload the official PDF file that subscribers will download when clicking
-                  &ldquo;DOWNLOAD COMPLETE GUIDE&rdquo;.
-                </p>
 
                 {/* Storage RLS Error Banner */}
                 {storageError && (
-                  <div className="bg-rose-950/70 border border-rose-500/50 rounded-xl p-4 text-xs text-rose-200 mb-4 shadow-md">
+                  <div className="bg-rose-950/70 border border-rose-500/50 rounded-xl p-4 text-xs text-rose-200 shadow-md">
                     <div className="flex items-start gap-3">
                       <AlertTriangle className="size-5 text-rose-400 shrink-0 mt-0.5" />
                       <div className="flex-1">
@@ -1847,76 +1986,196 @@ export function AdminSubscriptionsDashboard() {
                   </div>
                 )}
 
-                {settings.guide_pdf_url ? (
-                  <div className="bg-stone-950 border border-stone-800 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <div className="size-9 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
-                        <FileText size={18} />
-                      </div>
-                      <div className="min-w-0">
-                        <div className="text-xs font-bold text-white truncate">
-                          {settings.guide_pdf_filename || "BMS-US-Residency-Pathway-Guide.pdf"}
-                        </div>
-                        <a
-                          href={settings.guide_pdf_url}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="text-[11px] text-emerald-400 hover:text-emerald-300 underline font-semibold flex items-center gap-1"
-                        >
-                          Preview / Download uploaded PDF <ExternalLink size={10} />
-                        </a>
-                      </div>
-                    </div>
+                {/* 1. U.K. PLAB Guide PDF */}
+                <div className="p-4 rounded-xl bg-stone-950/60 border border-stone-800/80 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-bold text-white flex items-center gap-1.5">
+                      🇬🇧 U.K. PLAB Complete Guide PDF
+                    </Label>
+                    {settings.uk_guide_pdf_url && (
+                      <span className="text-[10px] font-bold text-sky-400 bg-sky-950/80 border border-sky-800/60 px-2 py-0.5 rounded-full">
+                        ✓ U.K. Guide Active
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-stone-400">
+                    Target page: <code>/career-exploration/uk-residency</code>
+                  </p>
 
-                    <div className="relative">
-                      <input
-                        type="file"
-                        id="guide-pdf-replace"
-                        accept=".pdf"
-                        onChange={handlePdfUpload}
-                        disabled={uploadingPdf}
-                        className="sr-only"
-                      />
-                      <label
-                        htmlFor="guide-pdf-replace"
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-300 border border-stone-700 text-xs font-bold transition-colors cursor-pointer"
-                      >
-                        <Upload size={12} />
-                        {uploadingPdf ? "Uploading..." : "Replace PDF File"}
-                      </label>
+                  {settings.uk_guide_pdf_url ? (
+                    <div className="bg-stone-900 border border-stone-800 rounded-xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="size-8 rounded-lg bg-sky-500/20 text-sky-400 flex items-center justify-center shrink-0">
+                          <FileText size={16} />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="text-xs font-bold text-white truncate">
+                            {settings.uk_guide_pdf_filename || "BMS-UK-PLAB-Pathway-Guide.pdf"}
+                          </div>
+                          <a
+                            href={settings.uk_guide_pdf_url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-[11px] text-sky-400 hover:text-sky-300 underline font-semibold flex items-center gap-1"
+                          >
+                            Preview / Download PDF <ExternalLink size={10} />
+                          </a>
+                        </div>
+                      </div>
+
+                      <div className="relative">
+                        <input
+                          type="file"
+                          id="uk-guide-pdf-replace"
+                          accept=".pdf"
+                          onChange={handleUkPdfUpload}
+                          disabled={uploadingUkPdf}
+                          className="sr-only"
+                        />
+                        <label
+                          htmlFor="uk-guide-pdf-replace"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-300 border border-stone-700 text-xs font-bold transition-colors cursor-pointer"
+                        >
+                          <Upload size={12} />
+                          {uploadingUkPdf ? "Uploading..." : "Replace U.K. PDF"}
+                        </label>
+                      </div>
                     </div>
-                  </div>
-                ) : (
-                  <div className="border-2 border-dashed border-stone-800 hover:border-emerald-500/50 rounded-xl p-5 text-center transition-colors bg-stone-950/60 mb-3">
-                    <FileText className="size-8 mx-auto text-stone-500 mb-2" />
-                    <p className="text-xs font-semibold text-stone-300">
-                      No guide PDF uploaded yet
-                    </p>
-                    <p className="text-[11px] text-stone-500 mt-0.5">
-                      Subscribers currently use the browser print format as fallback.
-                    </p>
-                    <div className="mt-3">
-                      <input
-                        type="file"
-                        id="guide-pdf-upload"
-                        accept=".pdf"
-                        onChange={handlePdfUpload}
-                        disabled={uploadingPdf}
-                        className="sr-only"
-                      />
-                      <label
-                        htmlFor="guide-pdf-upload"
-                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-colors cursor-pointer shadow-xs"
-                      >
-                        <Upload size={13} />
-                        {uploadingPdf ? "Uploading PDF..." : "Choose & Upload PDF Guide"}
-                      </label>
+                  ) : (
+                    <div className="border border-dashed border-stone-800 rounded-xl p-4 text-center bg-stone-950/40">
+                      <p className="text-xs text-stone-400">No U.K. guide PDF uploaded yet</p>
+                      <div className="mt-2.5">
+                        <input
+                          type="file"
+                          id="uk-guide-pdf-upload"
+                          accept=".pdf"
+                          onChange={handleUkPdfUpload}
+                          disabled={uploadingUkPdf}
+                          className="sr-only"
+                        />
+                        <label
+                          htmlFor="uk-guide-pdf-upload"
+                          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold transition-colors cursor-pointer"
+                        >
+                          <Upload size={12} />
+                          {uploadingUkPdf ? "Uploading..." : "Upload U.K. PLAB PDF Guide"}
+                        </label>
+                      </div>
                     </div>
+                  )}
+
+                  <div>
+                    <Label className="text-[11px] font-semibold text-stone-400 block mb-1">
+                      Direct U.K. PDF Download URL (Optional)
+                    </Label>
+                    <Input
+                      type="url"
+                      placeholder="https://..."
+                      value={settingsForm.uk_guide_pdf_url || ""}
+                      onChange={(e) =>
+                        setSettingsForm({ ...settingsForm, uk_guide_pdf_url: e.target.value })
+                      }
+                      className="bg-stone-950 border-stone-800 text-white text-xs font-mono"
+                    />
                   </div>
-                )}
+                </div>
+
+                {/* 2. U.S. Residency Guide PDF */}
+                <div className="p-4 rounded-xl bg-stone-950/60 border border-stone-800/80 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-bold text-white flex items-center gap-1.5">
+                      🇺🇸 U.S. Residency Complete Guide PDF
+                    </Label>
+                    {settings.guide_pdf_url && (
+                      <span className="text-[10px] font-bold text-emerald-400 bg-emerald-950/80 border border-emerald-800/60 px-2 py-0.5 rounded-full">
+                        ✓ U.S. Guide Active
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-stone-400">
+                    Target page: <code>/career-exploration</code>
+                  </p>
+
+                  {settings.guide_pdf_url ? (
+                    <div className="bg-stone-900 border border-stone-800 rounded-xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="size-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+                          <FileText size={16} />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="text-xs font-bold text-white truncate">
+                            {settings.guide_pdf_filename || "BMS-US-Residency-Pathway-Guide.pdf"}
+                          </div>
+                          <a
+                            href={settings.guide_pdf_url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-[11px] text-emerald-400 hover:text-emerald-300 underline font-semibold flex items-center gap-1"
+                          >
+                            Preview / Download PDF <ExternalLink size={10} />
+                          </a>
+                        </div>
+                      </div>
+
+                      <div className="relative">
+                        <input
+                          type="file"
+                          id="guide-pdf-replace"
+                          accept=".pdf"
+                          onChange={handlePdfUpload}
+                          disabled={uploadingPdf}
+                          className="sr-only"
+                        />
+                        <label
+                          htmlFor="guide-pdf-replace"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-300 border border-stone-700 text-xs font-bold transition-colors cursor-pointer"
+                        >
+                          <Upload size={12} />
+                          {uploadingPdf ? "Uploading..." : "Replace U.S. PDF"}
+                        </label>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="border border-dashed border-stone-800 rounded-xl p-4 text-center bg-stone-950/40">
+                      <p className="text-xs text-stone-400">No U.S. guide PDF uploaded yet</p>
+                      <div className="mt-2.5">
+                        <input
+                          type="file"
+                          id="guide-pdf-upload"
+                          accept=".pdf"
+                          onChange={handlePdfUpload}
+                          disabled={uploadingPdf}
+                          className="sr-only"
+                        />
+                        <label
+                          htmlFor="guide-pdf-upload"
+                          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-colors cursor-pointer"
+                        >
+                          <Upload size={12} />
+                          {uploadingPdf ? "Uploading..." : "Upload U.S. Residency PDF Guide"}
+                        </label>
+                      </div>
+                    </div>
+                  )}
+
+                  <div>
+                    <Label className="text-[11px] font-semibold text-stone-400 block mb-1">
+                      Direct U.S. PDF Download URL (Optional)
+                    </Label>
+                    <Input
+                      type="url"
+                      placeholder="https://..."
+                      value={settingsForm.guide_pdf_url || ""}
+                      onChange={(e) =>
+                        setSettingsForm({ ...settingsForm, guide_pdf_url: e.target.value })
+                      }
+                      className="bg-stone-950 border-stone-800 text-white text-xs font-mono"
+                    />
+                  </div>
+                </div>
 
                 {/* Storage setup helper tip */}
-                <div className="mt-3 flex items-center justify-between text-[11px] text-stone-500 px-1">
+                <div className="flex items-center justify-between text-[11px] text-stone-500 px-1 pt-1">
                   <span>Need to configure Supabase Storage permissions?</span>
                   <button
                     type="button"
@@ -1924,30 +2183,10 @@ export function AdminSubscriptionsDashboard() {
                       navigator.clipboard.writeText(BMS_STORAGE_FIX_SQL);
                       toast.success("Storage setup SQL copied to clipboard!");
                     }}
-                    className="text-emerald-400 hover:text-emerald-300 underline font-medium flex items-center gap-1"
+                    className="text-emerald-400 hover:text-emerald-300 underline font-medium flex items-center gap-1 cursor-pointer"
                   >
                     <Copy size={10} /> Copy Storage SQL Script
                   </button>
-                </div>
-
-                {/* Direct PDF Link URL input */}
-                <div className="mt-4 pt-3 border-t border-stone-800/80">
-                  <Label className="text-xs font-semibold text-stone-300">
-                    Direct PDF Download Link (Optional URL)
-                  </Label>
-                  <p className="text-[11px] text-stone-500 mb-2">
-                    You can also provide an external direct link to the guide (e.g. Google Drive
-                    direct download, Cloudinary, AWS S3, or Supabase public URL).
-                  </p>
-                  <Input
-                    type="url"
-                    placeholder="https://..."
-                    value={settingsForm.guide_pdf_url || ""}
-                    onChange={(e) =>
-                      setSettingsForm({ ...settingsForm, guide_pdf_url: e.target.value })
-                    }
-                    className="bg-stone-950 border-stone-700 text-white text-xs font-mono focus:border-emerald-500"
-                  />
                 </div>
               </div>
 

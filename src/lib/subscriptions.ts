@@ -41,6 +41,8 @@ export interface BmsSiteSettings {
   admin_passcode: string;
   guide_pdf_url?: string | undefined;
   guide_pdf_filename?: string | undefined;
+  uk_guide_pdf_url?: string | undefined;
+  uk_guide_pdf_filename?: string | undefined;
 }
 
 export const DEFAULT_SETTINGS: BmsSiteSettings = {
@@ -52,6 +54,8 @@ export const DEFAULT_SETTINGS: BmsSiteSettings = {
   admin_passcode: "bms-admin-2025",
   guide_pdf_url: "",
   guide_pdf_filename: "",
+  uk_guide_pdf_url: "",
+  uk_guide_pdf_filename: "",
 };
 
 const LOCAL_STORAGE_KEY = "bms_usmle_subscription_session";
@@ -259,6 +263,61 @@ export async function uploadGuidePdf(
   }
 }
 
+export async function uploadUkGuidePdf(
+  file: File,
+): Promise<{ success: boolean; url?: string; filename?: string; error?: string }> {
+  try {
+    if (!supabase) return { success: false, error: "Database client is not initialized" };
+
+    const cleanBaseName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
+    const filePath = `guides/uk_${Date.now()}_${cleanBaseName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from("pathway-guides")
+      .upload(filePath, file, {
+        cacheControl: "3600",
+        upsert: false,
+      });
+
+    if (uploadError) {
+      console.error("Storage upload error:", uploadError);
+      return { success: false, error: uploadError.message };
+    }
+
+    const { data } = supabase.storage.from("pathway-guides").getPublicUrl(filePath);
+    const publicUrl = data.publicUrl;
+
+    await updateSiteSetting("uk_guide_pdf_url", publicUrl);
+    await updateSiteSetting("uk_guide_pdf_filename", file.name);
+
+    let sizeFormatted = "";
+    if (file.size < 1024 * 1024) {
+      sizeFormatted = `${Math.round(file.size / 1024)} KB`;
+    } else {
+      sizeFormatted = `${(file.size / (1024 * 1024)).toFixed(1)} MB`;
+    }
+
+    await saveUploadedResource({
+      title: "Complete U.K. PLAB Pathway Guide",
+      category: "U.K. PLAB",
+      resource_type: "Complete Guide",
+      description:
+        "Official step-by-step roadmap covering PMQ checking, English proficiency (OET/IELTS), EPIC verification, PLAB 1 & 2, GMC registration, and NHS jobs.",
+      file_url: publicUrl,
+      filename: file.name,
+      file_size: sizeFormatted,
+      is_gated: true,
+      is_primary_guide: true,
+      pathway_id: "uk-residency",
+    });
+
+    return { success: true, url: publicUrl, filename: file.name };
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : "Failed to upload file";
+    return { success: false, error: msg };
+  }
+}
+
 export async function uploadAnyResourceFile(
   file: File,
   folder = "resources",
@@ -350,7 +409,12 @@ export async function getAllUploadedResources(): Promise<BmsResourceItem[]> {
 
     if (guideUrlRow?.value && guideUrlRow.value.trim().length > 0) {
       const primaryUrl = guideUrlRow.value.trim();
-      const hasMatch = list.some((item) => item.file_url === primaryUrl || item.is_primary_guide);
+      const hasMatch = list.some(
+        (item) =>
+          item.file_url === primaryUrl ||
+          (item.is_primary_guide &&
+            (item.pathway_id === "us-residency" || item.category === "U.S. Residency")),
+      );
 
       if (!hasMatch) {
         const { data: guideNameRow } = await supabase
@@ -378,6 +442,48 @@ export async function getAllUploadedResources(): Promise<BmsResourceItem[]> {
       }
     }
 
+    // Also check for separate U.K. PLAB primary guide
+    const { data: ukGuideUrlRow } = await supabase
+      .from("bms_settings")
+      .select("value")
+      .eq("key", "uk_guide_pdf_url")
+      .single();
+
+    if (ukGuideUrlRow?.value && ukGuideUrlRow.value.trim().length > 0) {
+      const primaryUkUrl = ukGuideUrlRow.value.trim();
+      const hasMatch = list.some(
+        (item) =>
+          item.file_url === primaryUkUrl ||
+          (item.is_primary_guide &&
+            (item.pathway_id === "uk-residency" || item.category === "U.K. PLAB")),
+      );
+
+      if (!hasMatch) {
+        const { data: ukGuideNameRow } = await supabase
+          .from("bms_settings")
+          .select("value")
+          .eq("key", "uk_guide_pdf_filename")
+          .single();
+
+        const defaultUkPrimary: BmsResourceItem = {
+          id: "primary-uk-plab-guide",
+          title: "Complete U.K. PLAB Pathway Guide",
+          category: "U.K. PLAB",
+          resource_type: "Complete Guide",
+          description:
+            "Official step-by-step roadmap covering PMQ checking, English proficiency (OET/IELTS), EPIC verification, PLAB 1 & 2, GMC registration, and NHS jobs.",
+          file_url: primaryUkUrl,
+          filename: ukGuideNameRow?.value || "BMS-UK-PLAB-Pathway-Guide.pdf",
+          file_size: "PDF Guide",
+          is_gated: true,
+          is_primary_guide: true,
+          pathway_id: "uk-residency",
+          created_at: new Date().toISOString(),
+        };
+        list.unshift(defaultUkPrimary);
+      }
+    }
+
     return list;
   } catch (err) {
     console.warn("Error fetching uploaded resources:", err);
@@ -400,11 +506,20 @@ export async function saveUploadedResource(
     const existing = await getAllUploadedResources();
 
     if (newItem.is_primary_guide) {
+      const isUk = newItem.pathway_id === "uk-residency" || newItem.category === "U.K. PLAB";
       existing.forEach((r) => {
-        r.is_primary_guide = false;
+        const rIsUk = r.pathway_id === "uk-residency" || r.category === "U.K. PLAB";
+        if (isUk === rIsUk) {
+          r.is_primary_guide = false;
+        }
       });
-      await updateSiteSetting("guide_pdf_url", newItem.file_url);
-      await updateSiteSetting("guide_pdf_filename", newItem.filename);
+      if (isUk) {
+        await updateSiteSetting("uk_guide_pdf_url", newItem.file_url);
+        await updateSiteSetting("uk_guide_pdf_filename", newItem.filename);
+      } else {
+        await updateSiteSetting("guide_pdf_url", newItem.file_url);
+        await updateSiteSetting("guide_pdf_filename", newItem.filename);
+      }
     }
 
     const updatedList = [newItem, ...existing.filter((r) => r.id !== newItem.id)];
@@ -463,16 +578,31 @@ export async function deleteUploadedResource(id: string): Promise<boolean> {
     const updated = existing.filter((r) => r.id !== id);
 
     if (target?.is_primary_guide) {
-      const nextPrimary = updated.find(
-        (r) => r.pathway_id === "us-residency" || r.category === "U.S. Residency",
-      );
-      if (nextPrimary) {
-        nextPrimary.is_primary_guide = true;
-        await updateSiteSetting("guide_pdf_url", nextPrimary.file_url);
-        await updateSiteSetting("guide_pdf_filename", nextPrimary.filename);
+      const isUk = target.pathway_id === "uk-residency" || target.category === "U.K. PLAB";
+      if (isUk) {
+        const nextUkPrimary = updated.find(
+          (r) => r.pathway_id === "uk-residency" || r.category === "U.K. PLAB",
+        );
+        if (nextUkPrimary) {
+          nextUkPrimary.is_primary_guide = true;
+          await updateSiteSetting("uk_guide_pdf_url", nextUkPrimary.file_url);
+          await updateSiteSetting("uk_guide_pdf_filename", nextUkPrimary.filename);
+        } else {
+          await updateSiteSetting("uk_guide_pdf_url", "");
+          await updateSiteSetting("uk_guide_pdf_filename", "");
+        }
       } else {
-        await updateSiteSetting("guide_pdf_url", "");
-        await updateSiteSetting("guide_pdf_filename", "");
+        const nextPrimary = updated.find(
+          (r) => r.pathway_id === "us-residency" || r.category === "U.S. Residency",
+        );
+        if (nextPrimary) {
+          nextPrimary.is_primary_guide = true;
+          await updateSiteSetting("guide_pdf_url", nextPrimary.file_url);
+          await updateSiteSetting("guide_pdf_filename", nextPrimary.filename);
+        } else {
+          await updateSiteSetting("guide_pdf_url", "");
+          await updateSiteSetting("guide_pdf_filename", "");
+        }
       }
     }
 
@@ -493,20 +623,26 @@ export async function setPrimaryResource(id: string): Promise<boolean> {
   try {
     if (!supabase) return false;
     const existing = await getAllUploadedResources();
-    let selected: BmsResourceItem | undefined;
+    const selected = existing.find((r) => r.id === id);
+    const isUk = selected?.pathway_id === "uk-residency" || selected?.category === "U.K. PLAB";
 
     existing.forEach((r) => {
+      const rIsUk = r.pathway_id === "uk-residency" || r.category === "U.K. PLAB";
       if (r.id === id) {
         r.is_primary_guide = true;
-        selected = r;
-      } else {
+      } else if (isUk === rIsUk) {
         r.is_primary_guide = false;
       }
     });
 
     if (selected) {
-      await updateSiteSetting("guide_pdf_url", selected.file_url);
-      await updateSiteSetting("guide_pdf_filename", selected.filename);
+      if (isUk) {
+        await updateSiteSetting("uk_guide_pdf_url", selected.file_url);
+        await updateSiteSetting("uk_guide_pdf_filename", selected.filename);
+      } else {
+        await updateSiteSetting("guide_pdf_url", selected.file_url);
+        await updateSiteSetting("guide_pdf_filename", selected.filename);
+      }
     }
 
     await supabase.from("bms_settings").upsert({
@@ -567,7 +703,9 @@ values
   ('all_access_price', '$40 / GHS 550', 'Display price for All-Access Pass (both USMLE and UK PLAB pathways)'),
   ('admin_passcode', 'bms-admin-2025', 'Passcode to access the /admin/subscriptions dashboard'),
   ('guide_pdf_url', '', 'Direct URL to download complete guide PDF'),
-  ('guide_pdf_filename', '', 'Display filename of the uploaded guide PDF')
+  ('guide_pdf_filename', '', 'Display filename of the uploaded guide PDF'),
+  ('uk_guide_pdf_url', '', 'Direct URL to download U.K. PLAB complete guide PDF'),
+  ('uk_guide_pdf_filename', '', 'Display filename of the uploaded U.K. PLAB guide PDF')
 on conflict (key) do nothing;
 
 -- 4. Create Indexes

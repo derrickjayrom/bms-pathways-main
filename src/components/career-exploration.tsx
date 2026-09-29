@@ -62,6 +62,7 @@ import {
   getSavedSubscriptionSession,
   clearSubscriptionSession,
   getAllUploadedResources,
+  triggerFileDownload,
   type BmsSiteSettings,
   type PathwaySubscription,
   type SavedSubscriptionSession,
@@ -439,31 +440,31 @@ export function UsResidencyPathwayPage() {
       }
     }
 
-    toast.success(`Opening & downloading "${res.title}"...`);
-    const link = document.createElement("a");
-    link.href = res.file_url;
-    link.download = res.filename || `${res.title.replace(/\s+/g, "_")}.pdf`;
-    link.target = "_blank";
-    link.rel = "noopener noreferrer";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    const fileUrl = res.file_url || "/BMS-US-Residency-Pathway-Guide.pdf";
+    const filename = res.filename || `${res.title.replace(/\s+/g, "_")}.pdf`;
+
+    toast.loading(`Downloading "${res.title}"...`, { id: `res-dl-${res.id}` });
+    const success = await triggerFileDownload(fileUrl, filename);
+    if (success) {
+      toast.success(`"${res.title}" downloaded successfully!`, { id: `res-dl-${res.id}` });
+    } else {
+      toast.error("Download failed. Please try again.", { id: `res-dl-${res.id}` });
+    }
   };
 
-  const triggerDownload = () => {
-    if (siteSettings.guide_pdf_url) {
-      toast.success("Opening & downloading official BMS U.S. Residency Pathway Guide...");
-      const link = document.createElement("a");
-      link.href = siteSettings.guide_pdf_url;
-      link.download = siteSettings.guide_pdf_filename || "BMS-US-Residency-Pathway-Guide.pdf";
-      link.target = "_blank";
-      link.rel = "noopener noreferrer";
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+  const triggerDownload = async () => {
+    const downloadUrl = siteSettings.guide_pdf_url || "/BMS-US-Residency-Pathway-Guide.pdf";
+    const filename = siteSettings.guide_pdf_filename || "BMS-US-Residency-Pathway-Guide.pdf";
+
+    toast.loading("Downloading official BMS U.S. Residency Pathway Guide...", { id: "us-guide-dl" });
+    const success = await triggerFileDownload(downloadUrl, filename);
+    if (success) {
+      toast.success("Guide downloaded successfully!", {
+        id: "us-guide-dl",
+        description: filename,
+      });
     } else {
-      toast.success("Printing / Downloading BMS U.S. Residency Pathway Guide!");
-      window.print();
+      toast.error("Download failed. Please check your connection.", { id: "us-guide-dl" });
     }
   };
 

@@ -38,6 +38,7 @@ import {
   getSiteSettings,
   validateActiveSubscription,
   getAllUploadedResources,
+  triggerFileDownload,
   type BmsSiteSettings,
   type PathwaySubscription,
   type SavedSubscriptionSession,
@@ -317,13 +318,21 @@ export function UkPlabPathwayPage() {
       return;
     }
 
-    const downloadUrl = siteSettings.uk_guide_pdf_url || siteSettings.guide_pdf_url;
-    if (downloadUrl) {
-      window.open(downloadUrl, "_blank");
-    } else {
+    const downloadUrl =
+      siteSettings.uk_guide_pdf_url ||
+      siteSettings.guide_pdf_url ||
+      "/BMS-UK-PLAB-Pathway-Guide.pdf";
+    const filename = siteSettings.uk_guide_pdf_filename || "BMS_PLAB_Pathway_Complete Guide.pdf";
+
+    toast.loading("Downloading official BMS U.K. PLAB Pathway Guide...", { id: "uk-guide-dl" });
+    const success = await triggerFileDownload(downloadUrl, filename);
+    if (success) {
       toast.success("Guide downloaded successfully!", {
-        description: "Official BMS U.K. PLAB Pathway Roadmap Guide (PDF).",
+        id: "uk-guide-dl",
+        description: filename,
       });
+    } else {
+      toast.error("Download failed. Please check your connection.", { id: "uk-guide-dl" });
     }
   };
 
@@ -364,7 +373,17 @@ export function UkPlabPathwayPage() {
         return;
       }
     }
-    window.open(resource.file_url, "_blank");
+
+    const fileUrl = resource.file_url || "/BMS-UK-PLAB-Pathway-Guide.pdf";
+    const filename = resource.filename || `${resource.title.replace(/\s+/g, "_")}.pdf`;
+
+    toast.loading(`Downloading "${resource.title}"...`, { id: `res-dl-${resource.id}` });
+    const success = await triggerFileDownload(fileUrl, filename);
+    if (success) {
+      toast.success(`"${resource.title}" downloaded successfully!`, { id: `res-dl-${resource.id}` });
+    } else {
+      toast.error("Download failed. Please try again.", { id: `res-dl-${resource.id}` });
+    }
   };
 
   // -------------------------------------------------------------------------

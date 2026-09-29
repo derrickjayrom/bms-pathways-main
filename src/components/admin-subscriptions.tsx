@@ -54,6 +54,7 @@ import {
   saveUploadedResource,
   deleteUploadedResource,
   setPrimaryResource,
+  triggerFileDownload,
   type PathwaySubscription,
   type BmsSiteSettings,
   type BmsResourceItem,
@@ -328,6 +329,17 @@ export function AdminSubscriptionsDashboard() {
   // Action: Save Settings
   const handleSaveSettings = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (
+      settingsForm.uk_guide_pdf_url?.includes("supabase.com/dashboard") ||
+      settingsForm.guide_pdf_url?.includes("supabase.com/dashboard")
+    ) {
+      toast.error("Invalid Supabase URL Detected", {
+        description:
+          "One of your PDF URLs is a Supabase admin dashboard page (supabase.com/dashboard/...). Please click the 'Upload' button above to upload the file directly, or in Supabase Storage click the '...' menu on the file and choose 'Copy URL'.",
+        duration: 9000,
+      });
+      return;
+    }
     setSavingSettings(true);
 
     try {
@@ -522,6 +534,15 @@ export function AdminSubscriptionsDashboard() {
 
     if (!selectedResourceFile && !newResourceForm.direct_url.trim()) {
       toast.error("Please choose a file to upload or enter a direct file URL.");
+      return;
+    }
+
+    if (newResourceForm.direct_url.includes("supabase.com/dashboard")) {
+      toast.error("Invalid Supabase URL", {
+        description:
+          "You entered a private Supabase dashboard console link. To get the public download link, click '...' next to the file inside Supabase Storage and choose 'Copy URL'. Or simply use 'Choose File to Upload' above.",
+        duration: 9000,
+      });
       return;
     }
 
@@ -1755,15 +1776,27 @@ export function AdminSubscriptionsDashboard() {
                         </Button>
                       )}
 
-                      <a
-                        href={res.file_url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-200 text-xs font-bold transition-colors h-9"
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={async () => {
+                          toast.loading(`Downloading "${res.title}"...`, {
+                            id: `admin-dl-${res.id}`,
+                          });
+                          const ok = await triggerFileDownload(res.file_url, res.filename);
+                          if (ok) {
+                            toast.success(`"${res.title}" downloaded!`, {
+                              id: `admin-dl-${res.id}`,
+                            });
+                          } else {
+                            toast.error("Download failed", { id: `admin-dl-${res.id}` });
+                          }
+                        }}
+                        className="bg-stone-800 hover:bg-stone-700 text-stone-200 text-xs font-bold transition-colors h-9 rounded-xl border-stone-700 cursor-pointer"
                       >
-                        <Download size={13} />
-                        Preview / Download
-                      </a>
+                        <Download size={13} className="mr-1.5" />
+                        Download PDF
+                      </Button>
 
                       <Button
                         variant="ghost"
@@ -2012,14 +2045,27 @@ export function AdminSubscriptionsDashboard() {
                           <div className="text-xs font-bold text-white truncate">
                             {settings.uk_guide_pdf_filename || "BMS-UK-PLAB-Pathway-Guide.pdf"}
                           </div>
-                          <a
-                            href={settings.uk_guide_pdf_url}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="text-[11px] text-sky-400 hover:text-sky-300 underline font-semibold flex items-center gap-1"
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              toast.loading("Downloading U.K. PLAB Guide...", {
+                                id: "admin-uk-dl",
+                              });
+                              const ok = await triggerFileDownload(
+                                settings.uk_guide_pdf_url || "",
+                                settings.uk_guide_pdf_filename ||
+                                  "BMS_PLAB_Pathway_Complete Guide.pdf",
+                              );
+                              if (ok) {
+                                toast.success("U.K. Guide downloaded!", { id: "admin-uk-dl" });
+                              } else {
+                                toast.error("Download failed", { id: "admin-uk-dl" });
+                              }
+                            }}
+                            className="text-[11px] text-sky-400 hover:text-sky-300 underline font-semibold flex items-center gap-1 cursor-pointer bg-transparent border-0 p-0"
                           >
-                            Preview / Download PDF <ExternalLink size={10} />
-                          </a>
+                            Download PDF <Download size={10} />
+                          </button>
                         </div>
                       </div>
 
@@ -2064,20 +2110,25 @@ export function AdminSubscriptionsDashboard() {
                     </div>
                   )}
 
-                  <div>
-                    <Label className="text-[11px] font-semibold text-stone-400 block mb-1">
-                      Direct U.K. PDF Download URL (Optional)
-                    </Label>
-                    <Input
-                      type="url"
-                      placeholder="https://..."
-                      value={settingsForm.uk_guide_pdf_url || ""}
-                      onChange={(e) =>
-                        setSettingsForm({ ...settingsForm, uk_guide_pdf_url: e.target.value })
-                      }
-                      className="bg-stone-950 border-stone-800 text-white text-xs font-mono"
-                    />
-                  </div>
+                    <div>
+                      <Label className="text-[11px] font-semibold text-stone-400 block mb-1">
+                        Direct U.K. PDF Download URL (Optional)
+                      </Label>
+                      <Input
+                        type="url"
+                        placeholder="https://..."
+                        value={settingsForm.uk_guide_pdf_url || ""}
+                        onChange={(e) =>
+                          setSettingsForm({ ...settingsForm, uk_guide_pdf_url: e.target.value })
+                        }
+                        className="bg-stone-950 border-stone-800 text-white text-xs font-mono"
+                      />
+                      <p className="text-[10px] text-stone-500 mt-1">
+                        💡 Tip: In Supabase Storage, click the <strong>...</strong> next to the file
+                        and choose <strong>Copy URL</strong>. Do not copy the browser address bar.
+                        Or simply click <strong>Upload / Replace U.K. PDF</strong> above!
+                      </p>
+                    </div>
                 </div>
 
                 {/* 2. U.S. Residency Guide PDF */}
@@ -2106,14 +2157,27 @@ export function AdminSubscriptionsDashboard() {
                           <div className="text-xs font-bold text-white truncate">
                             {settings.guide_pdf_filename || "BMS-US-Residency-Pathway-Guide.pdf"}
                           </div>
-                          <a
-                            href={settings.guide_pdf_url}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="text-[11px] text-emerald-400 hover:text-emerald-300 underline font-semibold flex items-center gap-1"
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              toast.loading("Downloading U.S. Residency Guide...", {
+                                id: "admin-us-dl",
+                              });
+                              const ok = await triggerFileDownload(
+                                settings.guide_pdf_url || "",
+                                settings.guide_pdf_filename ||
+                                  "BMS_USMLE_Residency_Pathway_PRESENTABLE (1).pdf",
+                              );
+                              if (ok) {
+                                toast.success("U.S. Guide downloaded!", { id: "admin-us-dl" });
+                              } else {
+                                toast.error("Download failed", { id: "admin-us-dl" });
+                              }
+                            }}
+                            className="text-[11px] text-emerald-400 hover:text-emerald-300 underline font-semibold flex items-center gap-1 cursor-pointer bg-transparent border-0 p-0"
                           >
-                            Preview / Download PDF <ExternalLink size={10} />
-                          </a>
+                            Download PDF <Download size={10} />
+                          </button>
                         </div>
                       </div>
 
@@ -2158,20 +2222,25 @@ export function AdminSubscriptionsDashboard() {
                     </div>
                   )}
 
-                  <div>
-                    <Label className="text-[11px] font-semibold text-stone-400 block mb-1">
-                      Direct U.S. PDF Download URL (Optional)
-                    </Label>
-                    <Input
-                      type="url"
-                      placeholder="https://..."
-                      value={settingsForm.guide_pdf_url || ""}
-                      onChange={(e) =>
-                        setSettingsForm({ ...settingsForm, guide_pdf_url: e.target.value })
-                      }
-                      className="bg-stone-950 border-stone-800 text-white text-xs font-mono"
-                    />
-                  </div>
+                    <div>
+                      <Label className="text-[11px] font-semibold text-stone-400 block mb-1">
+                        Direct U.S. PDF Download URL (Optional)
+                      </Label>
+                      <Input
+                        type="url"
+                        placeholder="https://..."
+                        value={settingsForm.guide_pdf_url || ""}
+                        onChange={(e) =>
+                          setSettingsForm({ ...settingsForm, guide_pdf_url: e.target.value })
+                        }
+                        className="bg-stone-950 border-stone-800 text-white text-xs font-mono"
+                      />
+                      <p className="text-[10px] text-stone-500 mt-1">
+                        💡 Tip: In Supabase Storage, click the <strong>...</strong> next to the file
+                        and choose <strong>Copy URL</strong>. Do not copy the browser address bar.
+                        Or simply click <strong>Upload / Replace U.S. PDF</strong> above!
+                      </p>
+                    </div>
                 </div>
 
                 {/* Storage setup helper tip */}

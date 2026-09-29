@@ -46,17 +46,69 @@ export interface BmsSiteSettings {
 }
 
 export const DEFAULT_SETTINGS: BmsSiteSettings = {
-  whatsapp_number: "+233240000000",
+  whatsapp_number: "+233240241399",
   whatsapp_default_message:
     "Hello BMS! I would like to activate my subscription for the {pathway} Roadmap & Complete Guide. My reference code is: {code} and email: {email}.",
   subscription_price: "$25 / GHS 350",
   all_access_price: "$40 / GHS 550",
   admin_passcode: "bms-admin-2025",
-  guide_pdf_url: "",
-  guide_pdf_filename: "",
-  uk_guide_pdf_url: "",
-  uk_guide_pdf_filename: "",
+  guide_pdf_url:
+    "https://owurtseimitnofbdepoq.supabase.co/storage/v1/object/public/pathway-guides/guides/1790354719791_BMS_USMLE_Residency_Pathway_PRESENTABLE__1_.pdf",
+  guide_pdf_filename: "BMS_USMLE_Residency_Pathway_PRESENTABLE (1).pdf",
+  uk_guide_pdf_url:
+    "https://owurtseimitnofbdepoq.supabase.co/storage/v1/object/public/pathway-guides/guides/BMS_PLAB_Pathway_Complete%20Guide.pdf",
+  uk_guide_pdf_filename: "BMS_PLAB_Pathway_Complete Guide.pdf",
 };
+
+/**
+ * Triggers a direct browser file download using blob fetch.
+ * Prevents opening private dashboard pages or cross-origin navigation.
+ */
+export async function triggerFileDownload(url: string, filename: string): Promise<boolean> {
+  if (typeof window === "undefined") return false;
+
+  let safeUrl = url;
+  if (!safeUrl || safeUrl.includes("supabase.com/dashboard")) {
+    if (filename.toLowerCase().includes("plab") || filename.toLowerCase().includes("uk")) {
+      safeUrl =
+        "https://owurtseimitnofbdepoq.supabase.co/storage/v1/object/public/pathway-guides/guides/BMS_PLAB_Pathway_Complete%20Guide.pdf";
+    } else {
+      safeUrl =
+        "https://owurtseimitnofbdepoq.supabase.co/storage/v1/object/public/pathway-guides/guides/1790354719791_BMS_USMLE_Residency_Pathway_PRESENTABLE__1_.pdf";
+    }
+  }
+
+  try {
+    const res = await fetch(safeUrl, { mode: "cors" });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const blob = await res.blob();
+    const objectUrl = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = objectUrl;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setTimeout(() => window.URL.revokeObjectURL(objectUrl), 2500);
+    return true;
+  } catch (err) {
+    console.warn("Direct blob download failed, falling back to anchor trigger:", err);
+    try {
+      const link = document.createElement("a");
+      link.href = safeUrl;
+      link.download = filename;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+}
+
 
 const LOCAL_STORAGE_KEY = "bms_usmle_subscription_session";
 const DEVICE_STORAGE_KEY = "bms_device_fingerprint_v1";
@@ -127,6 +179,14 @@ export async function getSiteSettings(): Promise<BmsSiteSettings> {
           (settings as unknown as Record<string, string>)[row.key] = row.value;
         }
       });
+    }
+
+    // Sanitize any accidentally pasted Supabase dashboard URLs
+    if (settings.uk_guide_pdf_url && settings.uk_guide_pdf_url.includes("supabase.com/dashboard")) {
+      settings.uk_guide_pdf_url = DEFAULT_SETTINGS.uk_guide_pdf_url;
+    }
+    if (settings.guide_pdf_url && settings.guide_pdf_url.includes("supabase.com/dashboard")) {
+      settings.guide_pdf_url = DEFAULT_SETTINGS.guide_pdf_url;
     }
   } catch (err) {
     console.warn("Error fetching bms_settings:", err);
@@ -484,7 +544,24 @@ export async function getAllUploadedResources(): Promise<BmsResourceItem[]> {
       }
     }
 
-    return list;
+    const sanitizedList = list.map((item) => {
+      let safeUrl = item.file_url;
+      if (!safeUrl || safeUrl.includes("supabase.com/dashboard")) {
+        if (item.pathway_id === "uk-residency" || item.category === "U.K. PLAB") {
+          safeUrl =
+            "https://owurtseimitnofbdepoq.supabase.co/storage/v1/object/public/pathway-guides/guides/BMS_PLAB_Pathway_Complete%20Guide.pdf";
+        } else {
+          safeUrl =
+            "https://owurtseimitnofbdepoq.supabase.co/storage/v1/object/public/pathway-guides/guides/1790354719791_BMS_USMLE_Residency_Pathway_PRESENTABLE__1_.pdf";
+        }
+      }
+      return {
+        ...item,
+        file_url: safeUrl,
+      };
+    });
+
+    return sanitizedList;
   } catch (err) {
     console.warn("Error fetching uploaded resources:", err);
     return [];

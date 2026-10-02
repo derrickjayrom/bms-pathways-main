@@ -935,7 +935,7 @@ export const plabRoadmapStages: UsmleRoadmapStage[] = [
     summary:
       "Demonstrate the required professional English proficiency through GMC-approved testing (OET Medicine or IELTS Academic).",
     fees: [
-      { item: "OET Medicine Examination", amount: "~£587 (AUD $587)" },
+      { item: "OET Medicine Examination", amount: "AUD $587" },
       { item: "IELTS Academic Examination", amount: "~£195 – £220" },
     ],
     details: [
@@ -1183,7 +1183,7 @@ export const plabBudgetBreakdown = [
   },
   {
     item: "OET Medicine Examination",
-    fee: "~£587 (AUD $587)",
+    fee: "AUD $587",
     category: "English Language Proficiency",
   },
   {

@@ -279,19 +279,6 @@ export const resourceCards: ResourceCardItem[] = [
     href: "/resources",
   },
   {
-    title: "Map My Medical Career",
-    icon: Compass,
-    description:
-      "Explore different routes from medical school to your desired career and discover possible next steps.",
-    buttonText: "Start Mapping",
-    href: "#interests",
-    interests: [
-      { label: "🇺🇸 U.S. Residency Pathway", href: "/career-exploration/us-residency" },
-      { label: "🌍 Other International Pathways", href: "/career-exploration" },
-      { label: "🩺 Specialization & Residency", href: "/programs" },
-    ],
-  },
-  {
     title: "Career Skills",
     icon: BriefcaseBusiness,
     description:

@@ -936,7 +936,7 @@ export const plabRoadmapStages: UsmleRoadmapStage[] = [
       "Demonstrate the required professional English proficiency through GMC-approved testing (OET Medicine or IELTS Academic).",
     fees: [
       { item: "OET Medicine Examination", amount: "AUD $587" },
-      { item: "IELTS Academic Examination", amount: "~£195 – £220" },
+      { item: "IELTS Academic Examination", amount: "~£240 – £260" },
     ],
     details: [
       "Key Point: Demonstrate the required knowledge of English to practise safely in the UK healthcare system.",
@@ -1015,7 +1015,6 @@ export const plabRoadmapStages: UsmleRoadmapStage[] = [
       "Assesses the knowledge needed for safe medical practice in the UK, mapped to the GMC blueprint.",
       "Pass mark is not a fixed number and is determined through the GMC's standard-setting process for each sitting.",
       "Common preparation resource: Plabable (question banks, categories, and mocks).",
-      "Important Update for Ghanaian Candidates: PLAB 1 will no longer be offered in Accra from February 2027. Ghanaian candidates will need to select another available PLAB 1 location (such as Nigeria, Kenya, South Africa, or travel to the UK). Always check GMC Online for current test centre availability before booking.",
     ],
     altOption: {
       title: "What to Do If You Don’t Pass PLAB 1",
@@ -1072,8 +1071,6 @@ export const plabRoadmapStages: UsmleRoadmapStage[] = [
     passNextStageId: "plab-stage-09",
     fees: [
       { item: "PLAB 2 Examination Fee (2026 GMC listing)", amount: "£1,036*" },
-      { item: "UK Standard Visitor Visa", amount: "£115*" },
-      { item: "Manchester Travel & Accommodation", amount: "~£1,200 – £2,000" },
       { item: "Optional PLAB 2 Preparation Academy", amount: "~£500 – £750" },
     ],
     details: [
@@ -1188,12 +1185,12 @@ export const plabBudgetBreakdown = [
   },
   {
     item: "IELTS Academic Examination (alternative)",
-    fee: "~£195 – £220",
+    fee: "~£240 – £260",
     category: "English Language Proficiency",
   },
   {
     item: "GMC Registration Application (with Licence to Practise)",
-    fee: "£455*",
+    fee: "£481*",
     category: "GMC Registration",
   },
   {

@@ -1633,7 +1633,7 @@ export function UkPlabPathwayPage() {
                 url: "https://www.trac.jobs",
               },
               {
-                name: "ECFMG EPIC",
+                name: "ECFMG.org",
                 desc: "Electronic Portfolio of International Credentials for GMC primary-source verification.",
                 url: "https://www.ecfmg.org/epic/",
               },

@@ -749,9 +749,9 @@ export function UkPlabPathwayPage() {
                   <span className="flex size-5 rounded-full bg-[#10B981] text-white items-center justify-center text-[10px] font-black shrink-0">
                     ✓
                   </span>
-                  <span>PLAB 1 &amp; PLAB 2 Completed</span>
+                  <span>PLAB 1 Completed</span>
                   <span className="text-muted-foreground font-normal hidden md:inline">
-                    • Unlocks Full GMC Registration with Licence to Practise &amp; NHS Medical Job Search
+                    • Unlocks PLAB 2 Booking, GMC Registration &amp; NHS Employment Pathway
                   </span>
                 </div>
                 <div className="flex items-center gap-1.5 font-bold text-[#10B981] text-xs shrink-0 self-end sm:self-auto">

@@ -690,15 +690,68 @@ export const usmleRoadmapStages: UsmleRoadmapStage[] = [
       "Step 2 CK is scored numerically on a 3-digit scale.",
       "If you passed: Continue directly to the next stage (08 Build a competitive IMG profile).",
       "If you did not pass: Follow the 'What to do' guidance below.",
+      "Note on Step 3: While part of the USMLE licensing pathway ($955, administered only in the US/territories), Step 3 is generally not required before applying or matching into residency, nor is it needed for ECFMG Certification.",
     ],
     altOption: {
-      title: "What to do: Step 2 CK Remediation & Step 3 Guidance",
+      title: "What to Do If You Don’t Pass USMLE Step 2 CK",
       description:
-        "If Step 2 CK is not passed, review clinical decision-making areas and recalibrate preparation.",
+        "If you fail USMLE Step 2 CK, it does not mean your USMLE journey is over. A failed attempt should lead to a deliberate change in strategy, rather than simply repeating the same study schedule.",
+      introPoints: [
+        "Under current USMLE rules, you can take the same Step up to 3 times within a 12-month period. A fourth attempt has additional waiting requirements: at least 12 months after the first attempt and 6 months after the most recent attempt.",
+        "Don’t immediately book another exam. First, take time to understand what went wrong and identify the areas that need improvement.",
+      ],
+      sections: [
+        {
+          heading: "Identify the Reason for the Failed Attempt",
+          subtext: "Consider whether the main challenge was:",
+          items: [
+            "Inadequate knowledge or content gaps",
+            "Difficulty interpreting questions",
+            "Poor time management",
+            "Test anxiety or inadequate exam stamina",
+            "Insufficient practice questions",
+            "Weak performance on NBME/UWorld assessments before the exam",
+          ],
+        },
+        {
+          heading: "If Content Knowledge Was the Problem",
+          items: [
+            "Review your USMLE performance/diagnostic report to identify weak organ systems and disciplines.",
+            "Focus your study on these specific weaknesses rather than restarting the entire preparation blindly.",
+          ],
+        },
+        {
+          heading: "Rebuild Your Preparation",
+          subtext:
+            "A failed attempt should lead to a change in strategy, rather than simply repeating the same study schedule.",
+          items: [
+            "Work specifically on timing and exam stamina if these were weaknesses.",
+            "Complete more practice questions and carefully review your incorrect answers.",
+            "Use NBME assessments to monitor progress and assess readiness for a retake.",
+            "Identify and address recurring weaknesses before scheduling another exam.",
+          ],
+        },
+        {
+          heading: "What If You Fail Step 2 More Than Once?",
+          subtext:
+            "This becomes increasingly important for residency applications because your USMLE transcript will show the attempt history.",
+          items: [
+            "A second or third attempt doesn’t automatically make residency impossible, but it can affect how programs view an application.",
+            "You should therefore be particularly careful about using the remaining attempts.",
+          ],
+        },
+      ],
+      callout: {
+        title: "Most Importantly",
+        content:
+          "Don’t rush to rebook the examination. Your readiness should be based on objective practice performance, improvement in your weak areas, and confidence that you are adequately prepared for another attempt.",
+      },
       actionSteps: [
-        "Review your numerical score breakdown and identify areas in clinical diagnosis and management that require remediation.",
-        "Note on Step 3: It is part of the USMLE pathway, but it is generally not a requirement you need to complete before applying/matching into residency. Testing is only in the US and its territories. Fee $955.",
-        "Do you have to write Step 3? If your goal is ultimately to become independently licensed to practice medicine in the U.S., then yes, Step 3 is an important part of the licensing pathway. But you do not normally need Step 3 to obtain ECFMG Certification or to enter the Match.",
+        "Review your USMLE diagnostic report to pinpoint weak organ systems and clinical disciplines.",
+        "Diagnose timing, exam stamina, anxiety, or question interpretation challenges.",
+        "Complete targeted practice questions and rigorously review all incorrect answers.",
+        "Ensure consistent passing scores on NBME practice exams before scheduling another exam.",
+        "Be particularly mindful of attempt history on your USMLE transcript when considering residency applications.",
       ],
     },
   },

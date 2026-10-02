@@ -63,6 +63,16 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const ADMIN_SESSION_KEY = "bms_admin_session_auth";
 
@@ -80,6 +90,16 @@ export function AdminSubscriptionsDashboard() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [missingTables, setMissingTables] = useState<string[]>([]);
+  const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
+  const [confirmDialog, setConfirmDialog] = useState<{
+    isOpen: boolean;
+    title: string;
+    description: string;
+    confirmLabel: string;
+    variant: "danger" | "warning" | "default";
+    action: () => Promise<void> | void;
+    isLoading?: boolean;
+  } | null>(null);
 
   // Multi-resource library state
   const [uploadedResources, setUploadedResources] = useState<BmsResourceItem[]>([]);
@@ -210,120 +230,169 @@ export function AdminSubscriptionsDashboard() {
 
   // Action: Approve
   const handleApprove = async (sub: PathwaySubscription) => {
-    const ok = await updateSubscriptionStatus(sub.id, "approved", null, settings.admin_passcode);
-    if (ok) {
-      toast.success(`Approved access for ${sub.full_name}!`);
-      // Update local state
-      setSubscriptions((prev) =>
-        prev.map((item) =>
-          item.id === sub.id
-            ? { ...item, status: "approved", approved_at: new Date().toISOString() }
-            : item,
-        ),
-      );
+    setActionLoadingId(sub.id);
+    try {
+      const passcode = settings.admin_passcode || DEFAULT_SETTINGS.admin_passcode;
+      const ok = await updateSubscriptionStatus(sub.id, "approved", null, passcode);
+      if (ok) {
+        toast.success(`Approved access for ${sub.full_name}!`);
+        // Update local state
+        setSubscriptions((prev) =>
+          prev.map((item) =>
+            item.id === sub.id
+              ? { ...item, status: "approved", approved_at: new Date().toISOString() }
+              : item,
+          ),
+        );
 
-      // Offer immediate WhatsApp message
-      const notifyUrl = buildAdminWhatsAppReplyLink(
-        sub.phone_whatsapp,
-        sub.full_name,
-        sub.reference_code,
-      );
-      toast("WhatsApp Confirmation Ready", {
-        description: `Click to message ${sub.full_name} on WhatsApp that their access is approved.`,
-        action: {
-          label: "Send WhatsApp",
-          onClick: () => window.open(notifyUrl, "_blank"),
-        },
-        duration: 8000,
-      });
-    } else {
-      toast.error("Failed to approve subscription");
+        // Offer immediate WhatsApp message
+        const notifyUrl = buildAdminWhatsAppReplyLink(
+          sub.phone_whatsapp,
+          sub.full_name,
+          sub.reference_code,
+          sub.pathway_id,
+        );
+        toast("WhatsApp Confirmation Ready", {
+          description: `Click to message ${sub.full_name} on WhatsApp that their access is approved.`,
+          action: {
+            label: "Send WhatsApp",
+            onClick: () => window.open(notifyUrl, "_blank"),
+          },
+          duration: 8000,
+        });
+      } else {
+        toast.error("Failed to approve subscription");
+      }
+    } finally {
+      setActionLoadingId(null);
     }
   };
 
   // Action: Revoke
   const handleRevoke = async (sub: PathwaySubscription) => {
-    if (
-      !confirm(
-        `Revoke access for ${sub.full_name} (${sub.reference_code})? Their access will immediately lock.`,
-      )
-    )
-      return;
-    const ok = await updateSubscriptionStatus(sub.id, "pending", null, settings.admin_passcode);
-    if (ok) {
-      toast.info(
-        `Revoked access for ${sub.full_name}. Status reverted to pending and access locked.`,
-      );
-      setSubscriptions((prev) =>
-        prev.map((item) =>
-          item.id === sub.id ? { ...item, status: "pending", approved_at: null } : item,
-        ),
-      );
-    } else {
-      toast.error("Failed to revoke access");
-    }
+    setConfirmDialog({
+      isOpen: true,
+      title: "Revoke Access Confirmation",
+      description: `Revoke access for ${sub.full_name} (${sub.reference_code})?\n\nTheir access will immediately lock and their status will revert to pending.`,
+      confirmLabel: "Revoke Access",
+      variant: "warning",
+      action: async () => {
+        setActionLoadingId(sub.id);
+        try {
+          const passcode = settings.admin_passcode || DEFAULT_SETTINGS.admin_passcode;
+          const ok = await updateSubscriptionStatus(sub.id, "pending", null, passcode);
+          if (ok) {
+            toast.info(
+              `Revoked access for ${sub.full_name}. Status reverted to pending and access locked.`,
+            );
+            setSubscriptions((prev) =>
+              prev.map((item) =>
+                item.id === sub.id ? { ...item, status: "pending", approved_at: null } : item,
+              ),
+            );
+          } else {
+            toast.error("Failed to revoke access");
+          }
+        } finally {
+          setActionLoadingId(null);
+        }
+      },
+    });
   };
 
   // Action: Reject
   const handleReject = async (sub: PathwaySubscription) => {
-    if (
-      !confirm(
-        `Are you sure you want to mark ${sub.full_name}'s request as rejected? Their access will immediately lock.`,
-      )
-    )
-      return;
-    const ok = await updateSubscriptionStatus(sub.id, "rejected", null, settings.admin_passcode);
-    if (ok) {
-      toast.info(`Marked ${sub.full_name} as rejected. Access has been locked.`);
-      setSubscriptions((prev) =>
-        prev.map((item) =>
-          item.id === sub.id ? { ...item, status: "rejected", approved_at: null } : item,
-        ),
-      );
-    } else {
-      toast.error("Failed to update status");
-    }
+    setConfirmDialog({
+      isOpen: true,
+      title: "Reject Request Confirmation",
+      description: `Are you sure you want to mark ${sub.full_name}'s request (${sub.reference_code}) as rejected?\n\nTheir access will immediately lock.`,
+      confirmLabel: "Reject Request",
+      variant: "danger",
+      action: async () => {
+        setActionLoadingId(sub.id);
+        try {
+          const passcode = settings.admin_passcode || DEFAULT_SETTINGS.admin_passcode;
+          const ok = await updateSubscriptionStatus(sub.id, "rejected", null, passcode);
+          if (ok) {
+            toast.info(`Marked ${sub.full_name} as rejected. Access has been locked.`);
+            setSubscriptions((prev) =>
+              prev.map((item) =>
+                item.id === sub.id ? { ...item, status: "rejected", approved_at: null } : item,
+              ),
+            );
+          } else {
+            toast.error("Failed to update status");
+          }
+        } finally {
+          setActionLoadingId(null);
+        }
+      },
+    });
   };
 
   // Action: Delete
   const handleDelete = async (sub: PathwaySubscription) => {
-    if (
-      !confirm(
-        `Permanently delete request for ${sub.full_name} (${sub.reference_code})? This will permanently delete their record and immediately lock access.`,
-      )
-    )
-      return;
-    const ok = await deleteSubscription(sub.id, settings.admin_passcode);
-    if (ok) {
-      toast.success("Subscription record permanently deleted");
-      setSubscriptions((prev) => prev.filter((item) => item.id !== sub.id));
-    } else {
-      toast.error("Failed to delete record");
-    }
+    setConfirmDialog({
+      isOpen: true,
+      title: "Delete Subscription Record",
+      description: `Permanently delete request for ${sub.full_name} (${sub.reference_code})?\n\nThis will permanently delete their record from the database and immediately lock access. This action cannot be undone.`,
+      confirmLabel: "Permanently Delete",
+      variant: "danger",
+      action: async () => {
+        setActionLoadingId(sub.id);
+        try {
+          const passcode = settings.admin_passcode || DEFAULT_SETTINGS.admin_passcode;
+          const ok = await deleteSubscription(sub.id, passcode);
+          if (ok) {
+            toast.success("Subscription record permanently deleted");
+            setSubscriptions((prev) => prev.filter((item) => item.id !== sub.id));
+          } else {
+            toast.error("Failed to delete record");
+          }
+        } finally {
+          setActionLoadingId(null);
+        }
+      },
+    });
   };
 
   // Action: Reset Device Binding
   const handleResetDevice = async (sub: PathwaySubscription) => {
-    if (
-      !confirm(
-        `Reset registered device for ${sub.full_name} (${sub.reference_code})?\n\nThis will unbind "${sub.last_device_name || "current device"}" so the legitimate owner can activate on their new phone or computer.`,
-      )
-    )
-      return;
-
-    const res = await resetSubscriptionDevice(sub.id, settings.admin_passcode);
-    if (res.success) {
-      toast.success(`Device binding reset for ${sub.full_name}!`, {
-        description: "The user can now log in and bind a new device.",
-      });
-      setSubscriptions((prev) =>
-        prev.map((item) =>
-          item.id === sub.id ? { ...item, bound_device_id: null, last_device_name: null } : item,
-        ),
-      );
-    } else {
-      toast.error(`Failed to reset device: ${res.error || "Unknown error"}`);
-    }
+    setConfirmDialog({
+      isOpen: true,
+      title: "Reset Device Binding",
+      description: `Reset registered device for ${sub.full_name} (${sub.reference_code})?\n\nThis will unbind "${sub.last_device_name || "current device"}" so the legitimate owner can activate on their new phone or computer.`,
+      confirmLabel: "Reset Device",
+      variant: "default",
+      action: async () => {
+        setActionLoadingId(sub.id);
+        try {
+          const passcode = settings.admin_passcode || DEFAULT_SETTINGS.admin_passcode;
+          const res = await resetSubscriptionDevice(sub.id, passcode);
+          if (res.success) {
+            toast.success(`Device binding reset for ${sub.full_name}!`, {
+              description: "The user can now log in and bind a new device.",
+            });
+            setSubscriptions((prev) =>
+              prev.map((item) =>
+                item.id === sub.id
+                  ? {
+                      ...item,
+                      bound_device_id: null,
+                      last_device_name: null,
+                      device_reset_count: (item.device_reset_count || 0) + 1,
+                    }
+                  : item,
+              ),
+            );
+          } else {
+            toast.error(`Failed to reset device: ${res.error || "Unknown error"}`);
+          }
+        } finally {
+          setActionLoadingId(null);
+        }
+      },
+    });
   };
 
   // Action: Save Settings
@@ -614,17 +683,25 @@ export function AdminSubscriptionsDashboard() {
 
   // Action: Delete Resource
   const handleDeleteResource = async (resItem: BmsResourceItem) => {
-    if (!confirm(`Are you sure you want to delete "${resItem.title}"?`)) return;
-    const ok = await deleteUploadedResource(resItem.id);
-    if (ok) {
-      toast.success("Resource deleted successfully");
-      setUploadedResources((prev) => prev.filter((r) => r.id !== resItem.id));
-      const updatedSettings = await getSiteSettings();
-      setSettings(updatedSettings);
-      setSettingsForm(updatedSettings);
-    } else {
-      toast.error("Failed to delete resource");
-    }
+    setConfirmDialog({
+      isOpen: true,
+      title: "Delete Resource File",
+      description: `Are you sure you want to delete "${resItem.title}"?\n\nStudents will no longer be able to download this file.`,
+      confirmLabel: "Delete Resource",
+      variant: "danger",
+      action: async () => {
+        const ok = await deleteUploadedResource(resItem.id);
+        if (ok) {
+          toast.success("Resource deleted successfully");
+          setUploadedResources((prev) => prev.filter((r) => r.id !== resItem.id));
+          const updatedSettings = await getSiteSettings();
+          setSettings(updatedSettings);
+          setSettingsForm(updatedSettings);
+        } else {
+          toast.error("Failed to delete resource");
+        }
+      },
+    });
   };
 
   // Action: Set as Primary Guide
@@ -1264,10 +1341,15 @@ export function AdminSubscriptionsDashboard() {
                       <div className="flex flex-wrap items-center gap-2 pt-2 lg:pt-0 border-t lg:border-t-0 border-stone-800/80">
                         {isPending && (
                           <Button
+                            disabled={actionLoadingId === sub.id}
                             onClick={() => handleApprove(sub)}
-                            className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs h-9 px-4 rounded-xl shadow-xs"
+                            className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs h-9 px-4 rounded-xl shadow-xs disabled:opacity-50"
                           >
-                            <CheckCircle2 size={14} className="mr-1.5" />
+                            {actionLoadingId === sub.id ? (
+                              <RefreshCw size={14} className="mr-1.5 animate-spin" />
+                            ) : (
+                              <CheckCircle2 size={14} className="mr-1.5" />
+                            )}
                             Approve Access
                           </Button>
                         )}
@@ -1288,11 +1370,16 @@ export function AdminSubscriptionsDashboard() {
                           <Button
                             variant="outline"
                             size="sm"
+                            disabled={actionLoadingId === sub.id}
                             onClick={() => handleResetDevice(sub)}
-                            className="border-stone-800 text-stone-300 hover:text-white hover:bg-stone-800 text-xs h-9 rounded-xl font-medium"
+                            className="border-stone-800 text-stone-300 hover:text-white hover:bg-stone-800 text-xs h-9 rounded-xl font-medium disabled:opacity-50"
                             title="Unbind device so student can activate on a new phone or computer"
                           >
-                            <Smartphone size={13} className="mr-1 text-emerald-400" />
+                            {actionLoadingId === sub.id ? (
+                              <RefreshCw size={13} className="mr-1 animate-spin text-emerald-400" />
+                            ) : (
+                              <Smartphone size={13} className="mr-1 text-emerald-400" />
+                            )}
                             Reset Device
                           </Button>
                         )}
@@ -1300,8 +1387,9 @@ export function AdminSubscriptionsDashboard() {
                         {isPending && (
                           <Button
                             variant="outline"
+                            disabled={actionLoadingId === sub.id}
                             onClick={() => handleReject(sub)}
-                            className="border-stone-800 text-stone-400 hover:text-rose-400 hover:bg-rose-950/20 text-xs h-9 rounded-xl"
+                            className="border-stone-800 text-stone-400 hover:text-rose-400 hover:bg-rose-950/20 text-xs h-9 rounded-xl disabled:opacity-50"
                           >
                             Reject
                           </Button>
@@ -1310,10 +1398,14 @@ export function AdminSubscriptionsDashboard() {
                         {isApproved && (
                           <Button
                             variant="outline"
+                            disabled={actionLoadingId === sub.id}
                             onClick={() => handleRevoke(sub)}
-                            className="border-stone-800 text-stone-400 hover:text-amber-400 text-xs h-9 rounded-xl"
+                            className="border-stone-800 text-stone-400 hover:text-amber-400 text-xs h-9 rounded-xl disabled:opacity-50"
                             title="Revert status back to pending and lock access"
                           >
+                            {actionLoadingId === sub.id ? (
+                              <RefreshCw size={13} className="mr-1 animate-spin text-amber-400" />
+                            ) : null}
                             Revoke
                           </Button>
                         )}
@@ -1321,8 +1413,9 @@ export function AdminSubscriptionsDashboard() {
                         <Button
                           variant="ghost"
                           size="icon"
+                          disabled={actionLoadingId === sub.id}
                           onClick={() => handleDelete(sub)}
-                          className="text-stone-500 hover:text-rose-400 hover:bg-stone-800 h-9 w-9 rounded-xl"
+                          className="text-stone-500 hover:text-rose-400 hover:bg-stone-800 h-9 w-9 rounded-xl disabled:opacity-50"
                           title="Delete record"
                         >
                           <Trash2 size={14} />
@@ -2286,6 +2379,77 @@ export function AdminSubscriptionsDashboard() {
               </div>
             </form>
           </div>
+        )}
+
+        {/* Global Accessible In-App Confirmation Modal */}
+        {confirmDialog && (
+          <AlertDialog
+            open={confirmDialog.isOpen}
+            onOpenChange={(open) => {
+              if (!open && !confirmDialog.isLoading) {
+                setConfirmDialog(null);
+              }
+            }}
+          >
+            <AlertDialogContent className="bg-stone-900 border border-stone-800 text-white max-w-md shadow-2xl rounded-2xl">
+              <AlertDialogHeader>
+                <AlertDialogTitle className="text-base font-bold text-white flex items-center gap-2">
+                  {confirmDialog.variant === "danger" && (
+                    <AlertTriangle className="text-rose-500 shrink-0" size={18} />
+                  )}
+                  {confirmDialog.variant === "warning" && (
+                    <AlertTriangle className="text-amber-500 shrink-0" size={18} />
+                  )}
+                  {confirmDialog.variant === "default" && (
+                    <Smartphone className="text-emerald-400 shrink-0" size={18} />
+                  )}
+                  <span>{confirmDialog.title}</span>
+                </AlertDialogTitle>
+                <AlertDialogDescription className="text-stone-300 text-xs leading-relaxed whitespace-pre-line pt-1">
+                  {confirmDialog.description}
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter className="gap-2 sm:gap-0 mt-5 pt-3 border-t border-stone-800/80">
+                <AlertDialogCancel
+                  disabled={confirmDialog.isLoading}
+                  onClick={() => setConfirmDialog(null)}
+                  className="border-stone-700 bg-stone-800 text-stone-300 hover:bg-stone-700 hover:text-white text-xs h-9 rounded-xl font-medium"
+                >
+                  Cancel
+                </AlertDialogCancel>
+                <AlertDialogAction
+                  disabled={confirmDialog.isLoading}
+                  onClick={async (e) => {
+                    e.preventDefault();
+                    if (confirmDialog.action) {
+                      setConfirmDialog((prev) => (prev ? { ...prev, isLoading: true } : null));
+                      try {
+                        await confirmDialog.action();
+                      } finally {
+                        setConfirmDialog(null);
+                      }
+                    }
+                  }}
+                  className={`text-xs font-bold h-9 px-4 rounded-xl transition-all shadow-sm ${
+                    confirmDialog.variant === "danger"
+                      ? "bg-rose-600 hover:bg-rose-500 text-white"
+                      : confirmDialog.variant === "warning"
+                        ? "bg-amber-600 hover:bg-amber-500 text-white"
+                        : "bg-emerald-600 hover:bg-emerald-500 text-white"
+                  }`}
+                >
+                  {confirmDialog.isLoading ? (
+                    <>
+                      <RefreshCw size={13} className="animate-spin mr-1.5" />
+                      Processing...
+                    </>
+                  ) : (
+                    confirmDialog.confirmLabel
+                  )}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         )}
       </main>
     </div>

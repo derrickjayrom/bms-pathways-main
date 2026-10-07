@@ -198,138 +198,104 @@ export function HomePage() {
         className="py-16 lg:py-20 bg-stone-50/80 border-y border-border/70 scroll-mt-12"
       >
         <div className="mx-auto max-w-7xl px-5 lg:px-8">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
-            <div className="max-w-3xl">
-              <p className="text-xs font-bold uppercase tracking-widest text-[#10B981]">
-                INTERESTS
-              </p>
-              <h2 className="mt-2 text-3xl font-extrabold text-foreground sm:text-4xl tracking-tight">
-                Map My Medical Career by Interests
-              </h2>
-              <p className="mt-3 text-base text-muted-foreground sm:text-lg leading-relaxed">
-                Decide how to map your medical career based on your destination and clinical goals.
-                Explore step-by-step pathways tailored to your interests.
-              </p>
-            </div>
-            <Button
-              asChild
-              variant="outline"
-              className="border-stone-300 font-bold self-start md:self-auto rounded-xl"
-            >
-              <Link to="/career-exploration">
-                View All Pathways <ArrowRight className="ml-2 size-4 text-[#10B981]" />
-              </Link>
-            </Button>
+          <div className="max-w-3xl mb-10 sm:mb-12">
+            <p className="text-xs font-bold uppercase tracking-widest text-[#10B981]">
+              INTERESTS
+            </p>
+            <h2 className="mt-2 text-3xl font-extrabold text-foreground sm:text-4xl tracking-tight">
+              Map Your Pathway by Interests
+            </h2>
+            <p className="mt-3 text-base text-muted-foreground sm:text-lg leading-relaxed">
+              Decide how to map your medical career based on your destination and clinical goals.
+              Explore step-by-step pathways tailored to your interests.
+            </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Card 1: U.S. Residency Pathway */}
-            <div className="rounded-2xl border-2 border-[#10B981]/50 bg-card p-7 shadow-xs flex flex-col justify-between hover:shadow-md hover:border-[#10B981] transition-all">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
+            {/* Card 1: Map Your Pathway (International Pathways) */}
+            <div className="rounded-2xl border-2 border-[#10B981]/50 bg-card p-7 sm:p-8 shadow-xs flex flex-col justify-between hover:shadow-md hover:border-[#10B981] transition-all">
               <div>
                 <div className="flex items-center justify-between mb-4">
-                  <span className="text-3xl">🇺🇸</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-3xl">🌍</span>
+                    <span className="text-xs sm:text-sm font-semibold text-muted-foreground">
+                      U.S. • U.K. • Canada • Australia
+                    </span>
+                  </div>
                   <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800">
-                    Interactive Roadmap
+                    Interactive Roadmaps
                   </span>
                 </div>
-                <h3 className="text-xl font-bold text-foreground">U.S. Residency Pathway</h3>
-                <p className="mt-2.5 text-sm text-muted-foreground leading-relaxed">
-                  Complete 14-stage journey for international medical graduates: USMLE Step 1 & 2
-                  CK, ECFMG certification, Intealth, ERAS, interviews, and NRMP Match.
+                <h3 className="text-xl sm:text-2xl font-bold text-foreground">Map Your Pathway</h3>
+                <p className="mt-2.5 text-sm sm:text-base text-muted-foreground leading-relaxed">
+                  Complete step-by-step journeys for international medical graduates: licensing exams
+                  (USMLE, PLAB), credential verification, applications, and residency matches worldwide.
                 </p>
-                <div className="mt-4 flex flex-wrap gap-1.5">
-                  <span className="text-xs bg-stone-100 px-2 py-0.5 rounded font-medium text-stone-700">
-                    USMLE Step 1 & 2
+                <div className="mt-5 flex flex-wrap gap-1.5">
+                  <span className="text-xs bg-stone-100 px-2.5 py-1 rounded-md font-medium text-stone-700">
+                    U.S. (USMLE)
                   </span>
-                  <span className="text-xs bg-stone-100 px-2 py-0.5 rounded font-medium text-stone-700">
-                    ECFMG
+                  <span className="text-xs bg-stone-100 px-2.5 py-1 rounded-md font-medium text-stone-700">
+                    U.K. (PLAB)
                   </span>
-                  <span className="text-xs bg-stone-100 px-2 py-0.5 rounded font-medium text-stone-700">
-                    NRMP Match
+                  <span className="text-xs bg-stone-100 px-2.5 py-1 rounded-md font-medium text-stone-700">
+                    Canada (CaRMS)
+                  </span>
+                  <span className="text-xs bg-stone-100 px-2.5 py-1 rounded-md font-medium text-stone-700">
+                    Australia (AMC)
+                  </span>
+                  <span className="text-xs bg-stone-100 px-2.5 py-1 rounded-md font-medium text-stone-700">
+                    All Destinations
                   </span>
                 </div>
               </div>
-              <div className="mt-6 pt-5 border-t border-border/70">
+              <div className="mt-8 pt-5 border-t border-border/70">
                 <Button
                   asChild
                   className="w-full bg-[#10B981] hover:bg-[#059669] text-white font-bold h-11 rounded-xl shadow-xs"
                 >
-                  <Link to="/career-exploration/us-residency">
-                    Map U.S. Pathway <ArrowRight className="ml-2 size-4" />
+                  <Link to="/career-exploration">
+                    Map Your Pathway <ArrowRight className="ml-2 size-4" />
                   </Link>
                 </Button>
               </div>
             </div>
 
-            {/* Card 2: U.K. PLAB Pathway */}
-            <div className="rounded-2xl border border-border/80 bg-card p-7 shadow-xs flex flex-col justify-between hover:shadow-md hover:border-[#10B981]/60 transition-all">
+            {/* Card 2: Clinical Specialization & Residency */}
+            <div className="rounded-2xl border border-border/80 bg-card p-7 sm:p-8 shadow-xs flex flex-col justify-between hover:shadow-md hover:border-[#10B981]/60 transition-all">
               <div>
                 <div className="flex items-center justify-between mb-4">
-                  <span className="text-3xl">🇬🇧</span>
-                  <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800">
-                    Interactive Roadmap
-                  </span>
-                </div>
-                <h3 className="text-xl font-bold text-foreground">U.K. PLAB Pathway</h3>
-                <p className="mt-2.5 text-sm text-muted-foreground leading-relaxed">
-                  Complete 10-stage journey for international medical graduates: PMQ checking,
-                  English test (OET/IELTS), EPIC verification, PLAB 1 &amp; 2 in Manchester, GMC
-                  registration, and NHS jobs.
-                </p>
-                <div className="mt-4 flex flex-wrap gap-1.5">
-                  <span className="text-xs bg-stone-100 px-2 py-0.5 rounded font-medium text-stone-700">
-                    PLAB 1 &amp; 2
-                  </span>
-                  <span className="text-xs bg-stone-100 px-2 py-0.5 rounded font-medium text-stone-700">
-                    EPIC Verification
-                  </span>
-                  <span className="text-xs bg-stone-100 px-2 py-0.5 rounded font-medium text-stone-700">
-                    GMC Registration
-                  </span>
-                  <span className="text-xs bg-stone-100 px-2 py-0.5 rounded font-medium text-stone-700">
-                    NHS Jobs
-                  </span>
-                </div>
-              </div>
-              <div className="mt-6 pt-5 border-t border-border/70">
-                <Button
-                  asChild
-                  className="w-full bg-[#10B981] hover:bg-[#059669] text-white font-bold h-11 rounded-xl shadow-xs"
-                >
-                  <Link to="/career-exploration/uk-residency">
-                    Map U.K. Pathway <ArrowRight className="ml-2 size-4" />
-                  </Link>
-                </Button>
-              </div>
-            </div>
-
-            {/* Card 3: Clinical Specialization & Residency */}
-            <div className="rounded-2xl border border-border/80 bg-card p-7 shadow-xs flex flex-col justify-between hover:shadow-md hover:border-[#10B981]/60 transition-all">
-              <div>
-                <div className="flex items-center justify-between mb-4">
-                  <span className="text-3xl">🩺</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-3xl">🩺</span>
+                    <span className="text-xs sm:text-sm font-semibold text-muted-foreground">
+                      Postgraduate & Clinical
+                    </span>
+                  </div>
                   <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-stone-100 text-stone-700">
                     Clinical Careers
                   </span>
                 </div>
-                <h3 className="text-xl font-bold text-foreground">Specialization & Residency</h3>
-                <p className="mt-2.5 text-sm text-muted-foreground leading-relaxed">
+                <h3 className="text-xl sm:text-2xl font-bold text-foreground">Specialization & Residency</h3>
+                <p className="mt-2.5 text-sm sm:text-base text-muted-foreground leading-relaxed">
                   Navigate clinical specialty choices, postgraduate colleges, portfolio development,
                   fellowships, research, and healthcare leadership.
                 </p>
-                <div className="mt-4 flex flex-wrap gap-1.5">
-                  <span className="text-xs bg-stone-100 px-2 py-0.5 rounded font-medium text-stone-700">
+                <div className="mt-5 flex flex-wrap gap-1.5">
+                  <span className="text-xs bg-stone-100 px-2.5 py-1 rounded-md font-medium text-stone-700">
                     Residency
                   </span>
-                  <span className="text-xs bg-stone-100 px-2 py-0.5 rounded font-medium text-stone-700">
+                  <span className="text-xs bg-stone-100 px-2.5 py-1 rounded-md font-medium text-stone-700">
                     Fellowships
                   </span>
-                  <span className="text-xs bg-stone-100 px-2 py-0.5 rounded font-medium text-stone-700">
-                    Programs
+                  <span className="text-xs bg-stone-100 px-2.5 py-1 rounded-md font-medium text-stone-700">
+                    Postgraduate Colleges
+                  </span>
+                  <span className="text-xs bg-stone-100 px-2.5 py-1 rounded-md font-medium text-stone-700">
+                    Clinical Programs
                   </span>
                 </div>
               </div>
-              <div className="mt-6 pt-5 border-t border-border/70">
+              <div className="mt-8 pt-5 border-t border-border/70">
                 <Button
                   asChild
                   variant="outline"

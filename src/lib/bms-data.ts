@@ -317,7 +317,7 @@ export const pathwayCategories = [
     title: "International Pathway",
     icon: Compass,
     description: "Explore pathways for studying, training and working in different countries.",
-    href: "/programs",
+    href: "/career-exploration",
   },
   {
     number: "05",

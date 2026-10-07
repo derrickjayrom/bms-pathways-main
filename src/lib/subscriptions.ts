@@ -39,6 +39,7 @@ export interface BmsSiteSettings {
   subscription_price: string;
   all_access_price?: string | undefined;
   admin_passcode: string;
+  enable_device_binding?: string | undefined;
   guide_pdf_url?: string | undefined;
   guide_pdf_filename?: string | undefined;
   uk_guide_pdf_url?: string | undefined;
@@ -52,6 +53,7 @@ export const DEFAULT_SETTINGS: BmsSiteSettings = {
   subscription_price: "$25 / GHS 350",
   all_access_price: "$40 / GHS 550",
   admin_passcode: "bms-admin-2025",
+  enable_device_binding: "false",
   guide_pdf_url:
     "https://owurtseimitnofbdepoq.supabase.co/storage/v1/object/public/pathway-guides/guides/1790354719791_BMS_USMLE_Residency_Pathway_PRESENTABLE__1_.pdf",
   guide_pdf_filename: "BMS_USMLE_Residency_Pathway_PRESENTABLE (1).pdf",
@@ -1134,8 +1136,31 @@ export async function verifySubscriptionStatus(
     }
 
     // TARGET IS APPROVED: VERIFY DEVICE BINDING SECURITY
+    const siteSettings = await getSiteSettings();
+    const isDeviceBindingEnforced = siteSettings.enable_device_binding === "true";
+
     const boundId = targetSub.bound_device_id;
     const boundName = targetSub.last_device_name;
+
+    if (!isDeviceBindingEnforced) {
+      // Device binding is NOT enforced (toggle is OFF): Allow user in without lockout
+      try {
+        await supabase
+          .from("pathway_subscriptions")
+          .update({
+            last_device_name: currentDeviceName,
+            last_accessed_at: new Date().toISOString(),
+          })
+          .eq("id", targetSub.id);
+      } catch {
+        // ignore
+      }
+
+      return {
+        status: "approved",
+        subscription: targetSub,
+      };
+    }
 
     if (!boundId) {
       // First device to claim this approved subscription: bind device permanently
@@ -1384,32 +1409,37 @@ export async function validateActiveSubscription(targetPathwayId?: string): Prom
     }
 
     // CHECK DEVICE BINDING SECURITY
-    if (currentSub.bound_device_id && currentSub.bound_device_id !== clientDeviceId) {
-      clearSubscriptionSession();
-      return {
-        isValid: false,
-        status: "device_mismatch",
-        subscription: currentSub,
-        reason: `Security Violation: This subscription is registered to another device (${currentSub.last_device_name || "another device"}). Account sharing is not permitted.`,
-      };
-    }
+    const siteSettings = await getSiteSettings();
+    const isDeviceBindingEnforced = siteSettings.enable_device_binding === "true";
 
-    // If not yet bound, bind it now
-    if (!currentSub.bound_device_id) {
-      try {
-        await supabase
-          .from("pathway_subscriptions")
-          .update({
-            bound_device_id: clientDeviceId,
-            last_device_name: clientDeviceName,
-            last_accessed_at: new Date().toISOString(),
-          })
-          .eq("id", currentSub.id);
-      } catch {
-        // ignore
+    if (isDeviceBindingEnforced) {
+      if (currentSub.bound_device_id && currentSub.bound_device_id !== clientDeviceId) {
+        clearSubscriptionSession();
+        return {
+          isValid: false,
+          status: "device_mismatch",
+          subscription: currentSub,
+          reason: `Security Violation: This subscription is registered to another device (${currentSub.last_device_name || "another device"}). Account sharing is not permitted.`,
+        };
       }
-      currentSub.bound_device_id = clientDeviceId;
-      currentSub.last_device_name = clientDeviceName;
+
+      // If not yet bound, bind it now
+      if (!currentSub.bound_device_id) {
+        try {
+          await supabase
+            .from("pathway_subscriptions")
+            .update({
+              bound_device_id: clientDeviceId,
+              last_device_name: clientDeviceName,
+              last_accessed_at: new Date().toISOString(),
+            })
+            .eq("id", currentSub.id);
+        } catch {
+          // ignore
+        }
+        currentSub.bound_device_id = clientDeviceId;
+        currentSub.last_device_name = clientDeviceName;
+      }
     }
 
     saveSubscribedSession(currentSub);
@@ -1569,6 +1599,35 @@ export async function resetSubscriptionDevice(
     return { success: true };
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : "Failed to reset device";
+    return { success: false, error: msg };
+  }
+}
+
+export async function unbindAllSubscriptionDevices(): Promise<{
+  success: boolean;
+  count?: number;
+  error?: string;
+}> {
+  try {
+    if (!supabase) return { success: false, error: "Database not connected" };
+
+    const { data, error } = await supabase
+      .from("pathway_subscriptions")
+      .update({
+        bound_device_id: null,
+        last_device_name: null,
+      })
+      .not("bound_device_id", "is", null)
+      .select("id");
+
+    if (error) {
+      console.error("Error unbinding all devices:", error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true, count: data?.length || 0 };
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : "Failed to unbind all devices";
     return { success: false, error: msg };
   }
 }

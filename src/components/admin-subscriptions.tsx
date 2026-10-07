@@ -42,6 +42,7 @@ import {
   updateSubscriptionStatus,
   deleteSubscription,
   resetSubscriptionDevice,
+  unbindAllSubscriptionDevices,
   buildAdminWhatsAppReplyLink,
   buildWhatsAppLink,
   checkDatabaseSetup,
@@ -395,6 +396,67 @@ export function AdminSubscriptionsDashboard() {
     });
   };
 
+  // Action: Toggle Device Binding Enforcement
+  const handleToggleDeviceBinding = async () => {
+    const isCurrentlyEnforced = settings.enable_device_binding === "true";
+    const nextVal = isCurrentlyEnforced ? "false" : "true";
+
+    setConfirmDialog({
+      isOpen: true,
+      title: isCurrentlyEnforced
+        ? "Disable Device Binding (Allow All Devices)?"
+        : "Enable Strict Single-Device Binding?",
+      description: isCurrentlyEnforced
+        ? "When disabled, verified users can log in across multiple devices (phone, laptop, tablet) and will NOT be locked out if their browser clears sessions or cookies."
+        : "When enabled, each subscription will be strictly locked to the first device/browser that accesses it. Other devices will be blocked.",
+      confirmLabel: isCurrentlyEnforced ? "Disable Binding" : "Enable Binding",
+      variant: isCurrentlyEnforced ? "default" : "warning",
+      action: async () => {
+        const res = await updateSiteSetting("enable_device_binding", nextVal);
+        if (res.success) {
+          setSettings((prev) => ({ ...prev, enable_device_binding: nextVal }));
+          setSettingsForm((prev) => ({ ...prev, enable_device_binding: nextVal }));
+          toast.success(
+            nextVal === "true"
+              ? "Strict single-device binding enabled."
+              : "Device binding disabled: subscribers can now access on any device without lockout.",
+          );
+        } else {
+          toast.error(`Failed to update setting: ${res.error || "Unknown error"}`);
+        }
+      },
+    });
+  };
+
+  // Action: Unbind All Registered Devices
+  const handleUnbindAllDevices = () => {
+    setConfirmDialog({
+      isOpen: true,
+      title: "Unbind All User Devices?",
+      description:
+        "This will clear the registered device for ALL subscribers. Every user will be able to access cleanly without getting locked out. Continue?",
+      confirmLabel: "Unbind All Devices",
+      variant: "warning",
+      action: async () => {
+        const res = await unbindAllSubscriptionDevices();
+        if (res.success) {
+          toast.success(`Successfully unbound ${res.count || "all"} user devices!`, {
+            description: "All users can now access without device mismatch errors.",
+          });
+          setSubscriptions((prev) =>
+            prev.map((item) => ({
+              ...item,
+              bound_device_id: null,
+              last_device_name: null,
+            })),
+          );
+        } else {
+          toast.error(`Failed to unbind devices: ${res.error || "Unknown error"}`);
+        }
+      },
+    });
+  };
+
   // Action: Save Settings
   const handleSaveSettings = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -423,6 +485,10 @@ export function AdminSubscriptionsDashboard() {
         settingsForm.all_access_price || "$40 / GHS 550",
       );
       const p4 = updateSiteSetting("admin_passcode", settingsForm.admin_passcode);
+      const pDeviceBinding = updateSiteSetting(
+        "enable_device_binding",
+        settingsForm.enable_device_binding || "false",
+      );
       const p5 = updateSiteSetting("guide_pdf_url", settingsForm.guide_pdf_url || "");
       const p6 = updateSiteSetting("guide_pdf_filename", settingsForm.guide_pdf_filename || "");
       const pUkGuide = updateSiteSetting("uk_guide_pdf_url", settingsForm.uk_guide_pdf_url || "");
@@ -431,18 +497,19 @@ export function AdminSubscriptionsDashboard() {
         settingsForm.uk_guide_pdf_filename || "",
       );
 
-      const [r1, r2, r3, rAllAccess, r4, r5, r6, rUkGuide, rUkGuideName] = await Promise.all([
+      const [r1, r2, r3, rAllAccess, r4, rDev, r5, r6, rUkGuide, rUkGuideName] = await Promise.all([
         p1,
         p2,
         p3,
         pAllAccess,
         p4,
+        pDeviceBinding,
         p5,
         p6,
         pUkGuide,
         pUkGuideName,
       ]);
-      const failures = [r1, r2, r3, rAllAccess, r4, r5, r6, rUkGuide, rUkGuideName].filter(
+      const failures = [r1, r2, r3, rAllAccess, r4, rDev, r5, r6, rUkGuide, rUkGuideName].filter(
         (r) => !r.success,
       );
 
@@ -450,7 +517,7 @@ export function AdminSubscriptionsDashboard() {
         setSettings(settingsForm);
         setMissingTables([]);
         toast.success(
-          "Settings saved successfully! WhatsApp, pricing, and guide settings updated.",
+          "Settings saved successfully! WhatsApp, pricing, device binding, and guide settings updated.",
         );
       } else {
         const firstError = failures[0]?.error || "";
@@ -1201,6 +1268,70 @@ export function AdminSubscriptionsDashboard() {
               </div>
             </div>
 
+            {/* DEVICE SECURITY & BINDING CONTROL BAR */}
+            <div className="bg-stone-900 border border-stone-800 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+              <div className="flex items-center gap-3">
+                <div
+                  className={`size-9 rounded-xl flex items-center justify-center shrink-0 ${
+                    settings.enable_device_binding === "true"
+                      ? "bg-amber-500/20 text-amber-300 border border-amber-500/30"
+                      : "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+                  }`}
+                >
+                  <Smartphone size={18} />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-white">Device Binding Mode:</span>
+                    <span
+                      className={`text-[11px] font-extrabold px-2 py-0.5 rounded-full ${
+                        settings.enable_device_binding === "true"
+                          ? "bg-amber-950/80 text-amber-300 border border-amber-800/60"
+                          : "bg-emerald-950/80 text-emerald-300 border border-emerald-800/60"
+                      }`}
+                    >
+                      {settings.enable_device_binding === "true"
+                        ? "🔒 Strict (Single-Device)"
+                        : "🔓 Off (Multi-Device / No Lockout)"}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-stone-400 mt-0.5">
+                    {settings.enable_device_binding === "true"
+                      ? "Subscriptions are locked to 1 device. Users get blocked if they change devices."
+                      : "Subscribers can log in across multiple devices without getting locked out after sessions."}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2 shrink-0">
+                <Button
+                  size="sm"
+                  onClick={handleToggleDeviceBinding}
+                  className={`text-xs font-bold h-8 px-3 rounded-xl transition-all ${
+                    settings.enable_device_binding === "true"
+                      ? "bg-stone-800 hover:bg-stone-700 text-stone-200 border border-stone-700"
+                      : "bg-amber-950/60 hover:bg-amber-900/60 text-amber-300 border border-amber-800/60"
+                  }`}
+                >
+                  <RefreshCw size={12} className="mr-1.5" />
+                  {settings.enable_device_binding === "true"
+                    ? "Turn Binding OFF"
+                    : "Turn Binding ON"}
+                </Button>
+
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleUnbindAllDevices}
+                  className="border-stone-800 bg-stone-950 hover:bg-stone-800 text-stone-300 text-xs font-medium h-8 px-3 rounded-xl"
+                  title="Unbind all users so anyone currently locked out can log in immediately"
+                >
+                  <Unlock size={12} className="mr-1.5 text-emerald-400" />
+                  Unbind All Devices
+                </Button>
+              </div>
+            </div>
+
             {/* SUBSCRIPTION LIST */}
             {loading ? (
               <div className="bg-stone-900 border border-stone-800 rounded-2xl p-12 text-center text-stone-400">
@@ -1366,22 +1497,27 @@ export function AdminSubscriptionsDashboard() {
                           </a>
                         )}
 
-                        {sub.bound_device_id && (
+                        {sub.bound_device_id ? (
                           <Button
                             variant="outline"
                             size="sm"
                             disabled={actionLoadingId === sub.id}
                             onClick={() => handleResetDevice(sub)}
-                            className="border-stone-800 text-stone-300 hover:text-white hover:bg-stone-800 text-xs h-9 rounded-xl font-medium disabled:opacity-50"
-                            title="Unbind device so student can activate on a new phone or computer"
+                            className="border-amber-900/60 bg-amber-950/30 text-amber-300 hover:text-white hover:bg-amber-900/50 text-xs h-9 rounded-xl font-medium disabled:opacity-50"
+                            title="Unbind this device so the subscriber can connect on a new phone or computer"
                           >
                             {actionLoadingId === sub.id ? (
-                              <RefreshCw size={13} className="mr-1 animate-spin text-emerald-400" />
+                              <RefreshCw size={13} className="mr-1 animate-spin text-amber-400" />
                             ) : (
-                              <Smartphone size={13} className="mr-1 text-emerald-400" />
+                              <Unlock size={13} className="mr-1 text-amber-400" />
                             )}
-                            Reset Device
+                            Unbind Device
                           </Button>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 text-[11px] text-stone-500 font-medium px-2 py-1 rounded-lg bg-stone-900/60 border border-stone-800">
+                            <Unlock size={11} className="text-stone-600" />
+                            Unbound
+                          </span>
                         )}
 
                         {isPending && (
@@ -2349,6 +2485,102 @@ export function AdminSubscriptionsDashboard() {
                   >
                     <Copy size={10} /> Copy Storage SQL Script
                   </button>
+                </div>
+              </div>
+
+              {/* Setting: Device Binding & Anti-Sharing Enforcement */}
+              <div className="pt-4 border-t border-stone-800 space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div>
+                    <Label className="text-xs font-bold text-stone-200 flex items-center gap-1.5">
+                      <Smartphone size={14} className="text-emerald-400" />
+                      Single-Device Binding Enforcement
+                    </Label>
+                    <p className="text-xs text-stone-500 mt-0.5">
+                      Choose whether student subscriptions are strictly locked to a single device/browser.
+                    </p>
+                  </div>
+                  <span
+                    className={`text-[11px] font-extrabold px-2.5 py-0.5 rounded-full self-start sm:self-auto ${
+                      settingsForm.enable_device_binding === "true"
+                        ? "bg-amber-950/80 text-amber-300 border border-amber-800/60"
+                        : "bg-emerald-950/80 text-emerald-300 border border-emerald-800/60"
+                    }`}
+                  >
+                    {settingsForm.enable_device_binding === "true"
+                      ? "🔒 Strict Lock Enabled"
+                      : "🔓 Off (Multi-Device Allowed)"}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setSettingsForm({ ...settingsForm, enable_device_binding: "false" })
+                    }
+                    className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer ${
+                      settingsForm.enable_device_binding !== "true"
+                        ? "bg-emerald-950/40 border-emerald-500 text-white shadow-xs ring-1 ring-emerald-500/30"
+                        : "bg-stone-950 border-stone-800 text-stone-400 hover:border-stone-700 hover:text-stone-300"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs font-bold text-white flex items-center gap-1.5">
+                        <Unlock size={13} className="text-emerald-400" />
+                        Multi-Device / Flexible (Recommended)
+                      </span>
+                      {settingsForm.enable_device_binding !== "true" && (
+                        <CheckCircle2 size={13} className="text-emerald-400" />
+                      )}
+                    </div>
+                    <p className="text-[11px] text-stone-400 leading-relaxed">
+                      Subscribers can access across their phone, laptop, and iPad. Users are never
+                      locked out when browsers clear sessions or cookies.
+                    </p>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setSettingsForm({ ...settingsForm, enable_device_binding: "true" })
+                    }
+                    className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer ${
+                      settingsForm.enable_device_binding === "true"
+                        ? "bg-amber-950/40 border-amber-500 text-white shadow-xs ring-1 ring-amber-500/30"
+                        : "bg-stone-950 border-stone-800 text-stone-400 hover:border-stone-700 hover:text-stone-300"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs font-bold text-white flex items-center gap-1.5">
+                        <Lock size={13} className="text-amber-400" />
+                        Strict Single-Device Lock
+                      </span>
+                      {settingsForm.enable_device_binding === "true" && (
+                        <CheckCircle2 size={13} className="text-amber-400" />
+                      )}
+                    </div>
+                    <p className="text-[11px] text-stone-400 leading-relaxed">
+                      Permanently locks each reference code to the first device/browser that
+                      accesses it. Other devices are blocked.
+                    </p>
+                  </button>
+                </div>
+
+                <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-stone-950/60 p-3 rounded-xl border border-stone-800/80">
+                  <p className="text-[11px] text-stone-400">
+                    Want to unlock all students who are currently locked out?
+                  </p>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={handleUnbindAllDevices}
+                    className="border-stone-800 bg-stone-900 hover:bg-stone-800 text-stone-200 text-xs h-8 px-3 rounded-lg"
+                  >
+                    <Unlock size={12} className="mr-1.5 text-emerald-400" />
+                    Unbind All User Devices Now
+                  </Button>
                 </div>
               </div>
 

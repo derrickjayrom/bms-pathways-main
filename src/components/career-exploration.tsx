@@ -46,6 +46,7 @@ import {
   usmleRoadmapStages,
   usmleMatchDates2027,
   usmleBudgetBreakdown,
+  usmleStep3Notice,
   type UsmleRoadmapStage,
 } from "@/lib/bms-data";
 import { PageIntro } from "@/components/site";
@@ -1304,6 +1305,43 @@ export function UsResidencyPathwayPage() {
                                 </div>
                               </div>
                             )}
+
+                            {stage.step3Notice && (
+                              <div className="rounded-2xl border-2 border-emerald-500/25 bg-gradient-to-br from-emerald-50/70 via-stone-50/90 to-white p-5 sm:p-6 shadow-2xs">
+                                <div className="flex flex-wrap items-center justify-between gap-2.5 mb-3.5">
+                                  <div className="flex items-center gap-2">
+                                    <span className="px-2.5 py-0.5 rounded-md bg-stone-900 text-white text-[11px] font-black uppercase tracking-wider">
+                                      USMLE Step 3
+                                    </span>
+                                    <h4 className="text-sm sm:text-base font-extrabold text-stone-900">
+                                      {stage.step3Notice.title}
+                                    </h4>
+                                  </div>
+                                  <Badge className="bg-emerald-100 text-emerald-800 border-emerald-200 text-xs font-semibold">
+                                    {stage.step3Notice.feeNote}
+                                  </Badge>
+                                </div>
+
+                                <div className="space-y-3 text-xs sm:text-sm text-stone-800 leading-relaxed">
+                                  <div className="p-3.5 rounded-xl bg-white border border-stone-200/80 flex items-start gap-2.5">
+                                    <Info className="size-4 text-[#10B981] shrink-0 mt-0.5" />
+                                    <span>{stage.step3Notice.description}</span>
+                                  </div>
+
+                                  <div className="p-3.5 rounded-xl bg-emerald-50/70 border border-emerald-200/80 space-y-1.5">
+                                    <p className="font-bold text-emerald-950">
+                                      {stage.step3Notice.question}
+                                    </p>
+                                    <p className="text-stone-700">
+                                      {stage.step3Notice.licensingInfo}
+                                    </p>
+                                    <p className="font-bold text-emerald-950 pt-0.5">
+                                      {stage.step3Notice.matchNote}
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
                           </div>
                         )}
 
@@ -1890,7 +1928,39 @@ export function UsResidencyPathwayPage() {
                     requirements and fees can change.
                   </span>
                 </li>
+                <li className="flex items-start gap-3">
+                  <CheckCircle2 size={18} className="text-[#10B981] shrink-0 mt-0.5" />
+                  <span className="font-medium">
+                    <strong className="text-stone-900">Step 3 is for independent licensure:</strong> It is part of the USMLE pathway ($955, US/territories only), but is <strong className="text-emerald-700">not</strong> normally required before applying or matching into residency.
+                  </span>
+                </li>
               </ul>
+
+              {/* STEP 3 KEYNOTE ADVISORY CARD */}
+              <div className="mt-6 rounded-2xl border-2 border-emerald-500/25 bg-gradient-to-br from-emerald-50/80 via-white to-stone-50 p-5 sm:p-6 text-stone-900 shadow-2xs">
+                <div className="flex flex-wrap items-center justify-between gap-2 mb-2.5">
+                  <div className="flex items-center gap-2">
+                    <span className="size-2 rounded-full bg-[#10B981]" />
+                    <h4 className="text-sm sm:text-base font-extrabold text-stone-900">
+                      Step 3 Advisory: Do You Have to Write Step 3?
+                    </h4>
+                  </div>
+                  <Badge className="bg-emerald-100 text-emerald-800 border-emerald-200 text-xs font-semibold">
+                    Fee $955 • US &amp; Territories Only
+                  </Badge>
+                </div>
+                <div className="space-y-2 text-xs sm:text-sm text-stone-800 leading-relaxed">
+                  <p>
+                    {usmleStep3Notice.description} ({usmleStep3Notice.feeNote}).
+                  </p>
+                  <p className="p-3 rounded-xl bg-emerald-50/70 border border-emerald-200/80 text-emerald-950 font-medium">
+                    {usmleStep3Notice.licensingInfo}{" "}
+                    <strong className="font-bold text-stone-900">
+                      {usmleStep3Notice.matchNote}
+                    </strong>
+                  </p>
+                </div>
+              </div>
             </div>
 
             <div className="rounded-2xl border border-stone-200/80 bg-stone-50/90 p-6 sm:p-7">

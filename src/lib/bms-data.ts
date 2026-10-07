@@ -522,8 +522,28 @@ export interface UsmleRoadmapStage {
     };
     actionSteps?: string[];
   };
+  step3Notice?: {
+    title: string;
+    description: string;
+    feeNote: string;
+    question: string;
+    licensingInfo: string;
+    matchNote: string;
+  };
   interviewQuestions?: string[];
 }
+
+export const usmleStep3Notice = {
+  title: "9. USMLE Step 3 & Licensure",
+  description:
+    "It is part of the USMLE pathway, but it is generally not a requirement you need to complete before applying/matching into residency.",
+  feeNote: "Testing only in the US & territories • Fee $955",
+  question: "Note: Do you have to write Step 3?",
+  licensingInfo:
+    "If your goal is ultimately to become independently licensed to practice medicine in the U.S. Then, yes, Step 3 is an important part of the licensing pathway.",
+  matchNote:
+    "But you do not normally need Step 3 to obtain ECFMG Certification or to enter the Match.",
+};
 
 export const usmleRoadmapStages: UsmleRoadmapStage[] = [
   {
@@ -677,6 +697,7 @@ export const usmleRoadmapStages: UsmleRoadmapStage[] = [
       "The minimum passing score can change. Check the current USMLE policy before planning.",
       "For residency applications, a strong Step 2 CK performance may be important because programs can use it as part of their holistic review.",
     ],
+    step3Notice: usmleStep3Notice,
   },
   {
     id: "stage-07",
@@ -692,6 +713,7 @@ export const usmleRoadmapStages: UsmleRoadmapStage[] = [
       "If you did not pass: Follow the 'What to do' guidance below.",
       "Note on Step 3: While part of the USMLE licensing pathway ($955, administered only in the US/territories), Step 3 is generally not required before applying or matching into residency, nor is it needed for ECFMG Certification.",
     ],
+    step3Notice: usmleStep3Notice,
     altOption: {
       title: "What to Do If You Don’t Pass USMLE Step 2 CK",
       description:

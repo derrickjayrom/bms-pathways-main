@@ -1061,7 +1061,7 @@ export const plabRoadmapStages: UsmleRoadmapStage[] = [
     passNextStageId: "plab-stage-08",
     fees: [
       { item: "PLAB 1 Examination Fee", amount: "£283*" },
-      { item: "Plabable Question Bank / Mock Practice", amount: "~£30 – £60" },
+      { item: "Plabable Question Bank", amount: "£20 – £25" },
     ],
     details: [
       "180 multiple-choice questions (single best answer format) over 3 hours.",
@@ -1180,7 +1180,7 @@ export const plabRoadmapStages: UsmleRoadmapStage[] = [
     summary:
       "Apply for full or provisional registration with a licence to practise on the official UK Medical Register.",
     fees: [
-      { item: "GMC Registration with Licence to Practise", amount: "£455*" },
+      { item: "GMC Registration with Licence to Practise", amount: "£481*" },
       { item: "Certificate of Good Standing (CGS)", amount: "Variable" },
     ],
     details: [

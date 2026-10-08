@@ -122,6 +122,8 @@ export async function triggerFileDownload(url: string, filename: string): Promis
 
 
 const LOCAL_STORAGE_KEY = "bms_usmle_subscription_session";
+const MULTI_STORAGE_KEY = "bms_pathway_sessions_v2";
+const ALL_ACCESS_STORAGE_KEY = "bms_all_access_session";
 const DEVICE_STORAGE_KEY = "bms_device_fingerprint_v1";
 
 /**
@@ -1488,31 +1490,114 @@ export function saveSubscribedSession(sub: PathwaySubscription): void {
     bound_device_id: sub.bound_device_id,
     pathway_id: sub.pathway_id,
   };
+
+  // Always keep legacy key for backwards compatibility
   localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(payload));
   if (sub.status === "approved") {
     localStorage.setItem("bms_usmle_subscribed", "true");
   } else {
     localStorage.removeItem("bms_usmle_subscribed");
   }
-}
 
-export function getSavedSubscriptionSession(): SavedSubscriptionSession | null {
-  if (typeof window === "undefined") return null;
-  const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
-  if (!stored) {
-    return null;
-  }
+  // Also store in multi-pathway sessions map to avoid cross-pathway tab-switching collisions
   try {
-    return JSON.parse(stored) as SavedSubscriptionSession;
+    const rawMulti = localStorage.getItem(MULTI_STORAGE_KEY);
+    const multi: Record<string, SavedSubscriptionSession> = rawMulti ? JSON.parse(rawMulti) : {};
+    if (sub.status === "approved") {
+      multi[sub.pathway_id] = payload;
+      const isAll =
+        sub.pathway_id === "all-pathways" ||
+        sub.pathway_id === "all" ||
+        sub.pathway_id === "all_access" ||
+        sub.pathway_id === "all-access";
+      if (isAll) {
+        localStorage.setItem(ALL_ACCESS_STORAGE_KEY, JSON.stringify(payload));
+      }
+    } else {
+      delete multi[sub.pathway_id];
+    }
+    localStorage.setItem(MULTI_STORAGE_KEY, JSON.stringify(multi));
   } catch {
-    return null;
+    // ignore
   }
 }
 
-export function clearSubscriptionSession(): void {
+export function getSavedSubscriptionSession(
+  targetPathwayId?: string,
+): SavedSubscriptionSession | null {
+  if (typeof window === "undefined") return null;
+
+  try {
+    // 1. Check if user holds an active All-Access Pass
+    const allAccessRaw = localStorage.getItem(ALL_ACCESS_STORAGE_KEY);
+    if (allAccessRaw) {
+      const parsed = JSON.parse(allAccessRaw) as SavedSubscriptionSession;
+      if (parsed && parsed.status === "approved") {
+        return parsed;
+      }
+    }
+
+    // 2. Check multi-pathway storage map
+    const rawMulti = localStorage.getItem(MULTI_STORAGE_KEY);
+    if (rawMulti) {
+      const multi = JSON.parse(rawMulti) as Record<string, SavedSubscriptionSession>;
+      if (multi && typeof multi === "object") {
+        if (targetPathwayId) {
+          for (const key of Object.keys(multi)) {
+            const s = multi[key];
+            if (s && s.status === "approved" && hasPathwayAccess(s.pathway_id, targetPathwayId)) {
+              return s;
+            }
+          }
+        } else {
+          const approved = Object.values(multi).find((s) => s && s.status === "approved");
+          if (approved) return approved;
+        }
+      }
+    }
+
+    // 3. Fallback to primary / legacy storage key
+    const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
+    if (stored) {
+      const parsed = JSON.parse(stored) as SavedSubscriptionSession;
+      if (parsed) {
+        if (!targetPathwayId || hasPathwayAccess(parsed.pathway_id, targetPathwayId)) {
+          return parsed;
+        }
+        return parsed;
+      }
+    }
+  } catch {
+    // fallback
+  }
+
+  return null;
+}
+
+export function clearSubscriptionSession(targetPathwayId?: string): void {
   if (typeof window === "undefined") return;
-  localStorage.removeItem(LOCAL_STORAGE_KEY);
-  localStorage.removeItem("bms_usmle_subscribed");
+  if (!targetPathwayId) {
+    localStorage.removeItem(LOCAL_STORAGE_KEY);
+    localStorage.removeItem("bms_usmle_subscribed");
+    localStorage.removeItem(MULTI_STORAGE_KEY);
+    localStorage.removeItem(ALL_ACCESS_STORAGE_KEY);
+    return;
+  }
+
+  try {
+    const rawMulti = localStorage.getItem(MULTI_STORAGE_KEY);
+    if (rawMulti) {
+      const multi = JSON.parse(rawMulti) as Record<string, SavedSubscriptionSession>;
+      delete multi[targetPathwayId];
+      localStorage.setItem(MULTI_STORAGE_KEY, JSON.stringify(multi));
+    }
+  } catch {}
+
+  const current = getSavedSubscriptionSession();
+  if (current?.pathway_id === targetPathwayId) {
+    localStorage.removeItem(LOCAL_STORAGE_KEY);
+    localStorage.removeItem("bms_usmle_subscribed");
+  }
 }
 
 export async function validateActiveSubscription(targetPathwayId?: string): Promise<{
@@ -1525,9 +1610,8 @@ export async function validateActiveSubscription(targetPathwayId?: string): Prom
     return { isValid: false, status: "not_found", reason: "SSR context" };
   }
 
-  const session = getSavedSubscriptionSession();
+  const session = getSavedSubscriptionSession(targetPathwayId);
   if (!session) {
-    localStorage.removeItem("bms_usmle_subscribed");
     return { isValid: false, status: "not_found", reason: "No active subscription session" };
   }
 
@@ -1535,15 +1619,24 @@ export async function validateActiveSubscription(targetPathwayId?: string): Prom
   const clientDeviceName = getDeviceFriendlyName();
 
   if (!session.id && !session.reference_code && !session.email) {
-    clearSubscriptionSession();
+    clearSubscriptionSession(targetPathwayId);
     return { isValid: false, status: "not_found", reason: "Invalid session record" };
   }
 
   try {
     if (!supabase) {
+      // Offline / database client unavailable: preserve active user session
+      if (session.status === "approved" && hasPathwayAccess(session.pathway_id, targetPathwayId)) {
+        return {
+          isValid: true,
+          status: "approved",
+          subscription: session as unknown as PathwaySubscription,
+        };
+      }
       return { isValid: false, status: "not_found", reason: "Database client unavailable" };
     }
 
+    // Build query using email if available, otherwise by reference_code or id
     let queryBuilder = supabase.from("pathway_subscriptions").select("*");
 
     if (session.email) {
@@ -1553,14 +1646,40 @@ export async function validateActiveSubscription(targetPathwayId?: string): Prom
     } else if (session.id) {
       queryBuilder = queryBuilder.eq("id", session.id);
     } else {
-      clearSubscriptionSession();
+      clearSubscriptionSession(targetPathwayId);
       return { isValid: false, status: "not_found", reason: "No valid identifier to check" };
     }
 
-    const { data, error } = await queryBuilder;
+    let { data, error } = await queryBuilder.order("created_at", { ascending: false });
 
-    if (error || !data || data.length === 0) {
-      clearSubscriptionSession();
+    // Fallback if querying by email yielded no rows: check by reference code
+    if ((!data || data.length === 0) && session.reference_code && session.reference_code !== "PREVIOUS") {
+      const { data: refData, error: refError } = await supabase
+        .from("pathway_subscriptions")
+        .select("*")
+        .eq("reference_code", session.reference_code.toUpperCase());
+      if (!refError && refData && refData.length > 0) {
+        data = refData;
+        error = null;
+      }
+    }
+
+    // TRANSIENT NETWORK ERROR HANDLING:
+    // When switching tabs or waking from sleep, do NOT lock out users or wipe localStorage
+    if (error) {
+      console.warn("Network issue during subscription revalidation:", error.message);
+      if (session.status === "approved" && hasPathwayAccess(session.pathway_id, targetPathwayId)) {
+        return {
+          isValid: true,
+          status: "approved",
+          subscription: session as unknown as PathwaySubscription,
+        };
+      }
+      return { isValid: false, status: "not_found", reason: "Network error during subscription check" };
+    }
+
+    if (!data || data.length === 0) {
+      clearSubscriptionSession(targetPathwayId);
       return {
         isValid: false,
         status: "not_found",
@@ -1568,18 +1687,37 @@ export async function validateActiveSubscription(targetPathwayId?: string): Prom
       };
     }
 
-    // If multiple entries exist for this user, prioritize approved entries that match the requested pathway
     const approvedSubs = (data as PathwaySubscription[]).filter((row) => row.status === "approved");
-    const matchingApproved = approvedSubs.find((row) => hasPathwayAccess(row.pathway_id, targetPathwayId));
-    const currentSub = (matchingApproved || approvedSubs[0] || data[0]) as PathwaySubscription;
 
-    if (currentSub.status !== "approved") {
-      clearSubscriptionSession();
+    // Check if the exact subscription row from this session is in data
+    const exactSub = (data as PathwaySubscription[]).find(
+      (row) =>
+        (session.id && row.id === session.id) ||
+        (session.reference_code && row.reference_code === session.reference_code),
+    );
+
+    let currentSub: PathwaySubscription | undefined;
+    if (exactSub && exactSub.status === "approved" && hasPathwayAccess(exactSub.pathway_id, targetPathwayId)) {
+      currentSub = exactSub;
+    } else {
+      const matchingApproved = approvedSubs.find((row) => hasPathwayAccess(row.pathway_id, targetPathwayId));
+      currentSub =
+        matchingApproved ||
+        (exactSub?.status === "approved" ? exactSub : undefined) ||
+        approvedSubs[0] ||
+        (exactSub || data[0]);
+    }
+
+    if (!currentSub || currentSub.status !== "approved") {
+      const notApprovedSub = currentSub || data[0];
+      if (notApprovedSub?.status === "rejected") {
+        clearSubscriptionSession(targetPathwayId);
+      }
       return {
         isValid: false,
-        status: currentSub.status as "pending" | "rejected",
-        subscription: currentSub,
-        reason: `Subscription is marked as ${currentSub.status} by administrator.`,
+        status: (notApprovedSub?.status as "pending" | "rejected") || "not_found",
+        subscription: notApprovedSub,
+        reason: `Subscription is marked as ${notApprovedSub?.status} by administrator.`,
       };
     }
 
@@ -1607,7 +1745,7 @@ export async function validateActiveSubscription(targetPathwayId?: string): Prom
 
     if (isDeviceBindingEnforced) {
       if (currentSub.bound_device_id && currentSub.bound_device_id !== clientDeviceId) {
-        clearSubscriptionSession();
+        clearSubscriptionSession(targetPathwayId);
         return {
           isValid: false,
           status: "device_mismatch",
@@ -1642,7 +1780,14 @@ export async function validateActiveSubscription(targetPathwayId?: string): Prom
       subscription: currentSub,
     };
   } catch (err) {
-    console.error("Error validating subscription against Supabase:", err);
+    console.warn("Exception validating subscription against Supabase:", err);
+    if (session.status === "approved" && hasPathwayAccess(session.pathway_id, targetPathwayId)) {
+      return {
+        isValid: true,
+        status: "approved",
+        subscription: session as unknown as PathwaySubscription,
+      };
+    }
     return { isValid: false, status: "not_found", reason: "Validation error" };
   }
 }

@@ -46,6 +46,8 @@ import {
   triggerFileDownload,
   validateActiveSubscription,
   saveSubscribedSession,
+  getSavedSubscriptionSession,
+  clearSubscriptionSession,
   type SavedSubscriptionSession,
   type PathwaySubscription,
 } from "@/lib/subscriptions";
@@ -110,12 +112,23 @@ export function AustraliaAmcPathwayPage() {
 
   // Re-verify when browser window or tab regains focus
   useEffect(() => {
+    let lastCheckTime = 0;
     const handleRevalidate = () => {
       if (typeof document !== "undefined" && document.visibilityState === "visible") {
+        const now = Date.now();
+        if (now - lastCheckTime < 10000) return;
+        lastCheckTime = now;
+
         validateActiveSubscription("australia-residency").then((result) => {
           if (!result.isValid) {
-            setIsSubscribed(false);
-            setActiveSession(null);
+            if (
+              result.status === "rejected" ||
+              result.status === "device_mismatch" ||
+              result.status === "not_found"
+            ) {
+              setIsSubscribed(false);
+              setActiveSession(null);
+            }
           } else if (result.subscription) {
             setIsSubscribed(true);
             setActiveSession({
@@ -125,6 +138,7 @@ export function AustraliaAmcPathwayPage() {
               full_name: result.subscription.full_name,
               status: result.subscription.status,
               verified_at: new Date().toISOString(),
+              bound_device_id: result.subscription.bound_device_id,
               pathway_id: result.subscription.pathway_id,
             });
           }
@@ -153,7 +167,25 @@ export function AustraliaAmcPathwayPage() {
           schema: "public",
           table: "pathway_subscriptions",
         },
-        () => {
+        (payload) => {
+          const current = getSavedSubscriptionSession("australia-residency");
+          if (!current) return;
+
+          const oldRecord = payload.old as Partial<PathwaySubscription> | null;
+          const newRecord = payload.new as Partial<PathwaySubscription> | null;
+
+          const isMatching =
+            (oldRecord &&
+              (oldRecord.id === current.id ||
+                oldRecord.reference_code === current.reference_code)) ||
+            (newRecord &&
+              (newRecord.id === current.id ||
+                newRecord.reference_code === current.reference_code ||
+                (newRecord.email &&
+                  newRecord.email.toLowerCase() === current.email?.toLowerCase())));
+
+          if (!isMatching) return;
+
           validateActiveSubscription("australia-residency").then((res) => {
             if (res.isValid && res.subscription) {
               setIsSubscribed(true);
@@ -168,7 +200,8 @@ export function AustraliaAmcPathwayPage() {
                 pathway_id: res.subscription.pathway_id,
               });
               saveSubscribedSession(res.subscription);
-            } else {
+            } else if (res.status === "rejected" || res.status === "not_found") {
+              clearSubscriptionSession("australia-residency");
               setIsSubscribed(false);
               setActiveSession(null);
             }
@@ -1722,6 +1755,7 @@ export function AustraliaAmcPathwayPage() {
         onSuccess={(sub) => {
           setIsSubscribed(true);
           if (sub) {
+            saveSubscribedSession(sub);
             setActiveSession({
               id: sub.id,
               email: sub.email,
@@ -1730,6 +1764,7 @@ export function AustraliaAmcPathwayPage() {
               status: sub.status,
               verified_at: new Date().toISOString(),
               bound_device_id: sub.bound_device_id,
+              pathway_id: sub.pathway_id,
             });
           }
           setSubscriptionOpen(false);

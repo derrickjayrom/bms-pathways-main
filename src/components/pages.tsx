@@ -48,6 +48,7 @@ import { toast } from "sonner";
 import {
   getAllUploadedResources,
   validateActiveSubscription,
+  saveSubscribedSession,
   getSiteSettings,
   DEFAULT_SETTINGS,
   type BmsResourceItem,
@@ -1481,8 +1482,11 @@ export function ResourcesPage() {
       <SubscriptionModal
         open={subscriptionOpen}
         onOpenChange={setSubscriptionOpen}
-        onSuccess={() => {
+        onSuccess={(sub) => {
           setIsSubscribed(true);
+          if (sub) {
+            saveSubscribedSession(sub);
+          }
           setSubscriptionOpen(false);
           toast.success("Payment verified! Access is now unlocked.", {
             description: "You can now download all premium guides and resources.",

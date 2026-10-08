@@ -222,12 +222,25 @@ export function UsResidencyPathwayPage() {
 
   // Re-verify when browser window or tab regains focus
   useEffect(() => {
+    let lastCheckTime = 0;
     const handleRevalidate = () => {
       if (typeof document !== "undefined" && document.visibilityState === "visible") {
+        const now = Date.now();
+        // Throttle checks to once every 10 seconds to avoid spamming on focus/visibility change
+        if (now - lastCheckTime < 10000) return;
+        lastCheckTime = now;
+
         validateActiveSubscription("us-residency").then((result) => {
           if (!result.isValid) {
-            setIsSubscribed(false);
-            setActiveSession(null);
+            // Only lock out if confirmed rejected, device mismatch, or explicitly not found
+            if (
+              result.status === "rejected" ||
+              result.status === "device_mismatch" ||
+              result.status === "not_found"
+            ) {
+              setIsSubscribed(false);
+              setActiveSession(null);
+            }
           } else if (result.subscription) {
             setIsSubscribed(true);
             setActiveSession({
@@ -237,6 +250,7 @@ export function UsResidencyPathwayPage() {
               full_name: result.subscription.full_name,
               status: result.subscription.status,
               verified_at: new Date().toISOString(),
+              bound_device_id: result.subscription.bound_device_id,
               pathway_id: result.subscription.pathway_id,
             });
           }
@@ -266,7 +280,7 @@ export function UsResidencyPathwayPage() {
           table: "pathway_subscriptions",
         },
         (payload) => {
-          const current = getSavedSubscriptionSession();
+          const current = getSavedSubscriptionSession("us-residency");
           if (!current) return;
 
           const oldRecord = payload.old as Partial<PathwaySubscription> | null;
@@ -280,26 +294,36 @@ export function UsResidencyPathwayPage() {
               (newRecord.id === current.id ||
                 newRecord.reference_code === current.reference_code ||
                 (newRecord.email &&
-                  newRecord.email.toLowerCase() === current.email?.toLowerCase())));
+                  newRecord.email.toLowerCase() === current.email?.toLowerCase() &&
+                  (hasPathwayAccess(newRecord.pathway_id, "us-residency") ||
+                    newRecord.pathway_id === "all-pathways"))));
 
           if (isMatching) {
             if (payload.eventType === "DELETE") {
-              clearSubscriptionSession();
-              setIsSubscribed(false);
-              setActiveSession(null);
-              toast.error("Access Revoked", {
-                description: "Your subscription access was removed by administrator.",
-                duration: 6000,
+              validateActiveSubscription("us-residency").then((check) => {
+                if (!check.isValid) {
+                  clearSubscriptionSession("us-residency");
+                  setIsSubscribed(false);
+                  setActiveSession(null);
+                  toast.error("Access Revoked", {
+                    description: "Your subscription access was removed by administrator.",
+                    duration: 6000,
+                  });
+                }
               });
             } else if (payload.eventType === "UPDATE") {
               const newStatus = newRecord?.status;
               if (newStatus !== "approved") {
-                clearSubscriptionSession();
-                setIsSubscribed(false);
-                setActiveSession(null);
-                toast.error("Access Changed", {
-                  description: `Your subscription is now marked as "${newStatus}". Access is locked.`,
-                  duration: 6000,
+                validateActiveSubscription("us-residency").then((check) => {
+                  if (!check.isValid) {
+                    clearSubscriptionSession("us-residency");
+                    setIsSubscribed(false);
+                    setActiveSession(null);
+                    toast.error("Access Changed", {
+                      description: `Your subscription is now marked as "${newStatus}". Access is locked.`,
+                      duration: 6000,
+                    });
+                  }
                 });
               } else {
                 setIsSubscribed(true);
@@ -311,6 +335,8 @@ export function UsResidencyPathwayPage() {
                   full_name: newRecord?.full_name || current.full_name,
                   status: "approved",
                   verified_at: new Date().toISOString(),
+                  bound_device_id: newRecord?.bound_device_id,
+                  pathway_id: newRecord?.pathway_id,
                 });
                 toast.success("Access Approved!", {
                   description: "Your access has been activated by administrator.",
@@ -480,6 +506,8 @@ export function UsResidencyPathwayPage() {
         full_name: sub.full_name,
         status: sub.status,
         verified_at: new Date().toISOString(),
+        bound_device_id: sub.bound_device_id,
+        pathway_id: sub.pathway_id,
       });
     }
     setSubscriptionOpen(false);
@@ -1997,6 +2025,8 @@ export function UsResidencyPathwayPage() {
         onSuccess={handleSubscriptionSuccess}
         siteSettings={siteSettings}
         initialMode={modalMode}
+        pathwayId="us-residency"
+        pathwayName="U.S. Residency Pathway"
       />
     </div>
   );
@@ -2091,6 +2121,7 @@ export function SubscriptionModal({
       const res = await verifySubscriptionStatus(q, undefined, undefined, pathwayId);
 
       if (res.status === "approved" && res.subscription) {
+        saveSubscribedSession(res.subscription);
         const isAll =
           res.subscription.pathway_id === "all-pathways" || res.subscription.pathway_id === "all";
         toast.success("Payment verified! Access is now unlocked.", {

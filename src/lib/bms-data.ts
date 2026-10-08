@@ -203,6 +203,24 @@ export const resources: MedicalResource[] = [
     description:
       "Comprehensive 14-stage roadmap for IMGs: USMLE Step 1 & 2 CK, ECFMG Certification, Intealth, ERAS, and NRMP Match.",
   },
+  {
+    title: "Complete U.K. PLAB Pathway Guide",
+    cat: "International Pathways",
+    type: "Interactive Guide",
+    href: "/career-exploration/uk-residency",
+    badge: "Interactive Roadmap",
+    description:
+      "Official step-by-step roadmap covering PMQ checking, English proficiency (OET/IELTS), EPIC verification, PLAB 1 & 2, GMC registration, and NHS jobs.",
+  },
+  {
+    title: "Complete Australian Medical Pathway Guide",
+    cat: "International Pathways",
+    type: "Interactive Guide",
+    href: "/career-exploration/australia-residency",
+    badge: "Interactive Roadmap",
+    description:
+      "Step-by-step roadmap for IMGs: Medical degree check, MyIntealth & EPIC verification, AMC CAT MCQ, AMC Clinical / WBA, AHPRA registration, and specialist training.",
+  },
   { title: "Mapping Your Medical Career", cat: "Career Guides", type: "Guide" },
   { title: "The Standout Medical CV", cat: "CV & Interview", type: "Toolkit" },
   { title: "Research Starter Pack", cat: "Research", type: "Workbook" },
@@ -466,17 +484,17 @@ export const internationalPathways: InternationalPathwayItem[] = [
     id: "australia-residency",
     flag: "🇦🇺",
     country: "Australia",
-    title: "Australia Residency Pathway",
+    title: "Australian Medical Pathway",
     description:
-      "Standard and Competent Authority pathways, AMC examinations, workplace-based assessments, and AHPRA registration.",
+      "A step-by-step roadmap from medical school to Australian medical registration: credential verification, AMC exams, supervised practice, and specialist training.",
     href: "/career-exploration/australia-residency",
-    badge: "Coming Soon",
-    isDeveloped: false,
+    badge: "Interactive Roadmap Available",
+    isDeveloped: true,
     highlights: [
-      "AMC MCQ & Clinical",
-      "Competent Authority Route",
-      "AHPRA Registration",
-      "Junior Doctor Placement",
+      "Medical Degree + Eligibility",
+      "MyIntealth + EPIC PSV",
+      "AMC CAT MCQ & Clinical / WBA",
+      "AHPRA Registration & Supervised Practice",
     ],
   },
   {
@@ -1307,4 +1325,395 @@ export const plabGhanaNotice = {
     "WHAT THIS MEANS: Ghanaian candidates will need to select another available PLAB 1 location. Examples include Nigeria, Kenya, South Africa and other listed locations—or travel to the UK.",
   point3: "BEFORE BOOKING: Always check GMC Online for current availability before booking.",
 };
+
+// ===========================================================================
+// 🇦🇺 AUSTRALIAN MEDICAL PATHWAY (AMC STANDARD PATHWAY) DATA
+// ===========================================================================
+
+export const australiaAmcRoadmapStages: UsmleRoadmapStage[] = [
+  {
+    id: "amc-stage-01",
+    number: "01",
+    title: "01 Medical Degree + Eligibility Check",
+    summary:
+      "Confirm Primary Medical Qualification (PMQ) eligibility and verify that your medical school is recognised by the AMC and listed in WDOMS.",
+    details: [
+      "You must have an eligible Primary Medical Qualification (PMQ) — your final medical degree/diploma in medicine and surgery.",
+      "Before starting, confirm that your medical school is recognised by the Australian Medical Council (AMC).",
+      "Confirm that your medical qualification is eligible and your medical school is listed in the World Directory of Medical Schools (WDOMS).",
+      "The AMC provides an eligibility-checking process for the overseas medical school, degree title, and graduation year.",
+      "Ensure all biographical information, full legal names, and graduation years match your official passport and school records.",
+    ],
+  },
+  {
+    id: "amc-stage-02",
+    number: "02",
+    title: "02 MyIntealth Account + EPIC Portfolio",
+    summary:
+      "Create a MyIntealth Applicant Portal account, complete identity verification (IIF), and establish your EPIC Portfolio with AMC selected.",
+    fees: [
+      { item: "MyIntealth Account & Identity Form (IIF)", amount: "US$110*" },
+      { item: "EPIC Portfolio Establishment", amount: "US$35*" },
+    ],
+    details: [
+      "Create a MyIntealth Applicant Portal account (Approximate current fee: US$110*).",
+      "You will generally need: Personal information, medical school information, current unexpired passport, and a recent digital photograph.",
+      "Complete the Intealth Identification Form (IIF) and receive your official MyIntealth ID.",
+      "Through MyIntealth/EPIC, request establishment of an EPIC Portfolio (Establishment fee: US$35*).",
+      "Select the Australian Medical Council (AMC) as the organisation receiving the verification reports.",
+      "You will receive an EPIC ID necessary for linking with your AMC candidate account.",
+    ],
+  },
+  {
+    id: "amc-stage-03",
+    number: "03",
+    title: "03 Primary Source Verification (PSV)",
+    summary:
+      "Your medical qualification must undergo Primary Source Verification directly with the issuing medical school through ECFMG EPIC.",
+    fees: [
+      { item: "EPIC Document Upload & Verification (per credential)", amount: "US$35*" },
+      { item: "Medical School Administrative Fee", amount: "Variable by university" },
+    ],
+    details: [
+      "Your medical qualification must undergo Primary Source Verification (PSV).",
+      "The credential is authenticated directly with the issuing medical school/institution.",
+      "Important: Contact your medical school’s Dean’s / Academic / Registrar’s office early so they know to respond swiftly to ECFMG's inquiry.",
+      "The medical school may charge its own administrative handling fee.",
+      "Verification can take time, so start as early as possible.",
+      "ECFMG/Intealth performs PSV through EPIC, with verification information provided directly to the AMC.",
+    ],
+  },
+  {
+    id: "amc-stage-04",
+    number: "04",
+    title: "04 AMC Account + Portfolio",
+    summary:
+      "Establish an official AMC candidate account, provide your EPIC ID, and link your qualifications for verification and examination eligibility.",
+    fees: [
+      { item: "AMC Initial Portfolio + First Qualification", amount: "AUD $642*" },
+      { item: "Additional Qualification (per document)", amount: "AUD $107* each" },
+    ],
+    details: [
+      "Create an account with the Australian Medical Council (AMC) and establish your AMC portfolio.",
+      "Provide your EPIC ID and submit your qualification for verification tracking.",
+      "Current AMC fees: Initial portfolio + first qualification: AUD $642* | Additional qualification: AUD $107* each.",
+      "The AMC verifies that your credentials meet requirements and connects with your EPIC verification file.",
+      "Once established, you can apply for authorisation to sit the AMC examinations.",
+    ],
+  },
+  {
+    id: "amc-stage-05",
+    number: "05",
+    title: "05 AMC CAT MCQ Examination",
+    summary:
+      "Apply for 12-month authorization, schedule via Pearson VUE, and sit the 150-question computer-adaptive examination.",
+    isExam: true,
+    passNextStageId: "amc-stage-06",
+    fees: [
+      { item: "AMC CAT MCQ Authorisation Fee", amount: "AUD $2,920*" },
+      { item: "Preparation Question Banks (AMEDEX, MPlusX)", amount: "AUD $150 – $350" },
+    ],
+    details: [
+      "Apply through your AMC account for authorisation to sit the AMC Computer Adaptive Test (CAT) Multiple Choice Question (MCQ) Examination (Fee: AUD $2,920*).",
+      "Authorisation is valid for 12 months, during which you must schedule and sit an AMC CAT MCQ examination event.",
+      "Schedule your examination through Pearson VUE, which provides examination venues and handles scheduling.",
+      "Format: 150 MCQs over approximately 3.5 hours. One correct answer from five options. Computer-administered and delivered through Pearson VUE.",
+      "Assesses knowledge relevant to safe medical practice in Australia, including: General practice, Internal medicine, Paediatrics, Psychiatry, Surgery, Obstetrics & gynaecology.",
+      "Pass standard: Results are reported on a 0–500 scale, with the pass standard described as 250.",
+      "Recommended preparation resources: Murtagh’s General Practice, UpToDate, AMBOSS, AMC Handbook/Examination Specifications, AMC official MCQ Preparation App, AMEDEX, MPlusX, and other AMC-focused question banks.",
+      "The AMC also provides a free MCQ preparation resource with practice questions.",
+      "International test centres: Conducted in Australia and selected Pearson VUE centres worldwide (e.g., South Africa, United Kingdom, and India). Candidates should check the current venue list before making travel arrangements.",
+      "English Language Standard: You must meet the Medical Board of Australia's English standard (IELTS Academic: 7.0 overall, 7.0 listening/reading/speaking, 6.5 writing; or PTE Academic: 65 overall, 65 in all bands). English is a registration requirement, not an AMC exam requirement.",
+      "Passing AMC MCQ does not by itself give you general registration, but may allow you to apply for limited registration for supervised practice / area-of-need employment.",
+    ],
+    altOption: {
+      title: "What to Do If You Don’t Pass the AMC CAT MCQ",
+      description:
+        "The AMC CAT MCQ is an adaptive computer test that penalizes early inconsistent answers. A failed attempt requires diagnosing core clinical knowledge and exam pacing.",
+      introPoints: [
+        "Do not rush to pay for a new 12-month authorisation immediately. First, diagnose your weak specialties and recalibrate your approach.",
+        "Review your score feedback across General Practice, Internal Medicine, Paediatrics, Psychiatry, Surgery, and Obstetrics & Gynaecology.",
+      ],
+      sections: [
+        {
+          heading: "Understand Why the Attempt Fell Short",
+          subtext: "Analyze whether the primary challenge was:",
+          items: [
+            "Computer Adaptive Testing (CAT) dynamic: missing early questions lowers question difficulty and the ceiling score.",
+            "Gaps in Australian primary care guidelines and Murtagh’s General Practice management frameworks.",
+            "Time pressure and fatigue across 150 clinical vignettes in 3.5 hours (~1.4 minutes per question).",
+            "Weak performance on community paediatrics, women's health screening, or Australian mental health protocols.",
+            "Insufficient practice with timed question-bank blocks under real exam conditions.",
+          ],
+        },
+        {
+          heading: "Rebuild Your MCQ Preparation System",
+          subtext:
+            "A failed attempt should lead to an evidence-based change in preparation strategy:",
+          items: [
+            "Study Murtagh’s General Practice thoroughly — it is the cornerstone of the Australian medical curriculum.",
+            "Use reputable question banks (AMEDEX, MPlusX, AMBOSS) in timed mode, meticulously analyzing explanations for incorrect answers.",
+            "Review official AMC Handbook sample questions and understand Australian therapeutic guidelines (eTG).",
+            "Consistently score 70%+ on full-length timed mocks before scheduling your retake.",
+          ],
+        },
+      ],
+      callout: {
+        title: "Key Retake Principle",
+        content:
+          "Readiness should be based on objective mock scores and clinical reasoning aligned with Australian community and emergency guidelines, not haste to re-sit.",
+      },
+      actionSteps: [
+        "Analyze your AMC score report across the 6 major specialties.",
+        "Complete 50 timed questions daily with comprehensive rationale review.",
+        "Master Australian guidelines (eTG, RACGP guidelines, and RCH Paediatrics Clinical Practice Guidelines).",
+      ],
+    },
+  },
+  {
+    id: "amc-stage-06",
+    number: "06",
+    title: "06 Complete the AMC Clinical Examination OR WBA",
+    summary:
+      "Pass the 16-station AMC Clinical OSCE or undertake an approved 6–12 month Workplace-Based Assessment (WBA).",
+    isExam: true,
+    passNextStageId: "amc-stage-07",
+    fees: [
+      { item: "AMC Clinical Examination (In-Person)", amount: "AUD $3,000*" },
+      { item: "AMC Clinical Examination (Online)", amount: "AUD $3,400*" },
+      { item: "AMC-Listed WBA Fee (Option B)", amount: "AUD $1,070*" },
+    ],
+    details: [
+      "OPTION A — AMC CLINICAL EXAMINATION:",
+      "• Assesses: Medicine, Surgery, Obstetrics & gynaecology, Paediatrics, Psychiatry and Communication with patients, families and healthcare professionals.",
+      "• Format: 16 assessed stations (2 pilot stations, 14 scored stations determine final result). 10 minutes per station: 2 minutes reading + 8 minutes assessment.",
+      "• Pass requirement: 9 or more of the 14 scored stations must be passed.",
+      "• Fees: In-person AUD $3,000* | Online AUD $3,400* (online availability is limited).",
+      "OPTION B — AMC-ACCREDITED WORKPLACE-BASED ASSESSMENT (WBA):",
+      "• WBA is an alternative to the AMC Clinical Examination assessing clinical knowledge and performance directly in the workplace over 6–12 months.",
+      "• To enter a WBA program: Must have passed AMC CAT MCQ, hold appropriate registration with the Medical Board of Australia, hold an appointed position in an approved hospital or general practice, and meet the provider’s eligibility criteria.",
+      "• AMC-listed WBA fee: AUD $1,070* (individual healthcare providers may charge additional program/administrative fees).",
+    ],
+    altOption: {
+      title: "What to Do If You Don’t Pass the AMC Clinical Examination",
+      description:
+        "The AMC Clinical Examination evaluates patient communication, structured history taking, physical examination cues, and management under strict 8-minute timers.",
+      introPoints: [
+        "A pass requires 9 or more out of 14 scored stations. Many candidates who fail miss by just 1 or 2 stations.",
+        "Carefully analyze your examiner station report to distinguish between communication, history, and clinical management deficits.",
+      ],
+      sections: [
+        {
+          heading: "Analyze the OSCE Station Deficits",
+          items: [
+            "Failing to explore patient ideas, concerns, and expectations (ICE) or empathize with simulated patients.",
+            "Rushing history taking and leaving inadequate time for collaborative management and safety netting.",
+            "Overlooking Australian emergency red flags, mandatory reporting, or standard referral protocols.",
+            "Unnatural or scripted communication that fails to respond dynamically to patient cues.",
+          ],
+        },
+        {
+          heading: "Refine Clinical & Communication Technique",
+          items: [
+            "Practice live simulation with clinical study partners under strict 2-minute reading and 8-minute station timers.",
+            "Master patient-centred communication: active listening, empathetic summaries, and non-jargon explanations.",
+            "Explore approved Workplace-Based Assessment (WBA) hospital programs if eligible for limited registration.",
+          ],
+        },
+      ],
+      callout: {
+        title: "WBA Pathway Alternative",
+        content:
+          "If you secure an appointed position in an Australian regional hospital offering an accredited WBA program, you can complete clinical assessment on the job over 6–12 months instead of re-taking the OSCE.",
+      },
+      actionSteps: [
+        "Review station breakdowns to identify low-scoring disciplines.",
+        "Perform daily timed role-plays with constructive peer feedback.",
+        "Review Australian healthcare communication frameworks and culturally safe practice.",
+      ],
+    },
+  },
+  {
+    id: "amc-stage-07",
+    number: "07",
+    title: "07 Obtain the AMC Certificate",
+    summary:
+      "The AMC issues your AMC Certificate upon completion of Primary Source Verification, AMC CAT MCQ, and Clinical Exam or WBA.",
+    details: [
+      "The AMC can issue your AMC Certificate once you have:",
+      "• Completed primary source verification (PSV) through EPIC.",
+      "• Passed the AMC CAT MCQ examination.",
+      "• Passed the AMC Clinical Examination OR completed an approved WBA program.",
+      "The AMC Certificate enables you to apply for registration with the Medical Board of Australia.",
+      "Important: AMC Certificate ≠ immediate general registration. It is the key credential enabling provisional registration and supervised practice in Australia.",
+    ],
+  },
+  {
+    id: "amc-stage-08",
+    number: "08",
+    title: "08 Apply for Registration Through AHPRA",
+    summary:
+      "Apply to the Medical Board of Australia through AHPRA, fulfilling mandatory registration standards and supervised practice plans.",
+    fees: [
+      { item: "AHPRA Registration & Application Fee", amount: "~AUD $890 – $995*" },
+      { item: "Fit2Work International Criminal History Check", amount: "~AUD $160 – $200" },
+    ],
+    details: [
+      "Apply to the Medical Board of Australia through AHPRA (Australian Health Practitioner Regulation Agency).",
+      "The Board assesses requirements including:",
+      "• English language skills (IELTS Academic: 7.0 overall with min 7.0 listening/reading/speaking and 6.5 writing; or PTE Academic: 65 overall with min 65 in all 4 bands).",
+      "• Recency of practice (clinical practice hours within the past 1–3 years).",
+      "• Criminal history (national and international criminal background screening via Fit2Work).",
+      "• Professional indemnity insurance (PII) arrangements.",
+      "• Continuing professional development (CPD) compliance.",
+      "• Proof of identity meeting Australian government standards.",
+      "• Supervised practice requirements and approved supervision plan.",
+    ],
+  },
+  {
+    id: "amc-stage-09",
+    number: "09",
+    title: "09 Approved Supervised Practice",
+    summary:
+      "Undertake 12 months (47 weeks full-time equivalent) of approved supervised clinical practice in an accredited Australian health facility.",
+    details: [
+      "AMC Certificate holders generally need to obtain provisional registration and complete the required approved supervised practice in Australia.",
+      "Current requirement: 12 months / 47 weeks full-time equivalent (FTE) of approved supervised practice for AMC Certificate holders seeking general registration.",
+      "Some IMGs may undertake part or all of the supervised practice while holding limited registration.",
+      "Supervision is assigned at specified levels (Level 1 to Level 4) depending on clinical background and job role.",
+      "Regular supervisor work performance reports and logbooks must be submitted to the Medical Board of Australia.",
+      "Supervised practice provides essential clinical orientation, prescribing familiarisation, and integration into the Australian healthcare system.",
+    ],
+  },
+  {
+    id: "amc-stage-10",
+    number: "10",
+    title: "10 General Registration",
+    summary:
+      "Submit evidence of satisfactory completion of 47 weeks FTE supervised practice to obtain unrestricted General Registration.",
+    fees: [
+      { item: "AHPRA General Registration Transition Fee", amount: "~AUD $250 – $350" },
+    ],
+    details: [
+      "After satisfactorily completing the required supervised practice and meeting the Board’s other registration standards, you can apply for general registration with the Medical Board of Australia.",
+      "Current requirement: Evidence of satisfactory completion of 12 months / 47 weeks FTE approved supervised practice, together with other applicable registration requirements.",
+      "General registration allows you to practise medicine anywhere in Australia without mandatory supervision.",
+      "Unrestricted registration unlocks opportunities for independent hospital practice, locum work, and entry into accredited specialist college training.",
+    ],
+  },
+  {
+    id: "amc-stage-11",
+    number: "11",
+    title: "11 Obtain a Principal HO / RMO Position",
+    summary:
+      "Apply for Resident Medical Officer (RMO) or Principal House Officer (PHO) positions in Australian public and private hospitals.",
+    fees: [
+      { item: "Australian Work Visa (Subclass 482 / 491 / 494 / 186)", amount: "Variable by subclass" },
+    ],
+    details: [
+      "After obtaining General registration (or earlier on limited/provisional registration), apply for medical positions based on your working experience:",
+      "• Resident Medical Officer (RMO): Post-internship hospital positions rotating through core medical, surgical, and emergency terms.",
+      "• Principal House Officer (PHO): Advanced junior doctor positions with higher clinical responsibility, often targeted towards specific surgical or medical specialties.",
+      "Employment opportunities may be affected by: Clinical experience, recency of practice, Australian clinical experience, references, willingness to work in rural/regional areas, availability of suitable supervised positions, and employer requirements.",
+      "Passing the AMC MCQ does not guarantee employment; apply proactively through state recruitment campaigns (e.g., Queensland Health, NSW Health, Victoria, WA Health).",
+    ],
+  },
+  {
+    id: "amc-stage-12",
+    number: "12",
+    title: "12 Specialist Training",
+    summary:
+      "Once established in Australia with General Registration, apply for accredited vocational training programs through specialist medical colleges.",
+    details: [
+      "Once you have established yourself within the Australian medical system and meet the relevant requirements, you can apply for entry into specialist training.",
+      "Examples of recognised Australian specialist colleges:",
+      "• Royal Australasian College of Physicians (RACP) — Adult Medicine & Paediatrics",
+      "• Royal Australasian College of Surgeons (RACS) — Surgical Specialties",
+      "• Royal Australian and New Zealand College of Obstetricians and Gynaecologists (RANZCOG)",
+      "• Australasian College for Emergency Medicine (ACEM)",
+      "• Royal Australian College of General Practitioners (RACGP) / Australian College of Rural and Remote Medicine (ACRRM)",
+      "• Australian and New Zealand College of Anaesthetists (ANZCA)",
+      "• Royal Australian and New Zealand College of Psychiatrists (RANZCP)",
+      "Entry requirements vary by specialty and training program: competitive selection based on CV, clinical experience, references, audit/research work, and college interviews.",
+      "Upon completion, you receive college fellowship (e.g. FRACP, FRACS, FRACGP) and register as a Specialist Consultant with the Medical Board of Australia.",
+    ],
+  },
+];
+
+export const australiaBudgetBreakdown = [
+  { item: "AMC CAT MCQ Examination Authorisation Fee", fee: "AUD $2,920*", category: "Examinations" },
+  { item: "AMC Clinical Examination (In-Person)", fee: "AUD $3,000*", category: "Examinations" },
+  { item: "AMC Clinical Examination (Online)", fee: "AUD $3,400*", category: "Examinations" },
+  { item: "AMC Workplace-Based Assessment (Option B)", fee: "AUD $1,070*", category: "Clinical Assessment" },
+  {
+    item: "AMC Initial Portfolio + First Qualification",
+    fee: "AUD $642*",
+    category: "AMC Credentials",
+  },
+  {
+    item: "AMC Additional Qualification Verification",
+    fee: "AUD $107* each",
+    category: "AMC Credentials",
+  },
+  {
+    item: "MyIntealth Account & Identity Form (IIF)",
+    fee: "US$110* (~AUD $170)",
+    category: "Primary-Source Verification",
+  },
+  {
+    item: "EPIC Portfolio Establishment",
+    fee: "US$35* (~AUD $55)",
+    category: "Primary-Source Verification",
+  },
+  {
+    item: "EPIC Document Upload & Verification (per credential)",
+    fee: "US$35* (~AUD $55)",
+    category: "Primary-Source Verification",
+  },
+  {
+    item: "IELTS Academic or PTE Academic Examination",
+    fee: "~AUD $410 – $445",
+    category: "English Language Proficiency",
+  },
+  {
+    item: "AHPRA Registration Application & Annual Fee",
+    fee: "~AUD $890 – $995*",
+    category: "Medical Board Registration",
+  },
+  {
+    item: "Fit2Work International Criminal History Check",
+    fee: "~AUD $160 – $200",
+    category: "Compliance & Screening",
+  },
+  {
+    item: "Travel, Flights & Accommodation (Clinical Exam)",
+    fee: "~AUD $2,000 – $4,000",
+    category: "Travel & Logistics",
+  },
+  {
+    item: "Australian Employer Sponsored / Skilled Visa",
+    fee: "Variable by subclass",
+    category: "Work Visa & Relocation",
+  },
+];
+
+export const australiaKeyTakeaways = [
+  "Understand the pathway: Know the exams, registration requirements, timeline and overall process before starting.",
+  "Plan financially: The pathway is capital intensive, so ensure you are genuinely committed to pursuing it.",
+  "Prepare strategically: Build a strong foundation and use practice questions and assessments to track your readiness.",
+  "Think beyond the exams: Passing the AMC exams does not guarantee employment or specialist training.",
+  "Research employment early: Be open to different locations, specialties and entry-level opportunities, especially in regional areas.",
+  "Plan long-term: Consider your goals for registration, supervised practice, and eventual college specialization.",
+  "Stay updated: Requirements can change, so always check the AMC and Medical Board of Australia/Ahpra for current information.",
+];
+
+export const australiaExamCentresNotice = {
+  title: "Examination Venues & Scheduling Note",
+  point1: "CONDUCTED VIA PEARSON VUE: AMC CAT MCQ examinations are conducted in Australia and at selected international Pearson VUE centres.",
+  point2:
+    "INTERNATIONAL LOCATIONS: Usual locations may include Australia, South Africa, the United Kingdom, and India. Locations can change over time.",
+  point3:
+    "BEFORE MAKING TRAVEL PLANS: Ghanaian and international candidates should verify the current AMC/Pearson VUE venue list before making travel or test arrangements.",
+};
+
 

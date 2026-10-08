@@ -44,6 +44,8 @@ export interface BmsSiteSettings {
   guide_pdf_filename?: string | undefined;
   uk_guide_pdf_url?: string | undefined;
   uk_guide_pdf_filename?: string | undefined;
+  australia_guide_pdf_url?: string | undefined;
+  australia_guide_pdf_filename?: string | undefined;
 }
 
 export const DEFAULT_SETTINGS: BmsSiteSettings = {
@@ -60,6 +62,8 @@ export const DEFAULT_SETTINGS: BmsSiteSettings = {
   uk_guide_pdf_url:
     "https://owurtseimitnofbdepoq.supabase.co/storage/v1/object/public/pathway-guides/guides/BMS_PLAB_Pathway_Complete%20Guide.pdf",
   uk_guide_pdf_filename: "BMS_PLAB_Pathway_Complete Guide.pdf",
+  australia_guide_pdf_url: "/BMS-Australia-AMC-Pathway-Guide.pdf",
+  australia_guide_pdf_filename: "BMS-Australia-AMC-Pathway-Guide.pdf",
 };
 
 /**
@@ -74,6 +78,11 @@ export async function triggerFileDownload(url: string, filename: string): Promis
     if (filename.toLowerCase().includes("plab") || filename.toLowerCase().includes("uk")) {
       safeUrl =
         "https://owurtseimitnofbdepoq.supabase.co/storage/v1/object/public/pathway-guides/guides/BMS_PLAB_Pathway_Complete%20Guide.pdf";
+    } else if (
+      filename.toLowerCase().includes("amc") ||
+      filename.toLowerCase().includes("australia")
+    ) {
+      safeUrl = "/BMS-Australia-AMC-Pathway-Guide.pdf";
     } else {
       safeUrl =
         "https://owurtseimitnofbdepoq.supabase.co/storage/v1/object/public/pathway-guides/guides/1790354719791_BMS_USMLE_Residency_Pathway_PRESENTABLE__1_.pdf";
@@ -380,6 +389,61 @@ export async function uploadUkGuidePdf(
   }
 }
 
+export async function uploadAustraliaGuidePdf(
+  file: File,
+): Promise<{ success: boolean; url?: string; filename?: string; error?: string }> {
+  try {
+    if (!supabase) return { success: false, error: "Database client is not initialized" };
+
+    const cleanBaseName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
+    const filePath = `guides/australia_${Date.now()}_${cleanBaseName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from("pathway-guides")
+      .upload(filePath, file, {
+        cacheControl: "3600",
+        upsert: false,
+      });
+
+    if (uploadError) {
+      console.error("Storage upload error:", uploadError);
+      return { success: false, error: uploadError.message };
+    }
+
+    const { data } = supabase.storage.from("pathway-guides").getPublicUrl(filePath);
+    const publicUrl = data.publicUrl;
+
+    await updateSiteSetting("australia_guide_pdf_url", publicUrl);
+    await updateSiteSetting("australia_guide_pdf_filename", file.name);
+
+    let sizeFormatted = "";
+    if (file.size < 1024 * 1024) {
+      sizeFormatted = `${Math.round(file.size / 1024)} KB`;
+    } else {
+      sizeFormatted = `${(file.size / (1024 * 1024)).toFixed(1)} MB`;
+    }
+
+    await saveUploadedResource({
+      title: "Complete Australian Medical Pathway Guide",
+      category: "Australia AMC",
+      resource_type: "Complete Guide",
+      description:
+        "Official step-by-step roadmap for IMGs: AMC CAT MCQ, AMC Clinical / WBA, Primary Source Verification, AHPRA Registration, Supervised Practice, and Specialist Training.",
+      file_url: publicUrl,
+      filename: file.name,
+      file_size: sizeFormatted,
+      is_gated: true,
+      is_primary_guide: true,
+      pathway_id: "australia-residency",
+    });
+
+    return { success: true, url: publicUrl, filename: file.name };
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : "Failed to upload file";
+    return { success: false, error: msg };
+  }
+}
+
 export async function uploadAnyResourceFile(
   file: File,
   folder = "resources",
@@ -546,12 +610,64 @@ export async function getAllUploadedResources(): Promise<BmsResourceItem[]> {
       }
     }
 
+    // Also check for separate Australia AMC primary guide
+    const { data: ausGuideUrlRow } = await supabase
+      .from("bms_settings")
+      .select("value")
+      .eq("key", "australia_guide_pdf_url")
+      .single();
+
+    const primaryAusUrl =
+      ausGuideUrlRow?.value && ausGuideUrlRow.value.trim().length > 0
+        ? ausGuideUrlRow.value.trim()
+        : "/BMS-Australia-AMC-Pathway-Guide.pdf";
+
+    const hasAusMatch = list.some(
+      (item) =>
+        item.file_url === primaryAusUrl ||
+        (item.is_primary_guide &&
+          (item.pathway_id === "australia-residency" ||
+            item.category === "Australia AMC" ||
+            item.category === "Australian Medical")),
+    );
+
+    if (!hasAusMatch) {
+      const { data: ausGuideNameRow } = await supabase
+        .from("bms_settings")
+        .select("value")
+        .eq("key", "australia_guide_pdf_filename")
+        .single();
+
+      const defaultAusPrimary: BmsResourceItem = {
+        id: "primary-australia-amc-guide",
+        title: "Complete Australian Medical Pathway Guide",
+        category: "Australia AMC",
+        resource_type: "Complete Guide",
+        description:
+          "Official step-by-step roadmap for IMGs: AMC CAT MCQ, AMC Clinical / WBA, Primary Source Verification, AHPRA Registration, Supervised Practice, and Specialist Training.",
+        file_url: primaryAusUrl,
+        filename: ausGuideNameRow?.value || "BMS-Australia-AMC-Pathway-Guide.pdf",
+        file_size: "426 KB",
+        is_gated: true,
+        is_primary_guide: true,
+        pathway_id: "australia-residency",
+        created_at: new Date().toISOString(),
+      };
+      list.unshift(defaultAusPrimary);
+    }
+
     const sanitizedList = list.map((item) => {
       let safeUrl = item.file_url;
       if (!safeUrl || safeUrl.includes("supabase.com/dashboard")) {
         if (item.pathway_id === "uk-residency" || item.category === "U.K. PLAB") {
           safeUrl =
             "https://owurtseimitnofbdepoq.supabase.co/storage/v1/object/public/pathway-guides/guides/BMS_PLAB_Pathway_Complete%20Guide.pdf";
+        } else if (
+          item.pathway_id === "australia-residency" ||
+          item.category === "Australia AMC" ||
+          item.category === "Australian Medical"
+        ) {
+          safeUrl = "/BMS-Australia-AMC-Pathway-Guide.pdf";
         } else {
           safeUrl =
             "https://owurtseimitnofbdepoq.supabase.co/storage/v1/object/public/pathway-guides/guides/1790354719791_BMS_USMLE_Residency_Pathway_PRESENTABLE__1_.pdf";
@@ -586,15 +702,32 @@ export async function saveUploadedResource(
 
     if (newItem.is_primary_guide) {
       const isUk = newItem.pathway_id === "uk-residency" || newItem.category === "U.K. PLAB";
+      const isAus =
+        newItem.pathway_id === "australia-residency" ||
+        newItem.category === "Australia AMC" ||
+        newItem.category === "Australian Medical";
+
       existing.forEach((r) => {
         const rIsUk = r.pathway_id === "uk-residency" || r.category === "U.K. PLAB";
-        if (isUk === rIsUk) {
+        const rIsAus =
+          r.pathway_id === "australia-residency" ||
+          r.category === "Australia AMC" ||
+          r.category === "Australian Medical";
+
+        if (
+          (isUk && rIsUk) ||
+          (isAus && rIsAus) ||
+          (!isUk && !isAus && !rIsUk && !rIsAus)
+        ) {
           r.is_primary_guide = false;
         }
       });
       if (isUk) {
         await updateSiteSetting("uk_guide_pdf_url", newItem.file_url);
         await updateSiteSetting("uk_guide_pdf_filename", newItem.filename);
+      } else if (isAus) {
+        await updateSiteSetting("australia_guide_pdf_url", newItem.file_url);
+        await updateSiteSetting("australia_guide_pdf_filename", newItem.filename);
       } else {
         await updateSiteSetting("guide_pdf_url", newItem.file_url);
         await updateSiteSetting("guide_pdf_filename", newItem.filename);
@@ -658,6 +791,11 @@ export async function deleteUploadedResource(id: string): Promise<boolean> {
 
     if (target?.is_primary_guide) {
       const isUk = target.pathway_id === "uk-residency" || target.category === "U.K. PLAB";
+      const isAus =
+        target.pathway_id === "australia-residency" ||
+        target.category === "Australia AMC" ||
+        target.category === "Australian Medical";
+
       if (isUk) {
         const nextUkPrimary = updated.find(
           (r) => r.pathway_id === "uk-residency" || r.category === "U.K. PLAB",
@@ -669,6 +807,21 @@ export async function deleteUploadedResource(id: string): Promise<boolean> {
         } else {
           await updateSiteSetting("uk_guide_pdf_url", "");
           await updateSiteSetting("uk_guide_pdf_filename", "");
+        }
+      } else if (isAus) {
+        const nextAusPrimary = updated.find(
+          (r) =>
+            r.pathway_id === "australia-residency" ||
+            r.category === "Australia AMC" ||
+            r.category === "Australian Medical",
+        );
+        if (nextAusPrimary) {
+          nextAusPrimary.is_primary_guide = true;
+          await updateSiteSetting("australia_guide_pdf_url", nextAusPrimary.file_url);
+          await updateSiteSetting("australia_guide_pdf_filename", nextAusPrimary.filename);
+        } else {
+          await updateSiteSetting("australia_guide_pdf_url", "");
+          await updateSiteSetting("australia_guide_pdf_filename", "");
         }
       } else {
         const nextPrimary = updated.find(
@@ -704,12 +857,25 @@ export async function setPrimaryResource(id: string): Promise<boolean> {
     const existing = await getAllUploadedResources();
     const selected = existing.find((r) => r.id === id);
     const isUk = selected?.pathway_id === "uk-residency" || selected?.category === "U.K. PLAB";
+    const isAus =
+      selected?.pathway_id === "australia-residency" ||
+      selected?.category === "Australia AMC" ||
+      selected?.category === "Australian Medical";
 
     existing.forEach((r) => {
       const rIsUk = r.pathway_id === "uk-residency" || r.category === "U.K. PLAB";
+      const rIsAus =
+        r.pathway_id === "australia-residency" ||
+        r.category === "Australia AMC" ||
+        r.category === "Australian Medical";
+
       if (r.id === id) {
         r.is_primary_guide = true;
-      } else if (isUk === rIsUk) {
+      } else if (
+        (isUk && rIsUk) ||
+        (isAus && rIsAus) ||
+        (!isUk && !isAus && !rIsUk && !rIsAus)
+      ) {
         r.is_primary_guide = false;
       }
     });
@@ -718,6 +884,9 @@ export async function setPrimaryResource(id: string): Promise<boolean> {
       if (isUk) {
         await updateSiteSetting("uk_guide_pdf_url", selected.file_url);
         await updateSiteSetting("uk_guide_pdf_filename", selected.filename);
+      } else if (isAus) {
+        await updateSiteSetting("australia_guide_pdf_url", selected.file_url);
+        await updateSiteSetting("australia_guide_pdf_filename", selected.filename);
       } else {
         await updateSiteSetting("guide_pdf_url", selected.file_url);
         await updateSiteSetting("guide_pdf_filename", selected.filename);
@@ -1006,10 +1175,12 @@ export function buildAdminWhatsAppReplyLink(
   const cleanNumber = cleanPhoneNumber(userPhone);
   const pathwayLabel =
     pathwayId === "all-pathways" || pathwayId === "all"
-      ? "All-Access Pass (U.S. Residency + U.K. PLAB)"
+      ? "All-Access Pass (U.S., U.K., & Australia Pathways)"
       : pathwayId === "uk-residency" || pathwayId === "uk-plab"
         ? "U.K. PLAB Pathway"
-        : "U.S. Residency Pathway";
+        : pathwayId === "australia-residency" || pathwayId === "amc"
+          ? "Australian Medical Pathway"
+          : "U.S. Residency Pathway";
   const msg = `Hello ${userName}! Your payment has been confirmed by BMS. Your access to the ${pathwayLabel} Roadmap and Downloadable Complete Guide is now APPROVED! (Reference: ${referenceCode}). You can visit the website, enter your email, and start exploring right away. Let us know if you need any guidance!`;
   return `https://wa.me/${cleanNumber}?text=${encodeURIComponent(msg)}`;
 }
@@ -1123,15 +1294,19 @@ export async function verifySubscriptionStatus(
           ? "U.S. Residency"
           : targetSub.pathway_id === "uk-residency" || targetSub.pathway_id === "uk-plab"
             ? "U.K. PLAB"
-            : targetSub.pathway_id;
+            : targetSub.pathway_id === "australia-residency" || targetSub.pathway_id === "amc"
+              ? "Australian Medical"
+              : targetSub.pathway_id;
       const targetLabel =
         targetPathwayId === "us-residency" || targetPathwayId === "usmle"
           ? "U.S. Residency"
-          : "U.K. PLAB";
+          : targetPathwayId === "uk-residency" || targetPathwayId === "uk-plab"
+            ? "U.K. PLAB"
+            : "Australian Medical";
       return {
         status: "pathway_mismatch",
         subscription: targetSub,
-        errorMessage: `You currently have an active subscription for the ${currentLabel} Pathway. To access the ${targetLabel} Pathway, you can purchase single access for this pathway or unlock both with the All-Access Pass.`,
+        errorMessage: `You currently have an active subscription for the ${currentLabel} Pathway. To access the ${targetLabel} Pathway, you can purchase single access for this pathway or unlock all pathways with the All-Access Pass.`,
       };
     }
 
@@ -1282,6 +1457,22 @@ export function hasPathwayAccess(
     return true;
   }
 
+  // Aliases for Australia
+  if (
+    (user === "australia-residency" ||
+      user === "amc" ||
+      user === "australia" ||
+      user === "amc-pathway" ||
+      user === "australian-medical") &&
+    (target === "australia-residency" ||
+      target === "amc" ||
+      target === "australia" ||
+      target === "amc-pathway" ||
+      target === "australian-medical")
+  ) {
+    return true;
+  }
+
   return false;
 }
 
@@ -1399,11 +1590,13 @@ export async function validateActiveSubscription(targetPathwayId?: string): Prom
         status: "pathway_mismatch",
         subscription: currentSub,
         reason: `Your active subscription is for ${
-          currentSub.pathway_id === "us-residency"
+          currentSub.pathway_id === "us-residency" || currentSub.pathway_id === "usmle"
             ? "U.S. Residency"
-            : currentSub.pathway_id === "uk-residency"
+            : currentSub.pathway_id === "uk-residency" || currentSub.pathway_id === "uk-plab"
               ? "U.K. PLAB"
-              : currentSub.pathway_id
+              : currentSub.pathway_id === "australia-residency" || currentSub.pathway_id === "amc"
+                ? "Australian Medical"
+                : currentSub.pathway_id
         }. You can unlock this pathway individually or upgrade to the All-Access Pass.`,
       };
     }

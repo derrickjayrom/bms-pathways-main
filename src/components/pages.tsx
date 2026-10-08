@@ -1227,7 +1227,14 @@ export function ResourcesPage() {
         title: u.title,
         cat: u.category,
         type: u.resource_type,
-        href: u.pathway_id === "us-residency" ? "/career-exploration/us-residency" : undefined,
+        href:
+          u.pathway_id === "us-residency"
+            ? "/career-exploration/us-residency"
+            : u.pathway_id === "uk-residency"
+              ? "/career-exploration/uk-residency"
+              : u.pathway_id === "australia-residency"
+                ? "/career-exploration/australia-residency"
+                : undefined,
         description:
           u.description || `${u.category} · ${u.resource_type} (${u.file_size || "PDF"})`,
         badge: u.is_primary_guide
@@ -1900,4 +1907,9 @@ export function ContactPage() {
   );
 }
 
-export { CareerExplorationPage, UsResidencyPathwayPage, UkPlabPathwayPage } from "./career-exploration";
+export {
+  CareerExplorationPage,
+  UsResidencyPathwayPage,
+  UkPlabPathwayPage,
+  AustraliaAmcPathwayPage,
+} from "./career-exploration";

@@ -50,6 +50,7 @@ import {
   BMS_STORAGE_FIX_SQL,
   uploadGuidePdf,
   uploadUkGuidePdf,
+  uploadAustraliaGuidePdf,
   uploadAnyResourceFile,
   getAllUploadedResources,
   saveUploadedResource,
@@ -125,7 +126,7 @@ export function AdminSubscriptionsDashboard() {
     "all",
   );
   const [pathwayFilter, setPathwayFilter] = useState<
-    "all" | "all-pathways" | "us-residency" | "uk-residency"
+    "all" | "all-pathways" | "us-residency" | "uk-residency" | "australia-residency"
   >("all");
 
   // Editable settings form state
@@ -133,6 +134,7 @@ export function AdminSubscriptionsDashboard() {
   const [savingSettings, setSavingSettings] = useState(false);
   const [uploadingPdf, setUploadingPdf] = useState(false);
   const [uploadingUkPdf, setUploadingUkPdf] = useState(false);
+  const [uploadingAusPdf, setUploadingAusPdf] = useState(false);
   const [storageError, setStorageError] = useState<string | null>(null);
 
   // Check existing session
@@ -462,7 +464,8 @@ export function AdminSubscriptionsDashboard() {
     e.preventDefault();
     if (
       settingsForm.uk_guide_pdf_url?.includes("supabase.com/dashboard") ||
-      settingsForm.guide_pdf_url?.includes("supabase.com/dashboard")
+      settingsForm.guide_pdf_url?.includes("supabase.com/dashboard") ||
+      settingsForm.australia_guide_pdf_url?.includes("supabase.com/dashboard")
     ) {
       toast.error("Invalid Supabase URL Detected", {
         description:
@@ -496,22 +499,44 @@ export function AdminSubscriptionsDashboard() {
         "uk_guide_pdf_filename",
         settingsForm.uk_guide_pdf_filename || "",
       );
-
-      const [r1, r2, r3, rAllAccess, r4, rDev, r5, r6, rUkGuide, rUkGuideName] = await Promise.all([
-        p1,
-        p2,
-        p3,
-        pAllAccess,
-        p4,
-        pDeviceBinding,
-        p5,
-        p6,
-        pUkGuide,
-        pUkGuideName,
-      ]);
-      const failures = [r1, r2, r3, rAllAccess, r4, rDev, r5, r6, rUkGuide, rUkGuideName].filter(
-        (r) => !r.success,
+      const pAusGuide = updateSiteSetting(
+        "australia_guide_pdf_url",
+        settingsForm.australia_guide_pdf_url || "",
       );
+      const pAusGuideName = updateSiteSetting(
+        "australia_guide_pdf_filename",
+        settingsForm.australia_guide_pdf_filename || "",
+      );
+
+      const [r1, r2, r3, rAllAccess, r4, rDev, r5, r6, rUkGuide, rUkGuideName, rAusGuide, rAusGuideName] =
+        await Promise.all([
+          p1,
+          p2,
+          p3,
+          pAllAccess,
+          p4,
+          pDeviceBinding,
+          p5,
+          p6,
+          pUkGuide,
+          pUkGuideName,
+          pAusGuide,
+          pAusGuideName,
+        ]);
+      const failures = [
+        r1,
+        r2,
+        r3,
+        rAllAccess,
+        r4,
+        rDev,
+        r5,
+        r6,
+        rUkGuide,
+        rUkGuideName,
+        rAusGuide,
+        rAusGuideName,
+      ].filter((r) => !r.success);
 
       if (failures.length === 0) {
         setSettings(settingsForm);
@@ -660,6 +685,64 @@ export function AdminSubscriptionsDashboard() {
     }
   };
 
+  // Action: Handle Australian Medical Pathway PDF Guide Upload
+  const handleAusPdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.name.toLowerCase().endsWith(".pdf")) {
+      toast.error("Please select a valid PDF file.");
+      return;
+    }
+
+    setUploadingAusPdf(true);
+    try {
+      const res = await uploadAustraliaGuidePdf(file);
+      if (res.success && res.url) {
+        setSettings((prev) => ({
+          ...prev,
+          australia_guide_pdf_url: res.url,
+          australia_guide_pdf_filename: res.filename || file.name,
+        }));
+        setSettingsForm((prev) => ({
+          ...prev,
+          australia_guide_pdf_url: res.url,
+          australia_guide_pdf_filename: res.filename || file.name,
+        }));
+        setStorageError(null);
+        toast.success("Complete Australian Medical Pathway Guide PDF uploaded successfully!", {
+          description:
+            "Subscribers can now click 'DOWNLOAD COMPLETE GUIDE' on the Australian Medical pathway to download this file.",
+        });
+        const updated = await getAllUploadedResources();
+        setUploadedResources(updated);
+      } else {
+        const errorMsg = res.error || "Check Supabase Storage";
+        setStorageError(errorMsg);
+        if (
+          errorMsg.toLowerCase().includes("row-level security") ||
+          errorMsg.toLowerCase().includes("policy") ||
+          errorMsg.toLowerCase().includes("bucket not found") ||
+          errorMsg.toLowerCase().includes("nosuchbucket")
+        ) {
+          toast.error("Upload failed: Supabase Storage bucket policy needed", {
+            description:
+              "The 'pathway-guides' storage bucket or its RLS policy is not configured yet. Copy the Storage SQL below and run it in Supabase.",
+            duration: 8000,
+          });
+        } else {
+          toast.error(`Upload failed: ${errorMsg}`);
+        }
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to upload PDF");
+    } finally {
+      setUploadingAusPdf(false);
+      e.target.value = "";
+    }
+  };
+
   // Action: Add / Upload New Resource
   const handleCreateResource = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -774,16 +857,20 @@ export function AdminSubscriptionsDashboard() {
   // Action: Set as Primary Guide
   const handleSetPrimaryResource = async (resItem: BmsResourceItem) => {
     const isUk = resItem.pathway_id === "uk-residency" || resItem.category === "U.K. PLAB";
+    const isAus =
+      resItem.pathway_id === "australia-residency" ||
+      resItem.category === "Australia AMC" ||
+      resItem.category === "Australian Medical";
     const ok = await setPrimaryResource(resItem.id);
     if (ok) {
-      toast.success(
-        `"${resItem.title}" is now the Primary ${isUk ? "🇬🇧 U.K. PLAB" : "🇺🇸 U.S. Residency"} Guide!`,
-        {
-          description: `Subscribers clicking 'DOWNLOAD COMPLETE GUIDE' on the ${
-            isUk ? "U.K. PLAB" : "U.S. Residency"
-          } roadmap will download this file.`,
-        },
-      );
+      const guideLabel = isAus
+        ? "🇦🇺 Australian Medical"
+        : isUk
+          ? "🇬🇧 U.K. PLAB"
+          : "🇺🇸 U.S. Residency";
+      toast.success(`"${resItem.title}" is now the Primary ${guideLabel} Guide!`, {
+        description: `Subscribers clicking 'DOWNLOAD COMPLETE GUIDE' on the ${guideLabel} roadmap will download this file.`,
+      });
       const updated = await getAllUploadedResources();
       setUploadedResources(updated);
       const updatedSettings = await getSiteSettings();
@@ -805,6 +892,10 @@ export function AdminSubscriptionsDashboard() {
           (r.pathway_id === "uk-residency" ||
             r.category?.toLowerCase().includes("uk") ||
             r.category?.toLowerCase().includes("plab"))) ||
+        (resourceFilter === "australia-residency" &&
+          (r.pathway_id === "australia-residency" ||
+            r.category?.toLowerCase().includes("australia") ||
+            r.category?.toLowerCase().includes("amc"))) ||
         (resourceFilter === "U.S. Residency" &&
           (r.pathway_id === "us-residency" ||
             r.category?.toLowerCase().includes("u.s.") ||
@@ -836,7 +927,9 @@ export function AdminSubscriptionsDashboard() {
         (pathwayFilter === "us-residency" &&
           (sub.pathway_id === "us-residency" || sub.pathway_id === "usmle")) ||
         (pathwayFilter === "uk-residency" &&
-          (sub.pathway_id === "uk-residency" || sub.pathway_id === "uk-plab"));
+          (sub.pathway_id === "uk-residency" || sub.pathway_id === "uk-plab")) ||
+        (pathwayFilter === "australia-residency" &&
+          (sub.pathway_id === "australia-residency" || sub.pathway_id === "amc"));
 
       const q = searchQuery.toLowerCase().trim();
       const matchesSearch =
@@ -865,6 +958,9 @@ export function AdminSubscriptionsDashboard() {
       ).length,
       uk: subscriptions.filter(
         (s) => s.pathway_id === "uk-residency" || s.pathway_id === "uk-plab",
+      ).length,
+      aus: subscriptions.filter(
+        (s) => s.pathway_id === "australia-residency" || s.pathway_id === "amc",
       ).length,
     };
   }, [subscriptions]);
@@ -1265,6 +1361,16 @@ export function AdminSubscriptionsDashboard() {
                 >
                   🇬🇧 U.K. PLAB ({counts.uk})
                 </button>
+                <button
+                  onClick={() => setPathwayFilter("australia-residency")}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
+                    pathwayFilter === "australia-residency"
+                      ? "bg-amber-500/30 text-amber-300 border border-amber-500/50 shadow-xs"
+                      : "bg-stone-800 text-stone-400 hover:text-amber-300"
+                  }`}
+                >
+                  🇦🇺 Australia AMC ({counts.aus})
+                </button>
               </div>
             </div>
 
@@ -1421,12 +1527,18 @@ export function AdminSubscriptionsDashboard() {
                             {sub.pathway_id === "all-pathways" || sub.pathway_id === "all" ? (
                               <span className="inline-flex items-center gap-1 text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-amber-950/80 text-amber-300 border border-amber-800/80 shadow-2xs">
                                 <Star size={11} className="fill-amber-400 text-amber-400" />
-                                All-Access Pass (Both Pathways)
+                                All-Access Pass (All Pathways)
                               </span>
                             ) : sub.pathway_id === "uk-residency" ||
                               sub.pathway_id === "uk-plab" ? (
                               <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-950/80 text-emerald-300 border border-emerald-800/60">
                                 🇬🇧 U.K. PLAB Pathway
+                              </span>
+                            ) : sub.pathway_id === "australia-residency" ||
+                              sub.pathway_id === "amc" ||
+                              sub.pathway_id === "australia" ? (
+                              <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-teal-950/80 text-teal-300 border border-teal-800/60">
+                                🇦🇺 Australian Medical Pathway
                               </span>
                             ) : (
                               <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-blue-950/80 text-blue-300 border border-blue-800/60">
@@ -1692,6 +1804,8 @@ export function AdminSubscriptionsDashboard() {
                             ? "uk-residency"
                             : val === "U.S. Residency"
                             ? "us-residency"
+                            : val === "Australia AMC"
+                            ? "australia-residency"
                             : newResourceForm.pathway_id;
                         setNewResourceForm({
                           ...newResourceForm,
@@ -1703,6 +1817,7 @@ export function AdminSubscriptionsDashboard() {
                     >
                       <option value="U.K. PLAB">🇬🇧 U.K. PLAB</option>
                       <option value="U.S. Residency">🇺🇸 U.S. Residency</option>
+                      <option value="Australia AMC">🇦🇺 Australia AMC</option>
                       <option value="Exam Preparation">Exam Preparation</option>
                       <option value="CV & Interview">CV & Interview</option>
                       <option value="Research & Publications">Research & Publications</option>
@@ -1726,7 +1841,8 @@ export function AdminSubscriptionsDashboard() {
                     >
                       <option value="uk-residency">🇬🇧 U.K. PLAB Pathway</option>
                       <option value="us-residency">🇺🇸 U.S. Residency Pathway</option>
-                      <option value="all-pathways">🌐 Both / All Pathways</option>
+                      <option value="australia-residency">🇦🇺 Australian Medical Pathway</option>
+                      <option value="all-pathways">🌐 All Pathways (All-Access)</option>
                     </select>
                   </div>
 
@@ -1840,6 +1956,9 @@ export function AdminSubscriptionsDashboard() {
                         {newResourceForm.pathway_id === "uk-residency" ||
                         newResourceForm.category === "U.K. PLAB"
                           ? "Set as Primary Guide for 🇬🇧 U.K. PLAB Pathway"
+                          : newResourceForm.pathway_id === "australia-residency" ||
+                            newResourceForm.category === "Australia AMC"
+                          ? "Set as Primary Guide for 🇦🇺 Australian Medical Pathway"
                           : "Set as Primary Guide for 🇺🇸 U.S. Residency Pathway"}
                       </span>
                     </label>
@@ -1933,6 +2052,10 @@ export function AdminSubscriptionsDashboard() {
                             <span className="text-[11px] font-bold text-sky-300 bg-sky-950/70 border border-sky-800/60 px-2 py-0.5 rounded-full inline-flex items-center gap-1">
                               🇬🇧 U.K. PLAB
                             </span>
+                          ) : res.pathway_id === "australia-residency" || res.category === "Australia AMC" ? (
+                            <span className="text-[11px] font-bold text-teal-300 bg-teal-950/70 border border-teal-800/60 px-2 py-0.5 rounded-full inline-flex items-center gap-1">
+                              🇦🇺 Australia AMC
+                            </span>
                           ) : res.pathway_id === "us-residency" || res.category === "U.S. Residency" ? (
                             <span className="text-[11px] font-bold text-rose-300 bg-rose-950/70 border border-rose-800/60 px-2 py-0.5 rounded-full inline-flex items-center gap-1">
                               🇺🇸 U.S. Residency
@@ -1959,6 +2082,8 @@ export function AdminSubscriptionsDashboard() {
                               <Star size={10} className="fill-amber-300" />
                               {res.pathway_id === "uk-residency" || res.category === "U.K. PLAB"
                                 ? "Primary U.K. Guide"
+                                : res.pathway_id === "australia-residency" || res.category === "Australia AMC"
+                                ? "Primary Australia Guide"
                                 : "Primary U.S. Guide"}
                             </span>
                           )}
@@ -1993,6 +2118,8 @@ export function AdminSubscriptionsDashboard() {
                           title={`Set as the default file downloaded when students click DOWNLOAD COMPLETE GUIDE on the ${
                             res.pathway_id === "uk-residency" || res.category === "U.K. PLAB"
                               ? "U.K. PLAB"
+                              : res.pathway_id === "australia-residency" || res.category === "Australia AMC"
+                              ? "Australian Medical"
                               : "U.S. Residency"
                           } roadmap`}
                         >
@@ -2000,6 +2127,8 @@ export function AdminSubscriptionsDashboard() {
                           Set Primary (
                           {res.pathway_id === "uk-residency" || res.category === "U.K. PLAB"
                             ? "🇬🇧 U.K."
+                            : res.pathway_id === "australia-residency" || res.category === "Australia AMC"
+                            ? "🇦🇺 Aus"
                             : "🇺🇸 U.S."}
                           )
                         </Button>
@@ -2470,6 +2599,118 @@ export function AdminSubscriptionsDashboard() {
                         Or simply click <strong>Upload / Replace U.S. PDF</strong> above!
                       </p>
                     </div>
+                </div>
+
+                {/* 3. 🇦🇺 Australian Medical Pathway Guide PDF */}
+                <div className="p-4 rounded-xl bg-stone-950/60 border border-stone-800/80 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-bold text-white flex items-center gap-1.5">
+                      🇦🇺 Australian Medical Pathway Complete Guide PDF
+                    </Label>
+                    {settings.australia_guide_pdf_url && (
+                      <span className="text-[10px] font-bold text-amber-400 bg-amber-950/80 border border-amber-800/60 px-2 py-0.5 rounded-full">
+                        ✓ Australia Guide Active
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-stone-400">
+                    Target page: <code>/career-exploration/australia-residency</code>
+                  </p>
+
+                  {settings.australia_guide_pdf_url ? (
+                    <div className="bg-stone-900 border border-stone-800 rounded-xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="size-8 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0">
+                          <FileText size={16} />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="text-xs font-bold text-white truncate">
+                            {settings.australia_guide_pdf_filename || "BMS-Australia-AMC-Pathway-Guide.pdf"}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              toast.loading("Downloading Australian Medical Guide...", {
+                                id: "admin-aus-dl",
+                              });
+                              const ok = await triggerFileDownload(
+                                settings.australia_guide_pdf_url || "",
+                                settings.australia_guide_pdf_filename ||
+                                  "BMS_AMC_Standard_Pathway_COMPLETE_GUIDE.pdf",
+                              );
+                              if (ok) {
+                                toast.success("Australia Guide downloaded!", { id: "admin-aus-dl" });
+                              } else {
+                                toast.error("Download failed", { id: "admin-aus-dl" });
+                              }
+                            }}
+                            className="text-[11px] text-amber-400 hover:text-amber-300 underline font-semibold flex items-center gap-1 cursor-pointer bg-transparent border-0 p-0"
+                          >
+                            Download PDF <Download size={10} />
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="relative">
+                        <input
+                          type="file"
+                          id="aus-guide-pdf-replace"
+                          accept=".pdf"
+                          onChange={handleAusPdfUpload}
+                          disabled={uploadingAusPdf}
+                          className="sr-only"
+                        />
+                        <label
+                          htmlFor="aus-guide-pdf-replace"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-300 border border-stone-700 text-xs font-bold transition-colors cursor-pointer"
+                        >
+                          <Upload size={12} />
+                          {uploadingAusPdf ? "Uploading..." : "Replace Australia PDF"}
+                        </label>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="border border-dashed border-stone-800 rounded-xl p-4 text-center bg-stone-950/40">
+                      <p className="text-xs text-stone-400">No Australia guide PDF uploaded yet</p>
+                      <div className="mt-2.5">
+                        <input
+                          type="file"
+                          id="aus-guide-pdf-upload"
+                          accept=".pdf"
+                          onChange={handleAusPdfUpload}
+                          disabled={uploadingAusPdf}
+                          className="sr-only"
+                        />
+                        <label
+                          htmlFor="aus-guide-pdf-upload"
+                          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold transition-colors cursor-pointer"
+                        >
+                          <Upload size={12} />
+                          {uploadingAusPdf ? "Uploading..." : "Upload Australia AMC PDF Guide"}
+                        </label>
+                      </div>
+                    </div>
+                  )}
+
+                  <div>
+                    <Label className="text-[11px] font-semibold text-stone-400 block mb-1">
+                      Direct Australia PDF Download URL (Optional)
+                    </Label>
+                    <Input
+                      type="url"
+                      placeholder="https://..."
+                      value={settingsForm.australia_guide_pdf_url || ""}
+                      onChange={(e) =>
+                        setSettingsForm({ ...settingsForm, australia_guide_pdf_url: e.target.value })
+                      }
+                      className="bg-stone-950 border-stone-800 text-white text-xs font-mono"
+                    />
+                    <p className="text-[10px] text-stone-500 mt-1">
+                      💡 Tip: In Supabase Storage, click the <strong>...</strong> next to the file
+                      and choose <strong>Copy URL</strong>. Do not copy the browser address bar.
+                      Or simply click <strong>Upload / Replace Australia PDF</strong> above!
+                    </p>
+                  </div>
                 </div>
 
                 {/* Storage setup helper tip */}

@@ -2095,7 +2095,7 @@ export function SubscriptionModal({
           res.subscription.pathway_id === "all-pathways" || res.subscription.pathway_id === "all";
         toast.success("Payment verified! Access is now unlocked.", {
           description: isAll
-            ? "⭐ All-Access Pass active: You have full access to both U.S. Residency & U.K. PLAB Pathways!"
+            ? "⭐ All-Access Pass active: You have full access to all pathways (U.S., U.K. & Australia)!"
             : `Welcome to the ${pathwayName} Roadmap & Complete Guide.`,
         });
         onSuccess(res.subscription);
@@ -2143,11 +2143,11 @@ export function SubscriptionModal({
 
   const chosenPrice = isCreatedAllAccess ? allAccessPrice : singlePrice;
   const chosenTierLabel = isCreatedAllAccess
-    ? "All-Access Pass (U.S. Residency + U.K. PLAB)"
+    ? "All-Access Pass (All Pathways: U.S., U.K. & Australia)"
     : `${pathwayName} Only`;
 
   const customTemplateMessage = isCreatedAllAccess
-    ? "Hello BMS! I would like to activate my subscription for the All-Access Pass (U.S. Residency + U.K. PLAB) [{price}]. My reference code is: {code} and email: {email}."
+    ? "Hello BMS! I would like to activate my subscription for the All-Access Pass (All Pathways: U.S., U.K. & Australia) [{price}]. My reference code is: {code} and email: {email}."
     : "Hello BMS! I would like to activate my subscription for the {pathway} Roadmap & Complete Guide [{price}]. My reference code is: {code} and email: {email}.";
 
   const whatsAppUrl = createdSub
@@ -2185,8 +2185,8 @@ export function SubscriptionModal({
                 Unlock Pathway &amp; Official Guide
               </DialogTitle>
               <DialogDescription className="text-xs text-muted-foreground pt-1 leading-relaxed">
-                Choose to unlock this pathway individually, or get the All-Access Pass for both
-                U.S. and U.K. clinical roadmaps.
+                Choose to unlock this pathway individually, or get the All-Access Pass for all
+                international medical roadmaps (U.S., U.K. &amp; Australia).
               </DialogDescription>
             </DialogHeader>
 
@@ -2237,7 +2237,7 @@ export function SubscriptionModal({
                     </span>
                   </div>
                   <p className="text-[11px] text-stone-600 mt-1 leading-snug">
-                    Unlocks <strong>BOTH</strong> U.S. &amp; U.K. Pathways.
+                    Unlocks <strong>ALL</strong> pathways (U.S., U.K. &amp; Australia).
                   </p>
                 </button>
               </div>
@@ -2521,3 +2521,5 @@ export function SubscriptionModal({
 }
 
 export { UkPlabPathwayPage } from "./uk-plab-pathway";
+export { AustraliaAmcPathwayPage } from "./australia-amc-pathway";
+

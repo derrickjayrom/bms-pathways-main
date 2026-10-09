@@ -361,7 +361,7 @@ export function UkPlabPathwayPage() {
     const filename = siteSettings.uk_guide_pdf_filename || "BMS_PLAB_Pathway_Complete Guide.pdf";
 
     toast.loading("Downloading official BMS U.K. PLAB Pathway Guide...", { id: "uk-guide-dl" });
-    const success = await triggerFileDownload(downloadUrl, filename);
+    const success = await triggerFileDownload(downloadUrl, filename, "uk-residency");
     if (success) {
       toast.success("Guide downloaded successfully!", {
         id: "uk-guide-dl",
@@ -414,7 +414,7 @@ export function UkPlabPathwayPage() {
     const filename = resource.filename || `${resource.title.replace(/\s+/g, "_")}.pdf`;
 
     toast.loading(`Downloading "${resource.title}"...`, { id: `res-dl-${resource.id}` });
-    const success = await triggerFileDownload(fileUrl, filename);
+    const success = await triggerFileDownload(fileUrl, filename, resource.pathway_id || "uk-residency");
     if (success) {
       toast.success(`"${resource.title}" downloaded successfully!`, { id: `res-dl-${resource.id}` });
     } else {

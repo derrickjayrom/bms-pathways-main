@@ -302,7 +302,7 @@ export function AustraliaAmcPathwayPage() {
     toast.loading("Downloading official BMS Australian Medical Pathway Guide...", {
       id: "aus-guide-dl",
     });
-    const success = await triggerFileDownload(downloadUrl, filename);
+    const success = await triggerFileDownload(downloadUrl, filename, "australia-residency");
     if (success) {
       toast.success("BMS Australian Medical Pathway Guide downloaded successfully!", {
         id: "aus-guide-dl",
@@ -349,7 +349,7 @@ export function AustraliaAmcPathwayPage() {
     const filename = resource.filename || `${resource.title.replace(/\s+/g, "_")}.pdf`;
 
     toast.loading(`Downloading "${resource.title}"...`, { id: `res-dl-${resource.id}` });
-    const success = await triggerFileDownload(fileUrl, filename);
+    const success = await triggerFileDownload(fileUrl, filename, resource.pathway_id || "australia-residency");
     if (success) {
       toast.success(`"${resource.title}" downloaded successfully!`, {
         id: `res-dl-${resource.id}`,

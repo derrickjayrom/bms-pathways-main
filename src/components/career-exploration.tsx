@@ -471,7 +471,7 @@ export function UsResidencyPathwayPage() {
     const filename = res.filename || `${res.title.replace(/\s+/g, "_")}.pdf`;
 
     toast.loading(`Downloading "${res.title}"...`, { id: `res-dl-${res.id}` });
-    const success = await triggerFileDownload(fileUrl, filename);
+    const success = await triggerFileDownload(fileUrl, filename, res.pathway_id || "us-residency");
     if (success) {
       toast.success(`"${res.title}" downloaded successfully!`, { id: `res-dl-${res.id}` });
     } else {
@@ -484,7 +484,7 @@ export function UsResidencyPathwayPage() {
     const filename = siteSettings.guide_pdf_filename || "BMS-US-Residency-Pathway-Guide.pdf";
 
     toast.loading("Downloading official BMS U.S. Residency Pathway Guide...", { id: "us-guide-dl" });
-    const success = await triggerFileDownload(downloadUrl, filename);
+    const success = await triggerFileDownload(downloadUrl, filename, "us-residency");
     if (success) {
       toast.success("Guide downloaded successfully!", {
         id: "us-guide-dl",

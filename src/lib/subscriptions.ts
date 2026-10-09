@@ -67,29 +67,101 @@ export const DEFAULT_SETTINGS: BmsSiteSettings = {
   australia_guide_pdf_filename: "BMS-Australia-AMC-Pathway-Guide.pdf",
 };
 
-/**
- * Triggers a direct browser file download using blob fetch.
- * Prevents opening private dashboard pages or cross-origin navigation.
- */
-export async function triggerFileDownload(url: string, filename: string): Promise<boolean> {
-  if (typeof window === "undefined") return false;
+export const ADMIN_SESSION_KEY = "bms_admin_session_auth";
 
-  let safeUrl = url;
-  if (!safeUrl || safeUrl.includes("supabase.com/dashboard")) {
-    if (filename.toLowerCase().includes("plab") || filename.toLowerCase().includes("uk")) {
-      safeUrl =
-        "https://owurtseimitnofbdepoq.supabase.co/storage/v1/object/public/pathway-guides/guides/BMS_PLAB_Pathway_Complete%20Guide.pdf";
-    } else if (
-      filename.toLowerCase().includes("amc") ||
-      filename.toLowerCase().includes("australia")
-    ) {
-      safeUrl =
-        "https://owurtseimitnofbdepoq.supabase.co/storage/v1/object/public/pathway-guides/guides/BMS-Australia-AMC-Pathway-Guide.pdf";
-    } else {
-      safeUrl =
-        "https://owurtseimitnofbdepoq.supabase.co/storage/v1/object/public/pathway-guides/guides/1790354719791_BMS_USMLE_Residency_Pathway_PRESENTABLE__1_.pdf";
+/**
+ * Extracts the storage file path within 'pathway-guides' bucket
+ * from a full Supabase URL, relative path, or filename.
+ */
+export function extractStoragePath(url: string, filename?: string): string {
+  if (url) {
+    const match = url.match(/pathway-guides\/(.+?)(\?.*)?$/);
+    if (match && match[1]) {
+      return decodeURIComponent(match[1]);
+    }
+    if (url.startsWith("guides/")) return url;
+  }
+  const f = (filename || url || "").toLowerCase();
+  if (f.includes("plab") || f.includes("uk")) {
+    return "guides/BMS_PLAB_Pathway_Complete Guide.pdf";
+  }
+  if (f.includes("amc") || f.includes("australia")) {
+    return "guides/BMS-Australia-AMC-Pathway-Guide.pdf";
+  }
+  return "guides/1790354719791_BMS_USMLE_Residency_Pathway_PRESENTABLE__1_.pdf";
+}
+
+/**
+ * Validates session authorization and generates a temporary Supabase Signed URL
+ * (expires in 120 seconds) for private storage downloads.
+ */
+export async function getSecureDownloadUrl(
+  rawUrl: string,
+  filename: string,
+  targetPathwayId?: string,
+): Promise<{ success: boolean; downloadUrl?: string; error?: string }> {
+  if (typeof window === "undefined") {
+    return { success: false, error: "SSR context not supported" };
+  }
+
+  // 1. Verify access: Check if admin is authenticated or subscriber has valid approved session
+  const isAdmin =
+    typeof sessionStorage !== "undefined" &&
+    sessionStorage.getItem(ADMIN_SESSION_KEY) === "authenticated";
+
+  if (!isAdmin && targetPathwayId) {
+    const check = await validateActiveSubscription(targetPathwayId);
+    if (!check.isValid) {
+      return {
+        success: false,
+        error: check.reason || "Active verified subscription required to download this guide.",
+      };
     }
   }
+
+  // 2. Extract storage path and request temporary signed URL (expires in 120 seconds)
+  const storagePath = extractStoragePath(rawUrl, filename);
+
+  try {
+    if (supabase) {
+      const { data, error } = await supabase.storage
+        .from("pathway-guides")
+        .createSignedUrl(storagePath, 120);
+
+      if (!error && data?.signedUrl) {
+        return { success: true, downloadUrl: data.signedUrl };
+      }
+      if (error) {
+        console.warn("Could not generate signed URL:", error.message);
+      }
+    }
+  } catch (err) {
+    console.warn("Signed URL creation exception, falling back to direct URL:", err);
+  }
+
+  // Fallback to provided URL if signed URL creation is unavailable
+  return { success: true, downloadUrl: rawUrl };
+}
+
+/**
+ * Triggers a secure direct browser file download using a temporary Signed URL and blob fetch.
+ * Protects private files and prevents cross-origin navigation leaks.
+ */
+export async function triggerFileDownload(
+  url: string,
+  filename: string,
+  targetPathwayId?: string,
+): Promise<boolean> {
+  if (typeof window === "undefined") return false;
+
+  // Obtain temporary signed URL (verified against active subscription or admin session)
+  const secureResult = await getSecureDownloadUrl(url, filename, targetPathwayId);
+  if (!secureResult.success || !secureResult.downloadUrl) {
+    console.error("Download blocked:", secureResult.error);
+    return false;
+  }
+
+  const safeUrl = secureResult.downloadUrl;
 
   try {
     const res = await fetch(safeUrl, { mode: "cors" });
@@ -995,12 +1067,12 @@ create policy "Allow update on bms_settings" on public.bms_settings for update t
 drop policy if exists "Allow insert on bms_settings" on public.bms_settings;
 create policy "Allow insert on bms_settings" on public.bms_settings for insert to anon, authenticated with check (true);
 
--- 6. Storage bucket for PDF guide upload & downloads
+-- 6. Storage bucket for PDF guide upload & downloads (Private with Signed URLs)
 insert into storage.buckets (id, name, public)
-values ('pathway-guides', 'pathway-guides', true)
-on conflict (id) do nothing;
+values ('pathway-guides', 'pathway-guides', false)
+on conflict (id) do update set public = false;
 
-create policy "Allow public downloads on pathway-guides"
+create policy "Allow select on pathway-guides for signed urls"
   on storage.objects for select
   to anon, authenticated
   using (bucket_id = 'pathway-guides');
@@ -1079,19 +1151,20 @@ end $$;`;
 export const BMS_STORAGE_FIX_SQL = `-- Run this in your Supabase SQL Editor (supabase.com/dashboard/project/owurtseimitnofbdepoq/sql/new)
 -- This creates the 'pathway-guides' bucket and allows PDF guide uploads and downloads.
 
--- 1. Create or ensure public bucket
+-- 1. Create or ensure PRIVATE bucket
 insert into storage.buckets (id, name, public)
-values ('pathway-guides', 'pathway-guides', true)
-on conflict (id) do update set public = true;
+values ('pathway-guides', 'pathway-guides', false)
+on conflict (id) do update set public = false;
 
--- 2. Drop existing conflicting policies
+-- 2. Drop existing conflicting public policies
 drop policy if exists "Allow public downloads on pathway-guides" on storage.objects;
+drop policy if exists "Allow downloads on pathway-guides" on storage.objects;
 drop policy if exists "Allow uploads to pathway-guides" on storage.objects;
 drop policy if exists "Allow updates on pathway-guides" on storage.objects;
 drop policy if exists "Allow deletes on pathway-guides" on storage.objects;
 
--- 3. Create permissive policies for 'pathway-guides'
-create policy "Allow public downloads on pathway-guides"
+-- 3. Create policies for secure signed downloads and uploads
+create policy "Allow select on pathway-guides for signed urls"
   on storage.objects for select
   to anon, authenticated
   using (bucket_id = 'pathway-guides');

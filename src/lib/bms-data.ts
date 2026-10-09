@@ -1554,10 +1554,6 @@ export const australiaAmcRoadmapStages: UsmleRoadmapStage[] = [
     title: "08 Apply for Registration Through AHPRA",
     summary:
       "Apply to the Medical Board of Australia through AHPRA, fulfilling mandatory registration standards and supervised practice plans.",
-    fees: [
-      { item: "AHPRA Registration & Application Fee", amount: "~AUD $890 – $995*" },
-      { item: "Fit2Work International Criminal History Check", amount: "~AUD $160 – $200" },
-    ],
     details: [
       "Apply to the Medical Board of Australia through AHPRA (Australian Health Practitioner Regulation Agency).",
       "The Board assesses requirements including:",
@@ -1591,9 +1587,6 @@ export const australiaAmcRoadmapStages: UsmleRoadmapStage[] = [
     title: "10 General Registration",
     summary:
       "Submit evidence of satisfactory completion of 47 weeks FTE supervised practice to obtain unrestricted General Registration.",
-    fees: [
-      { item: "AHPRA General Registration Transition Fee", amount: "~AUD $250 – $350" },
-    ],
     details: [
       "After satisfactorily completing the required supervised practice and meeting the Board’s other registration standards, you can apply for general registration with the Medical Board of Australia.",
       "Current requirement: Evidence of satisfactory completion of 12 months / 47 weeks FTE approved supervised practice, together with other applicable registration requirements.",
@@ -1674,16 +1667,6 @@ export const australiaBudgetBreakdown = [
     item: "IELTS Academic or PTE Academic Examination",
     fee: "~AUD $410 – $445",
     category: "English Language Proficiency",
-  },
-  {
-    item: "AHPRA Registration Application & Annual Fee",
-    fee: "~AUD $890 – $995*",
-    category: "Medical Board Registration",
-  },
-  {
-    item: "Fit2Work International Criminal History Check",
-    fee: "~AUD $160 – $200",
-    category: "Compliance & Screening",
   },
   {
     item: "Travel, Flights & Accommodation (Clinical Exam)",

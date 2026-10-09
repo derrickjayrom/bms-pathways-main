@@ -295,7 +295,7 @@ export function AustraliaAmcPathwayPage() {
     // Direct verified download
     const downloadUrl =
       siteSettings.australia_guide_pdf_url ||
-      "/BMS-Australia-AMC-Pathway-Guide.pdf";
+      "https://owurtseimitnofbdepoq.supabase.co/storage/v1/object/public/pathway-guides/guides/BMS-Australia-AMC-Pathway-Guide.pdf";
     const filename =
       siteSettings.australia_guide_pdf_filename || "BMS-Australia-AMC-Pathway-Guide.pdf";
 
@@ -343,7 +343,9 @@ export function AustraliaAmcPathwayPage() {
       }
     }
 
-    const fileUrl = resource.file_url || "/BMS-Australia-AMC-Pathway-Guide.pdf";
+    const fileUrl =
+      resource.file_url ||
+      "https://owurtseimitnofbdepoq.supabase.co/storage/v1/object/public/pathway-guides/guides/BMS-Australia-AMC-Pathway-Guide.pdf";
     const filename = resource.filename || `${resource.title.replace(/\s+/g, "_")}.pdf`;
 
     toast.loading(`Downloading "${resource.title}"...`, { id: `res-dl-${resource.id}` });

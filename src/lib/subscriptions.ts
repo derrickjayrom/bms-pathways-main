@@ -62,7 +62,8 @@ export const DEFAULT_SETTINGS: BmsSiteSettings = {
   uk_guide_pdf_url:
     "https://owurtseimitnofbdepoq.supabase.co/storage/v1/object/public/pathway-guides/guides/BMS_PLAB_Pathway_Complete%20Guide.pdf",
   uk_guide_pdf_filename: "BMS_PLAB_Pathway_Complete Guide.pdf",
-  australia_guide_pdf_url: "/BMS-Australia-AMC-Pathway-Guide.pdf",
+  australia_guide_pdf_url:
+    "https://owurtseimitnofbdepoq.supabase.co/storage/v1/object/public/pathway-guides/guides/BMS-Australia-AMC-Pathway-Guide.pdf",
   australia_guide_pdf_filename: "BMS-Australia-AMC-Pathway-Guide.pdf",
 };
 
@@ -82,7 +83,8 @@ export async function triggerFileDownload(url: string, filename: string): Promis
       filename.toLowerCase().includes("amc") ||
       filename.toLowerCase().includes("australia")
     ) {
-      safeUrl = "/BMS-Australia-AMC-Pathway-Guide.pdf";
+      safeUrl =
+        "https://owurtseimitnofbdepoq.supabase.co/storage/v1/object/public/pathway-guides/guides/BMS-Australia-AMC-Pathway-Guide.pdf";
     } else {
       safeUrl =
         "https://owurtseimitnofbdepoq.supabase.co/storage/v1/object/public/pathway-guides/guides/1790354719791_BMS_USMLE_Residency_Pathway_PRESENTABLE__1_.pdf";
@@ -622,7 +624,7 @@ export async function getAllUploadedResources(): Promise<BmsResourceItem[]> {
     const primaryAusUrl =
       ausGuideUrlRow?.value && ausGuideUrlRow.value.trim().length > 0
         ? ausGuideUrlRow.value.trim()
-        : "/BMS-Australia-AMC-Pathway-Guide.pdf";
+        : "https://owurtseimitnofbdepoq.supabase.co/storage/v1/object/public/pathway-guides/guides/BMS-Australia-AMC-Pathway-Guide.pdf";
 
     const hasAusMatch = list.some(
       (item) =>
@@ -669,7 +671,8 @@ export async function getAllUploadedResources(): Promise<BmsResourceItem[]> {
           item.category === "Australia AMC" ||
           item.category === "Australian Medical"
         ) {
-          safeUrl = "/BMS-Australia-AMC-Pathway-Guide.pdf";
+          safeUrl =
+            "https://owurtseimitnofbdepoq.supabase.co/storage/v1/object/public/pathway-guides/guides/BMS-Australia-AMC-Pathway-Guide.pdf";
         } else {
           safeUrl =
             "https://owurtseimitnofbdepoq.supabase.co/storage/v1/object/public/pathway-guides/guides/1790354719791_BMS_USMLE_Residency_Pathway_PRESENTABLE__1_.pdf";

@@ -1019,40 +1019,74 @@ export function AustraliaAmcPathwayPage() {
             </div>
           ) : (
             <>
-              {/* PROGRESS BAR & CONTROLS */}
-              <div className="max-w-4xl lg:max-w-5xl mx-auto mb-8 bg-card border border-border/80 rounded-2xl p-5 sm:p-6 shadow-xs">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+              {/* SEQUENCE PROGRESS TRACKER BAR */}
+              <div className="max-w-4xl lg:max-w-5xl mx-auto mb-10 rounded-2xl border border-stone-200/90 bg-card p-5 sm:p-6 shadow-xs">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-sm mb-4">
                   <div>
-                    <span className="text-xs font-bold uppercase tracking-wider text-[#10B981]">
-                      YOUR PATHWAY PROGRESS
+                    <span className="font-bold text-foreground">Sequential Progress: </span>
+                    <span className="text-[#10B981] font-extrabold text-base">
+                      Stage {activeStageIndex + 1} of {australiaAmcRoadmapStages.length}
                     </span>
-                    <h3 className="text-lg sm:text-xl font-bold text-foreground">
-                      Stage {activeStageIndex + 1} of {australiaAmcRoadmapStages.length}:{" "}
-                      {currentStage?.title}
-                    </h3>
+                    <span className="text-foreground font-semibold ml-1.5 hidden sm:inline">
+                      — {currentStage?.title.replace(/^\d+\s*/, "")}
+                    </span>
+                    <span className="text-muted-foreground ml-2 text-xs sm:text-sm font-medium">
+                      ({completedStageIds.length} passed)
+                    </span>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <span className="text-xs font-mono font-bold px-2.5 py-1 rounded-md bg-stone-100 text-stone-800">
-                      {completedStageIds.length} / {australiaAmcRoadmapStages.length} Completed (
-                      {progressPercent}%)
+                  <div className="flex items-center gap-4">
+                    <span className="font-mono font-black text-xl text-[#10B981]">
+                      {progressPercent}%
                     </span>
                     {completedStageIds.length > 0 && (
                       <button
+                        type="button"
                         onClick={handleResetProgress}
-                        className="text-xs text-muted-foreground hover:text-red-600 transition-colors flex items-center gap-1 cursor-pointer"
+                        className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground text-xs sm:text-sm font-semibold cursor-pointer transition-colors"
                         title="Reset Progress"
                       >
-                        <RotateCcw size={12} /> Reset
+                        <RotateCcw size={14} /> Reset Progress
                       </button>
                     )}
                   </div>
                 </div>
 
-                <div className="w-full bg-stone-100 rounded-full h-2.5 overflow-hidden">
+                {/* PROGRESS BAR */}
+                <div className="h-2.5 w-full rounded-full bg-stone-100 overflow-hidden">
                   <div
-                    className="bg-[#10B981] h-2.5 rounded-full transition-all duration-300"
+                    className="h-full bg-[#10B981] transition-all duration-300 rounded-full"
                     style={{ width: `${progressPercent}%` }}
                   />
+                </div>
+
+                {/* MINI STAGE DOTS STEPPER */}
+                <div className="mt-5 flex items-center justify-between gap-1.5 overflow-x-auto py-1">
+                  {australiaAmcRoadmapStages.map((s, sIdx) => {
+                    const isPassed = completedStageIds.includes(s.id);
+                    const isCurrent = sIdx === activeStageIndex;
+
+                    return (
+                      <button
+                        key={s.id}
+                        type="button"
+                        onClick={() => {
+                          setActiveStageIndex(sIdx);
+                          const el = document.getElementById(`stage-card-${sIdx}`);
+                          if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+                        }}
+                        title={s.title}
+                        className={`size-8 sm:size-9 rounded-lg flex items-center justify-center text-xs font-bold shrink-0 transition-all cursor-pointer ${
+                          isPassed
+                            ? "bg-[#10B981] text-white shadow-2xs"
+                            : isCurrent
+                              ? "bg-stone-900 text-white ring-2 ring-[#10B981]"
+                              : "bg-stone-100 text-stone-700 hover:bg-stone-200"
+                        }`}
+                      >
+                        {isPassed ? "✓" : s.number}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -1069,7 +1103,7 @@ export function AustraliaAmcPathwayPage() {
                     <div
                       key={stage.id}
                       id={`stage-card-${idx}`}
-                      className={`rounded-2xl border transition-all duration-200 ${
+                      className={`relative scroll-mt-24 rounded-2xl border transition-all duration-200 ${
                         isCurrentActive
                           ? "border-[#10B981] bg-card shadow-md ring-2 ring-[#10B981]/20"
                           : isCompleted

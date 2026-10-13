@@ -75,6 +75,29 @@ export const DEFAULT_SETTINGS: BmsSiteSettings = {
 export const ADMIN_SESSION_KEY = "bms_admin_session_auth";
 
 /**
+ * Returns the bundled local public fallback path for a roadmap guide PDF
+ * in case Supabase private storage is unreachable or encounters an error.
+ */
+export function getLocalGuideFallback(filename?: string, pathwayId?: string): string | null {
+  const f = (filename || "").toLowerCase();
+  const p = (pathwayId || "").toLowerCase();
+
+  if (p.includes("canada") || f.includes("canada") || f.includes("carms") || f.includes("mccqe")) {
+    return "/BMS-Canada-Residency-Pathway-Guide.pdf";
+  }
+  if (p.includes("uk") || p.includes("plab") || f.includes("plab") || f.includes("uk")) {
+    return "/BMS-UK-PLAB-Pathway-Guide.pdf";
+  }
+  if (p.includes("australia") || p.includes("amc") || f.includes("amc") || f.includes("australia")) {
+    return "/BMS-Australia-AMC-Pathway-Guide.pdf";
+  }
+  if (p.includes("us") || p.includes("usmle") || f.includes("usmle") || f.includes("us-")) {
+    return "/BMS-US-Residency-Pathway-Guide.pdf";
+  }
+  return null;
+}
+
+/**
  * Extracts the storage file path within 'pathway-guides' bucket
  * from a full Supabase URL, relative path, or filename.
  */
@@ -140,7 +163,28 @@ export async function getSecureDownloadUrl(
         return { success: true, downloadUrl: data.signedUrl };
       }
       if (error) {
-        console.warn("Could not generate signed URL:", error.message);
+        console.warn(`Could not generate signed URL for "${storagePath}":`, error.message);
+        // Try fallback storage paths if standard one had NoSuchKey
+        const altPaths: string[] = [];
+        if (storagePath.toLowerCase().includes("canada") || storagePath.toLowerCase().includes("carms")) {
+          altPaths.push("guides/BMS-Canada-Residency-Pathway-Guide.pdf", "guides/BMS_Canada_IMG_Residency_Pathway_Guide.pdf");
+        } else if (storagePath.toLowerCase().includes("australia") || storagePath.toLowerCase().includes("amc")) {
+          altPaths.push("guides/BMS-Australia-AMC-Pathway-Guide.pdf", "guides/BMS_AMC_Standard_Pathway_COMPLETE_GUIDE.pdf");
+        } else if (storagePath.toLowerCase().includes("plab") || storagePath.toLowerCase().includes("uk")) {
+          altPaths.push("guides/BMS_PLAB_Pathway_Complete Guide.pdf", "guides/BMS-UK-PLAB-Pathway-Guide.pdf");
+        } else if (storagePath.toLowerCase().includes("usmle") || storagePath.toLowerCase().includes("us-")) {
+          altPaths.push("guides/1790354719791_BMS_USMLE_Residency_Pathway_PRESENTABLE__1_.pdf", "guides/BMS-US-Residency-Pathway-Guide.pdf");
+        }
+
+        for (const alt of altPaths) {
+          if (alt === storagePath) continue;
+          const { data: altData, error: altErr } = await supabase.storage
+            .from("pathway-guides")
+            .createSignedUrl(alt, 120);
+          if (!altErr && altData?.signedUrl) {
+            return { success: true, downloadUrl: altData.signedUrl };
+          }
+        }
       }
     }
   } catch (err) {
@@ -153,7 +197,7 @@ export async function getSecureDownloadUrl(
 
 /**
  * Triggers a secure direct browser file download using a temporary Signed URL and blob fetch.
- * Protects private files and prevents cross-origin navigation leaks.
+ * Protects private files and prevents cross-origin navigation leaks or downloading error strings.
  */
 export async function triggerFileDownload(
   url: string,
@@ -170,35 +214,71 @@ export async function triggerFileDownload(
   }
 
   const safeUrl = secureResult.downloadUrl;
+  const localFallback = getLocalGuideFallback(filename, targetPathwayId);
 
-  try {
-    const res = await fetch(safeUrl, { mode: "cors" });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const blob = await res.blob();
+  const saveBlobAsFile = (blob: Blob, name: string) => {
     const objectUrl = window.URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = objectUrl;
-    link.download = filename;
+    link.download = name;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     setTimeout(() => window.URL.revokeObjectURL(objectUrl), 2500);
-    return true;
-  } catch (err) {
-    console.warn("Direct blob download failed, falling back to anchor trigger:", err);
+  };
+
+  const tryFetchAndDownload = async (fetchUrl: string): Promise<boolean> => {
     try {
-      const link = document.createElement("a");
-      link.href = safeUrl;
-      link.download = filename;
-      link.target = "_blank";
-      link.rel = "noopener noreferrer";
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      const res = await fetch(fetchUrl, { mode: "cors" });
+      if (!res.ok) return false;
+      const contentType = (res.headers.get("content-type") || "").toLowerCase();
+      if (contentType.includes("application/json")) {
+        return false;
+      }
+      const blob = await res.blob();
+      if (blob.size < 400) {
+        const text = await blob.text();
+        if (text.includes("error") || text.includes("statusCode") || text.includes("NoSuchBucket")) {
+          return false;
+        }
+      }
+      saveBlobAsFile(blob, filename);
       return true;
     } catch {
       return false;
     }
+  };
+
+  // 1. Try downloading from secure signed storage URL
+  const primaryOk = await tryFetchAndDownload(safeUrl);
+  if (primaryOk) return true;
+
+  // 2. If storage URL failed, fallback to local bundled guide asset
+  if (localFallback) {
+    console.info(`Remote storage guide download failed; trying bundled asset: ${localFallback}`);
+    const localOk = await tryFetchAndDownload(localFallback);
+    if (localOk) return true;
+  }
+
+  // 3. Do not trigger anchor download on raw Supabase public URL if bucket is private
+  if (safeUrl.includes("/storage/v1/object/public/pathway-guides/")) {
+    console.error("Download failed: storage object unavailable and bucket is private.");
+    return false;
+  }
+
+  // Fallback anchor trigger for external resources
+  try {
+    const link = document.createElement("a");
+    link.href = safeUrl;
+    link.download = filename;
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    return true;
+  } catch {
+    return false;
   }
 }
 

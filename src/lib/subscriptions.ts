@@ -1084,6 +1084,10 @@ export async function setPrimaryResource(id: string): Promise<boolean> {
       selected?.pathway_id === "australia-residency" ||
       selected?.category === "Australia AMC" ||
       selected?.category === "Australian Medical";
+    const isCan =
+      selected?.pathway_id === "canada-residency" ||
+      selected?.category === "Canada CaRMS" ||
+      selected?.category === "Canadian Medical";
 
     existing.forEach((r) => {
       const rIsUk = r.pathway_id === "uk-residency" || r.category === "U.K. PLAB";
@@ -1091,13 +1095,18 @@ export async function setPrimaryResource(id: string): Promise<boolean> {
         r.pathway_id === "australia-residency" ||
         r.category === "Australia AMC" ||
         r.category === "Australian Medical";
+      const rIsCan =
+        r.pathway_id === "canada-residency" ||
+        r.category === "Canada CaRMS" ||
+        r.category === "Canadian Medical";
 
       if (r.id === id) {
         r.is_primary_guide = true;
       } else if (
         (isUk && rIsUk) ||
         (isAus && rIsAus) ||
-        (!isUk && !isAus && !rIsUk && !rIsAus)
+        (isCan && rIsCan) ||
+        (!isUk && !isAus && !isCan && !rIsUk && !rIsAus && !rIsCan)
       ) {
         r.is_primary_guide = false;
       }
@@ -1110,6 +1119,9 @@ export async function setPrimaryResource(id: string): Promise<boolean> {
       } else if (isAus) {
         await updateSiteSetting("australia_guide_pdf_url", selected.file_url);
         await updateSiteSetting("australia_guide_pdf_filename", selected.filename);
+      } else if (isCan) {
+        await updateSiteSetting("canada_guide_pdf_url", selected.file_url);
+        await updateSiteSetting("canada_guide_pdf_filename", selected.filename);
       } else {
         await updateSiteSetting("guide_pdf_url", selected.file_url);
         await updateSiteSetting("guide_pdf_filename", selected.filename);
@@ -1171,12 +1183,16 @@ values
   ('whatsapp_number', '+233240000000', 'Admin WhatsApp contact number with country code'),
   ('whatsapp_default_message', 'Hello BMS! I would like to activate my subscription for the U.S. Residency Pathway Roadmap & Complete Guide. My reference code is: {code} and email: {email}.', 'Template message opened when user clicks Chat on WhatsApp'),
   ('subscription_price', '$25 / GHS 350', 'Display price for single pathway roadmap & guide access'),
-  ('all_access_price', '$40 / GHS 550', 'Display price for All-Access Pass (both USMLE and UK PLAB pathways)'),
+  ('all_access_price', '$40 / GHS 550', 'Display price for All-Access Pass (U.S., U.K., Australia & Canada)'),
   ('admin_passcode', 'bms-admin-2025', 'Passcode to access the /admin/subscriptions dashboard'),
   ('guide_pdf_url', '', 'Direct URL to download complete guide PDF'),
   ('guide_pdf_filename', '', 'Display filename of the uploaded guide PDF'),
   ('uk_guide_pdf_url', '', 'Direct URL to download U.K. PLAB complete guide PDF'),
-  ('uk_guide_pdf_filename', '', 'Display filename of the uploaded U.K. PLAB guide PDF')
+  ('uk_guide_pdf_filename', '', 'Display filename of the uploaded U.K. PLAB guide PDF'),
+  ('australia_guide_pdf_url', '', 'Direct URL to download Australian Medical complete guide PDF'),
+  ('australia_guide_pdf_filename', '', 'Display filename of the uploaded Australian Medical guide PDF'),
+  ('canada_guide_pdf_url', '', 'Direct URL to download Canada CaRMS complete guide PDF'),
+  ('canada_guide_pdf_filename', '', 'Display filename of the uploaded Canada CaRMS guide PDF')
 on conflict (key) do nothing;
 
 -- 4. Create Indexes
@@ -1695,11 +1711,13 @@ export function hasPathwayAccess(
       user === "amc" ||
       user === "australia" ||
       user === "amc-pathway" ||
+      user === "australia-pathway" ||
       user === "australian-medical") &&
     (target === "australia-residency" ||
       target === "amc" ||
       target === "australia" ||
       target === "amc-pathway" ||
+      target === "australia-pathway" ||
       target === "australian-medical")
   ) {
     return true;
@@ -1711,11 +1729,13 @@ export function hasPathwayAccess(
       user === "carms" ||
       user === "canada" ||
       user === "mccqe" ||
+      user === "canada-pathway" ||
       user === "canadian-medical") &&
     (target === "canada-residency" ||
       target === "carms" ||
       target === "canada" ||
       target === "mccqe" ||
+      target === "canada-pathway" ||
       target === "canadian-medical")
   ) {
     return true;
@@ -1806,11 +1826,10 @@ export function getSavedSubscriptionSession(
     const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
     if (stored) {
       const parsed = JSON.parse(stored) as SavedSubscriptionSession;
-      if (parsed) {
+      if (parsed && parsed.status === "approved") {
         if (!targetPathwayId || hasPathwayAccess(parsed.pathway_id, targetPathwayId)) {
           return parsed;
         }
-        return parsed;
       }
     }
   } catch {

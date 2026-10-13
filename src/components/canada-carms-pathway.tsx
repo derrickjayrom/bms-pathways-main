@@ -64,12 +64,8 @@ export function CanadaCarmsPathwayPage() {
   // Gating & subscription states
   const [subscriptionOpen, setSubscriptionOpen] = useState(false);
   const [modalMode, setModalMode] = useState<"subscribe" | "verify">("subscribe");
-  const [isSubscribed, setIsSubscribed] = useState<boolean>(() => {
-    return !!getSavedSubscriptionSession("canada-residency");
-  });
-  const [activeSession, setActiveSession] = useState<SavedSubscriptionSession | null>(() => {
-    return getSavedSubscriptionSession("canada-residency");
-  });
+  const [isSubscribed, setIsSubscribed] = useState<boolean>(false);
+  const [activeSession, setActiveSession] = useState<SavedSubscriptionSession | null>(null);
 
   // Initial load: settings, resources, subscription status
   useEffect(() => {
@@ -93,10 +89,18 @@ export function CanadaCarmsPathwayPage() {
           pathway_id: result.subscription.pathway_id,
         });
         saveSubscribedSession(result.subscription);
-      } else if (result.status === "rejected" || result.status === "not_found") {
+      } else {
         clearSubscriptionSession("canada-residency");
         setIsSubscribed(false);
         setActiveSession(null);
+        if (result.status === "device_mismatch") {
+          toast.error("Access Blocked: Registered to Another Device", {
+            description:
+              result.reason ||
+              "This subscription is bound to another device. Sharing accounts across multiple users is strictly prohibited.",
+            duration: 9000,
+          });
+        }
       }
     });
 
@@ -104,12 +108,56 @@ export function CanadaCarmsPathwayPage() {
       getSiteSettings().then((s) => setSiteSettings(s));
       getAllUploadedResources().then((list) => setPathwayResources(list));
       const sess = getSavedSubscriptionSession("canada-residency");
-      setIsSubscribed(!!sess);
+      setIsSubscribed(!!sess && sess.status === "approved");
       setActiveSession(sess);
     };
 
     window.addEventListener("storage", handleStorageChange);
     return () => window.removeEventListener("storage", handleStorageChange);
+  }, []);
+
+  // Re-verify when browser window or tab regains focus
+  useEffect(() => {
+    let lastCheckTime = 0;
+    const handleRevalidate = () => {
+      if (typeof document !== "undefined" && document.visibilityState === "visible") {
+        const now = Date.now();
+        if (now - lastCheckTime < 10000) return;
+        lastCheckTime = now;
+
+        validateActiveSubscription("canada-residency").then((result) => {
+          if (!result.isValid) {
+            if (
+              result.status === "rejected" ||
+              result.status === "device_mismatch" ||
+              result.status === "not_found"
+            ) {
+              setIsSubscribed(false);
+              setActiveSession(null);
+            }
+          } else if (result.subscription) {
+            setIsSubscribed(true);
+            setActiveSession({
+              id: result.subscription.id,
+              email: result.subscription.email,
+              reference_code: result.subscription.reference_code,
+              full_name: result.subscription.full_name,
+              status: result.subscription.status,
+              verified_at: new Date().toISOString(),
+              bound_device_id: result.subscription.bound_device_id,
+              pathway_id: result.subscription.pathway_id,
+            });
+          }
+        });
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleRevalidate);
+    window.addEventListener("focus", handleRevalidate);
+    return () => {
+      document.removeEventListener("visibilitychange", handleRevalidate);
+      window.removeEventListener("focus", handleRevalidate);
+    };
   }, []);
 
   // Realtime subscription listener for instantaneous lock / unlock
@@ -181,6 +229,13 @@ export function CanadaCarmsPathwayPage() {
   };
 
   const handlePassStage = (stageId: string, nextIdx: number) => {
+    if (!isSubscribed) {
+      setModalMode("subscribe");
+      setSubscriptionOpen(true);
+      toast.info("Subscribe to track your progress and advance through stages.");
+      return;
+    }
+
     if (!completedStageIds.includes(stageId)) {
       setCompletedStageIds((prev) => [...prev, stageId]);
     }
@@ -203,6 +258,7 @@ export function CanadaCarmsPathwayPage() {
   };
 
   const handleResetProgress = () => {
+    if (!isSubscribed) return;
     setCompletedStageIds([]);
     setActiveStageIndex(0);
     setActiveStageDetailsHidden(false);
@@ -212,6 +268,25 @@ export function CanadaCarmsPathwayPage() {
   };
 
   const handleFlowchartCardClick = (targetIndex: number, stageId: string) => {
+    if (!isSubscribed) {
+      if (targetIndex >= 3) {
+        setModalMode("subscribe");
+        setSubscriptionOpen(true);
+        toast.info(
+          "Milestones 04–11 are part of the Complete Canada Pathway Roadmap. Subscribe to unlock full access!",
+        );
+        const roadmapEl = document.getElementById("interactive-roadmap");
+        if (roadmapEl) roadmapEl.scrollIntoView({ behavior: "smooth" });
+        return;
+      }
+      const previewEl = document.getElementById(`preview-stage-${targetIndex}`);
+      if (previewEl) {
+        previewEl.scrollIntoView({ behavior: "smooth", block: "center" });
+        toast.info(`Viewing Preview: ${canadaRoadmapStages[targetIndex]?.title}`);
+        return;
+      }
+    }
+
     setActiveStageIndex(targetIndex);
     setActiveStageDetailsHidden(false);
     setExpandedStageId(stageId);
@@ -845,7 +920,114 @@ export function CanadaCarmsPathwayPage() {
       {/* INTERACTIVE SEQUENTIAL ROADMAP */}
       <section id="interactive-roadmap" className="py-14 lg:py-20 bg-background">
         <div className="mx-auto max-w-7xl px-5 lg:px-8">
-          {/* SEQUENCE PROGRESS TRACKER BAR */}
+          <div className="text-center max-w-2xl mx-auto mb-10">
+            <p className="text-xs sm:text-sm font-extrabold uppercase tracking-widest text-[#10B981]">
+              INTERACTIVE ROADMAP
+            </p>
+            <h2 className="mt-1.5 text-2xl sm:text-3xl lg:text-4xl font-black text-foreground tracking-tight">
+              Follow Your Step-by-Step Flow
+            </h2>
+            <p className="mt-2 text-sm sm:text-base text-muted-foreground">
+              Pass each stage in sequence to continue to the next stage. If an exam is not passed,
+              guidance on what to do will guide your retake preparation.
+            </p>
+          </div>
+
+          {!isSubscribed ? (
+            <div className="max-w-4xl lg:max-w-5xl mx-auto rounded-3xl border-2 border-dashed border-emerald-500/40 bg-gradient-to-b from-emerald-50/70 via-stone-50/60 to-white p-7 sm:p-12 text-center shadow-lg relative overflow-hidden my-4">
+              <div className="size-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-[#10B981] mx-auto mb-4 shadow-inner">
+                <Lock className="size-8" />
+              </div>
+              <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300/60 mb-3">
+                <Sparkles size={13} className="text-[#10B981]" />
+                Interactive Roadmap &amp; Complete Guide
+              </div>
+              <h3 className="text-2xl sm:text-3xl font-black text-foreground tracking-tight">
+                Unlock the Complete 11-Stage Interactive Roadmap
+              </h3>
+              <p className="mt-3 text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+                Comprehensive step-by-step guidance through medical degree eligibility, physiciansapply.ca,
+                credential verification, MCCQE Part I, NAC Examination OSCE, provincial eligibility, CaRMS R-1 Match, and Canadian residency training.
+              </p>
+
+              {siteSettings.subscription_price && (
+                <div className="mt-5 inline-flex items-center gap-2 bg-white border border-stone-200/90 rounded-2xl px-5 py-2.5 shadow-2xs">
+                  <span className="text-xs font-extrabold text-muted-foreground uppercase tracking-wider">
+                    Access Fee:
+                  </span>
+                  <span className="text-base font-black text-[#10B981]">
+                    {siteSettings.subscription_price}
+                  </span>
+                  <span className="text-xs text-muted-foreground">(Lifetime Full Access)</span>
+                </div>
+              )}
+
+              <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3.5">
+                <Button
+                  size="lg"
+                  onClick={() => {
+                    setModalMode("subscribe");
+                    setSubscriptionOpen(true);
+                  }}
+                  className="bg-[#10B981] hover:bg-[#059669] text-white font-bold h-12 px-8 text-sm sm:text-base shadow-md rounded-xl cursor-pointer"
+                >
+                  <Lock className="mr-2 size-4" /> Subscribe to Unlock Full Access
+                </Button>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  onClick={() => {
+                    setModalMode("verify");
+                    setSubscriptionOpen(true);
+                  }}
+                  className="border-border hover:bg-stone-100 font-bold h-12 px-6 text-sm sm:text-base rounded-xl cursor-pointer"
+                >
+                  Already Subscribed? Verify Reference Code
+                </Button>
+              </div>
+
+              {/* FREE PREVIEW TEASER: 3 STAGES UNLOCKED */}
+              <div className="mt-10 pt-8 border-t border-emerald-200/70 text-left">
+                <p className="text-xs font-black uppercase tracking-wider text-emerald-800 mb-3 text-center sm:text-left">
+                  Free Preview Included Below (Stages 01 – 03 Unlocked)
+                </p>
+                <div className="space-y-4">
+                  {canadaRoadmapStages.slice(0, 3).map((stage, sIdx) => (
+                    <div
+                      key={stage.id}
+                      id={`preview-stage-${sIdx}`}
+                      className="rounded-2xl border border-stone-200/90 bg-white p-5 sm:p-6 shadow-2xs"
+                    >
+                      <div className="flex items-center justify-between gap-3 mb-2">
+                        <span className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-md text-xs font-extrabold bg-stone-100 text-stone-800">
+                          STAGE {stage.number}
+                        </span>
+                        <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">
+                          Preview Available
+                        </span>
+                      </div>
+                      <h4 className="text-base sm:text-lg font-bold text-foreground">
+                        {stage.title}
+                      </h4>
+                      <p className="mt-1 text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                        {stage.summary}
+                      </p>
+                      <ul className="mt-3 space-y-1.5 text-xs text-stone-700">
+                        {stage.details.slice(0, 2).map((d, dIdx) => (
+                          <li key={dIdx} className="flex items-start gap-2">
+                            <span className="text-[#10B981] font-bold">•</span>
+                            <span>{d}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <>
+              {/* SEQUENCE PROGRESS TRACKER BAR */}
           <div className="max-w-4xl lg:max-w-5xl mx-auto mb-10 rounded-2xl border border-stone-200/90 bg-card p-5 sm:p-6 shadow-xs">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-sm mb-4">
               <div>
@@ -1205,6 +1387,8 @@ export function CanadaCarmsPathwayPage() {
               );
             })}
           </div>
+            </>
+          )}
         </div>
       </section>
 

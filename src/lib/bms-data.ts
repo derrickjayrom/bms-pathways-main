@@ -221,6 +221,15 @@ export const resources: MedicalResource[] = [
     description:
       "Step-by-step roadmap for IMGs: Medical degree check, MyIntealth & EPIC verification, AMC CAT MCQ, AMC Clinical / WBA, AHPRA registration, and specialist training.",
   },
+  {
+    title: "Complete Canada Residency Pathway Guide (CaRMS)",
+    cat: "International Pathways",
+    type: "Interactive Guide",
+    href: "/career-exploration/canada-residency",
+    badge: "Interactive Roadmap",
+    description:
+      "Official roadmap for IMGs: PMQ check, physiciansapply.ca, credential verification, MCCQE Part I, NAC OSCE, provincial eligibility, and CaRMS match.",
+  },
   { title: "Mapping Your Medical Career", cat: "Career Guides", type: "Guide" },
   { title: "The Standout Medical CV", cat: "CV & Interview", type: "Toolkit" },
   { title: "Research Starter Pack", cat: "Research", type: "Workbook" },
@@ -469,15 +478,15 @@ export const internationalPathways: InternationalPathwayItem[] = [
     country: "Canada",
     title: "Canada Residency Pathway",
     description:
-      "Navigating the MCCQE Part 1, NAC OSCE, CaRMS match, and provincial licensing pathways for International Medical Graduates.",
+      "A comprehensive, step-by-step roadmap from PMQ eligibility and physiciansapply.ca to MCCQE Part I, NAC OSCE, provincial eligibility, CaRMS match, and Canadian residency.",
     href: "/career-exploration/canada-residency",
-    badge: "Coming Soon",
-    isDeveloped: false,
+    badge: "Interactive Roadmap Available",
+    isDeveloped: true,
     highlights: [
-      "MCCQE Part 1 & NAC OSCE",
-      "CaRMS R-1 Match",
-      "Provincial Eligibility",
-      "Return of Service (ROS)",
+      "physiciansapply.ca & Credential Verification",
+      "MCCQE Part I & NAC OSCE",
+      "Provincial & Program Eligibility",
+      "CaRMS Application, Ranking & Match",
     ],
   },
   {
@@ -1698,5 +1707,452 @@ export const australiaExamCentresNotice = {
   point3:
     "BEFORE MAKING TRAVEL PLANS: Ghanaian and international candidates should verify the current AMC/Pearson VUE venue list before making travel or test arrangements.",
 };
+
+// ===========================================================================
+// 🇨🇦 CANADIAN MEDICAL PATHWAY (CaRMS & MCC) DATA
+// ===========================================================================
+
+export const canadaThreeBroadRoutes = [
+  {
+    number: "01",
+    title: "CaRMS — Canadian Residency",
+    concept: "TRAIN IN CANADA",
+    description:
+      "For IMGs who need to complete postgraduate residency training in Canada.",
+    route: "Typical route: medical degree → exams (MCCQE Part I + NAC) → CaRMS application → interviews → match → Canadian residency.",
+  },
+  {
+    number: "02",
+    title: "Practice Ready Assessment (PRA)",
+    concept: "DEMONSTRATE READINESS",
+    description:
+      "For eligible internationally trained physicians who already have substantial independent clinical experience.",
+    route: "Usually province- and specialty-specific (often Family Medicine); requirements, clinical supervision, and return-of-service terms vary.",
+  },
+  {
+    number: "03",
+    title: "Specialist / Credential Recognition",
+    concept: "HAVE SPECIALIST TRAINING RECOGNIZED",
+    description:
+      "For physicians who have already completed postgraduate specialist training abroad.",
+    route: "Routes may involve specialty-specific assessment and recognition through the Royal College of Physicians and Surgeons of Canada (RCPSC).",
+  },
+];
+
+export const canadaDecisionFramework = [
+  {
+    profile: "Medical degree + housemanship",
+    guidance:
+      "No completed specialist training → CaRMS is usually the key residency route.",
+  },
+  {
+    profile: "Experienced independent physician",
+    guidance:
+      "You may be eligible for a Practice Ready Assessment (PRA), depending on province, specialty, and clinical experience.",
+  },
+  {
+    profile: "Completed specialist training abroad",
+    guidance:
+      "Explore specialist recognition / credential-assessment pathways, appropriate to your specialty and college.",
+  },
+  {
+    profile: "Core BMS Principle",
+    guidance:
+      "There is no single Canadian IMG pathway. Province + specialty + training history matter.",
+    isHighlight: true,
+  },
+];
+
+export const canadaRoadmapStages: UsmleRoadmapStage[] = [
+  {
+    id: "canada-stage-01",
+    number: "01",
+    title: "01 Medical Degree + Eligibility Check",
+    summary:
+      "Complete your Primary Medical Qualification (PMQ / MBChB) and confirm that your medical school is listed in WDOMS and meets Canadian recognition requirements.",
+    details: [
+      "1. Complete Your Primary Medical Qualification: Complete your Primary Medical Qualification (PMQ) and obtain your official MBChB / MBBS certificate.",
+      "2. Check Medical School Eligibility: Confirm that your medical school meets the requirements for the Canadian medical pathway.",
+      "Your medical school should be listed in the World Directory of Medical Schools (WDOMS) and meet applicable Canadian recognition criteria (including an active Canadian Sponsor Note where applicable).",
+      "Critical reality check: Being listed in WDOMS does not by itself guarantee eligibility for every Canadian residency program. Provincial and program-specific criteria must also be checked.",
+      "Ensure all biographical information, legal name spellings, and dates of study match your official passport and medical school records.",
+    ],
+  },
+  {
+    id: "canada-stage-02",
+    number: "02",
+    title: "02 physiciansapply.ca Account + Identity",
+    summary:
+      "Create an official Medical Council of Canada (MCC) account on physiciansapply.ca and establish your identity with certified documentation.",
+    fees: [
+      { item: "physiciansapply.ca Account Creation Fee", amount: "CAD $340*" },
+    ],
+    details: [
+      "Create a physiciansapply.ca account, the centralized portal used for all MCC services.",
+      "physiciansapply.ca is required for: Medical credential source verification; MCCQE Part I application; NAC Examination application; and Accessing & sharing MCC examination information with CaRMS and provincial regulatory authorities.",
+      "Establish Your Identity: Before proceeding with certain MCC services, you must establish your verified identity.",
+      "Identity Requirements: An acceptable primary identity document, such as a valid passport; Recent digital passport photograph; Official specimen signature.",
+      "The identity document must meet MCC's certification requirements. Acceptable certifying officials include appropriately authorized officials such as a notary public or lawyer, subject to MCC guidelines.",
+      "Note: MCC fees are periodically updated. Applicants should always check the current MCC fee schedule on physiciansapply.ca before making payments.",
+    ],
+  },
+  {
+    id: "canada-stage-03",
+    number: "03",
+    title: "03 Source Verification of Medical Credential",
+    summary:
+      "Submit your medical degree for primary source verification via MCC and ECFMG/EICS directly with your issuing medical school.",
+    fees: [
+      { item: "MCC Source-Verification Fee (per credential)", amount: "CAD $232*" },
+      { item: "Medical School Administrative Handling Fee", amount: "Variable by university" },
+    ],
+    details: [
+      "The goal of primary source verification is to confirm that your medical credential was genuinely issued by the institution named on it.",
+      "End-to-End Verification Flow: YOU (Upload credential) → MCC (Reviews submission) → EICS (Contacts issuing institution) → MEDICAL SCHOOL (Verifies credential) → MCC (Updates status).",
+      "What should you verify? For the standard CaRMS route, the primary medical degree (Final Diploma) is the key credential. Additional postgraduate/specialist credentials may matter for other pathways.",
+      "Current MCC source-verification fee: CAD $232* per medical credential (*Fee is subject to change).",
+      "BMS Recommendation: Contact your medical school's Registrar or Dean's office early so they are prepared to respond promptly to the ECFMG/EICS verification request.",
+    ],
+  },
+  {
+    id: "canada-stage-04",
+    number: "04",
+    title: "04 MCCQE Part I Examination",
+    summary:
+      "Pass the Medical Council of Canada Qualifying Examination Part I, a national computerized examination testing medical knowledge and clinical decision-making.",
+    isExam: true,
+    passNextStageId: "canada-stage-05",
+    fees: [
+      { item: "MCCQE Part I Examination Fee", amount: "CAD $1,500*" },
+      { item: "Preparation Resources (Toronto Notes, Question Banks)", amount: "CAD $300 – $600" },
+    ],
+    details: [
+      "The MCCQE Part I is a national examination assessing medical knowledge and clinical decision-making relevant to medical practice in Canada.",
+      "Current Format: 230 Multiple-Choice Questions (MCQs); Divided into 2 sections × 115 questions; 2 hours 40 minutes per section (~5 hours 20 minutes total testing time).",
+      "Scoring: Reported on a 300–600 scale, with a current official pass score of 439.",
+      "Important format update: The current exam no longer contains the previous separate Clinical Decision-Making (CDM) component.",
+      "Scheduling: The exam is offered 4 times a year through Prometric test centres worldwide and via remote proctoring where eligible.",
+      "Preparation: Start with the MCC Examination Objectives and official MCC Blueprint.",
+      "Study resources: Use Canadian-focused resources such as Toronto Notes and Canada-specific question banks like Canada QBank and ACE QBank. UWorld can help with general medical reasoning, but should not replace MCC-specific preparation.",
+      "BMS Tip: Program requirements and selection practices vary across Canada, so IMG applicants should aim to perform as strongly as possible rather than simply target the minimum pass mark of 439.",
+    ],
+    altOption: {
+      title: "What to Do If You Need to Strengthen or Retake MCCQE Part I",
+      description:
+        "The MCCQE Part I emphasizes Canadian clinical practice guidelines, public health, and ethics. A retake requires structured diagnosis of sub-scores and disciplined pacing.",
+      introPoints: [
+        "Review your detailed score report across Medicine, Surgery, Paediatrics, Obstetrics & Gynaecology, Psychiatry, and Population Health/Ethics.",
+        "Check MCC retake regulations and waiting periods before booking your next window (offered 4 times yearly).",
+      ],
+      sections: [
+        {
+          heading: "Master Canadian-Specific Clinical Guidelines",
+          subtext: "Canadian standards frequently diverge from US or UK guidelines:",
+          items: [
+            "Study the Ethical, Legal, and Organizational Aspects of Medicine (ELOM) section in Toronto Notes thoroughly.",
+            "Know Canadian preventive screening guidelines (CTFPHC recommendations for mammography, cervical cancer, and colon screening).",
+            "Understand Canadian public health reporting, consent laws (mature minor doctrine), and Canadian pharmacological nomenclature.",
+          ],
+        },
+        {
+          heading: "Systematic Timed Question-Bank Practice",
+          subtext: "Transition from passive review to high-volume timed testing:",
+          items: [
+            "Work through ACE QBank and Canada QBank in timed test mode (1.39 minutes per question).",
+            "Simulate full-day exam endurance with two consecutive 115-question sessions.",
+            "Aim for consistent scores above 75% on simulated blocks before scheduling your re-sit.",
+          ],
+        },
+      ],
+    },
+  },
+  {
+    id: "canada-stage-05",
+    number: "05",
+    title: "05 NAC Examination / NAC OSCE",
+    summary:
+      "Complete the 12-station Objective Structured Clinical Examination (OSCE) assessing clinical skills, communication, and readiness for Canadian residency.",
+    isExam: true,
+    passNextStageId: "canada-stage-06",
+    fees: [
+      { item: "NAC Examination Fee", amount: "CAD $3,300* (Cycle-specific)" },
+      { item: "OSCE Study Groups & Preparation Academy (Optional)", amount: "CAD $500 – $1,200" },
+    ],
+    details: [
+      "The NAC Examination is a clinical skills assessment used across Canada in the IMG residency pathway.",
+      "Structure: 12 Stations total — 10 scored stations and 2 pilot stations. Pilot stations do not contribute to the final score.",
+      "Assessed Clinical Skills: History taking, Physical examination, Diagnosis, Management, Communication, Investigations, and Data interpretation.",
+      "Score & Validity: Score range is 500–700 with an official pass score of 577. Your result does not expire.",
+      "Crucial Retake Rule: If taken more than once, the **most recent result** is the valid official result submitted to residency programs (not your highest score).",
+      "BMS Tip: There is no universal 'competitive cutoff'. However, Canadian residency positions are competitive, so applicants should aim for a strong score rather than simply the minimum passing score.",
+      "Administration: Conducted at designated medical school test centres across Canada during spring and autumn sessions.",
+    ],
+    altOption: {
+      title: "What to Do If You Receive an Uncompetitive NAC Result",
+      description:
+        "Because programs receive your most recent score, retaking the NAC requires calculated preparation focused on Canadian bedside communication and time management.",
+      introPoints: [
+        "Carefully analyze whether your score meets your targeted province's minimum threshold before opting to retake.",
+        "Remember: if you re-sit, the new score completely overwrites your previous attempt.",
+      ],
+      sections: [
+        {
+          heading: "Master Canadian Patient-Centred Communication",
+          subtext: "Canadian examiners prioritize relational rapport and empathy:",
+          items: [
+            "Integrate the FIFE model (Feelings, Ideas, Function, Expectations) naturally into clinical encounters.",
+            "Practice patient-centred counseling: shared decision making, validating patient concerns, and addressing cultural safety.",
+            "Refine structured delivery for breaking bad news, challenging patients, and obtaining informed consent.",
+          ],
+        },
+        {
+          heading: "Strict Station Timing Protocol",
+          subtext: "Master the 11-minute encounter cadence:",
+          items: [
+            "1 minute: Read doorway candidate instructions and formulate your top 3 differential diagnoses.",
+            "8 minutes: Focused history and targeted physical examination with the Standardized Patient.",
+            "2 minutes: Succinct oral answers to the physician examiner's clinical questions.",
+            "Join regular mock OSCE practice groups with IMG colleagues to build spontaneous fluency.",
+          ],
+        },
+      ],
+    },
+  },
+  {
+    id: "canada-stage-06",
+    number: "06",
+    title: "06 Check Provincial + Program Eligibility",
+    summary:
+      "Carefully verify provincial criteria, citizenship/PR prerequisites, recency of practice rules, and Return-of-Service obligations.",
+    details: [
+      "This is one of the most important steps—and one of the easiest to overlook.",
+      "Golden Rule: Eligibility ≠ Match. Being eligible for the CaRMS Match does not mean you qualify for every IMG program. Criteria can change between match cycles.",
+      "Always check: CaRMS provincial criteria + individual program requirements.",
+      "What to Check:",
+      "• Canadian citizenship / permanent residency (PR) requirements where applicable.",
+      "• MCCQE Part I + NAC examination thresholds and validity windows.",
+      "• Medical school eligibility and WDOMS recognition.",
+      "• Graduation-year / recency of practice requirements (e.g., within 3–5 years for certain provincial streams).",
+      "• Postgraduate training requirements (some provincial streams restrict applicants with prior specialist training).",
+      "• Language requirements (IELTS Academic, OET Medicine, CELPIP, or French proficiency).",
+      "• Provincial assessment requirements (e.g., CAP in British Columbia, AIMG in Alberta, Casper test).",
+      "• Return-of-service (ROS) obligations (often 2–5 years of practice in designated underserviced regions).",
+      "• Program-specific criteria, reference letter rules, and applicant quotas.",
+      "Immigration Status: Keep It Separate From Residency Eligibility:",
+      "• Many IMG residency positions have citizenship / permanent-residency requirements.",
+      "• Immigration pathways such as Express Entry and Provincial Nominee Programs are separate systems from CaRMS.",
+      "• Do not assume that an immigration priority category automatically creates residency eligibility.",
+      "• BMS Tip: It is important to work on Permanent Residency as you are going through the pathway. Currently, Canada is looking for more doctors and has made getting PR relatively easier through the Express Entry category-based selection and Provincial Nomination.",
+      "• BMS Advice: If Canada is your long-term goal, review your immigration strategy alongside your medical pathway. PR can be important—but **PR does not guarantee a residency match**.",
+    ],
+  },
+  {
+    id: "canada-stage-07",
+    number: "07",
+    title: "07 Build Your CaRMS Application",
+    summary:
+      "Assemble and submit your targeted CaRMS application dossier including CV, MSPR, transcripts, personal letters, and reference letters.",
+    fees: [
+      { item: "Match Participation Fee (Includes first 4 programs)", amount: "CAD $301.60*" },
+      { item: "Additional Program Fee (over the first 4)", amount: "CAD $66.26* each" },
+      { item: "CaRMS IMG Document Verification Fee", amount: "CAD $136.62*" },
+    ],
+    details: [
+      "Once you know which programs you are eligible for, build a targeted application in CaRMS Online.",
+      "Typical Application Components:",
+      "• CV / application information (detailed clinical, research, volunteer, and leadership history).",
+      "• Medical school transcript.",
+      "• Medical diploma certificate.",
+      "• MSPR / Dean's Letter where required.",
+      "• MCCQE Part I result.",
+      "• NAC examination result.",
+      "• Structured reference letters from supervisors who know your clinical competence.",
+      "• Personal statements / letters tailored to each discipline and program.",
+      "• Other program-specific documents (e.g., Casper assessment, research reprints).",
+      "How Programs Evaluate You: Academic record, clinical experience, exam performance, references, personal letters, research / teaching / leadership, interview performance, and fit with program-specific criteria.",
+      "CaRMS Application Costs — 2027 R-1 Match Cycle:",
+      "• Match participation fee: CAD $301.60 (Includes first 4 programs).",
+      "• Additional program: CAD $66.26 each (For programs over the first 4).",
+      "• IMG verification fee: CAD $136.62.",
+      "• CaRMS states there is no minimum or maximum number of programs an applicant can apply to.",
+    ],
+  },
+  {
+    id: "canada-stage-08",
+    number: "08",
+    title: "08 CaRMS Residency Interviews",
+    summary:
+      "Prepare for virtual and panel interviews with Canadian residency selection committees evaluating clinical judgment, ethics, and cultural fit.",
+    details: [
+      "Getting an interview is a major milestone—but the match is still determined later.",
+      "Programs review hundreds of applications and invite a selective cohort of candidates to interview.",
+      "Common Interview Areas:",
+      "• Tell us about yourself.",
+      "• Why Canada?",
+      "• Why this specialty?",
+      "• Why this program?",
+      "• Previous clinical experience.",
+      "• Clinical scenarios and acute emergencies.",
+      "• Ethics + professionalism.",
+      "• Communication + conflict resolution in clinical teams.",
+      "• Understanding of the Canadian healthcare system.",
+      "BMS Preparation Strategy:",
+      "• Know your CV thoroughly.",
+      "• Prepare concise, authentic answers.",
+      "• Practise clinical and ethical scenarios.",
+      "• Show reflection—not memorized answers.",
+      "• Demonstrate teamwork, teachability, and professionalism.",
+      "• Remember: Programs decide whom to interview.",
+    ],
+  },
+  {
+    id: "canada-stage-09",
+    number: "09",
+    title: "09 Ranking & CaRMS Algorithm",
+    summary:
+      "Submit your confidential Rank-Order List reflecting your genuine preferences to the CaRMS matching algorithm.",
+    details: [
+      "After interviews conclude, applicants and programs independently submit rank-order lists in CaRMS Online.",
+      "Applicant Rank Order List:",
+      "• You rank programs in the order you genuinely prefer them.",
+      "• Rank only programs you would actually accept.",
+      "• Do not rank a program simply because you think it is 'easier'.",
+      "Program Rank Order List:",
+      "• Programs independently rank the applicants they interviewed.",
+      "• The CaRMS matching algorithm considers both sides' preferences and available positions.",
+      "Core Mechanism: APPLICANT PREFERENCES ↔ PROGRAM PREFERENCES → MATCHING ALGORITHM.",
+      "The algorithm is applicant-proposing: always rank purely according to your true preference.",
+    ],
+  },
+  {
+    id: "canada-stage-10",
+    number: "10",
+    title: "10 Match Day & Second Iteration",
+    summary:
+      "Access your official match results on CaRMS Match Day, navigate onboarding or participate in the R-1 Second Iteration.",
+    details: [
+      "The moment the algorithm turns the ranking process into residency placements.",
+      "BEFORE MATCH DAY: Rank-order lists are finalized → CaRMS runs the matching algorithm.",
+      "ON MATCH DAY: Log into CaRMS Online → MY RESULTS → Match Results.",
+      "MATCHED: You receive a residency position! Follow the program's onboarding and registration instructions.",
+      "NOT MATCHED: Eligible applicants may proceed immediately to the **second iteration**.",
+      "A post-match process may follow for positions that remain unfilled.",
+      "The exact Match Day dates change each cycle—check CaRMS for the current official calendar.",
+    ],
+  },
+  {
+    id: "canada-stage-11",
+    number: "11",
+    title: "11 Canadian Residency Training",
+    summary:
+      "Complete accredited postgraduate residency training leading to certification with CFPC or RCPSC and independent medical licensure.",
+    details: [
+      "Commence your accredited postgraduate residency training program in a Canadian faculty of medicine.",
+      "Family Medicine: 2 years of accredited training through the College of Family Physicians of Canada (CFPC). Graduates sit CFPC certification exams.",
+      "Specialty Medicine: 4 to 5+ years of accredited residency through the Royal College of Physicians and Surgeons of Canada (RCPSC). Graduates sit RCPSC specialist certification exams.",
+      "Independent Practice Licensure: Upon successful completion of residency and college certification exams, fulfill any applicable Return-of-Service (ROS) contracts.",
+      "Apply for independent medical licensure with your provincial medical regulatory authority (e.g., CPSO, CPSBC, CPSA).",
+      "Lifelong Canadian Medical Practice: Provide high-quality patient care in Canada's respected healthcare system.",
+    ],
+  },
+];
+
+export const canadaBudgetBreakdown = [
+  { item: "MCCQE Part I Examination Fee", fee: "CAD $1,500*", category: "MCC Examinations" },
+  { item: "NAC Examination / NAC OSCE Fee", fee: "CAD $3,300*", category: "MCC Examinations" },
+  { item: "physiciansapply.ca Account Creation", fee: "CAD $340*", category: "MCC Portal" },
+  { item: "MCC Credential Source Verification (SVR)", fee: "CAD $232* / credential", category: "MCC Credentials" },
+  { item: "CaRMS Match Participation Fee (first 4 programs)", fee: "CAD $301.60*", category: "CaRMS Application" },
+  { item: "CaRMS Additional Program Fee", fee: "CAD $66.26* each", category: "CaRMS Application" },
+  { item: "CaRMS IMG Document Verification Fee", fee: "CAD $136.62*", category: "CaRMS Application" },
+  { item: "English Language Test (IELTS / CELPIP / OET)", fee: "~CAD $350 – $450", category: "Language Proficiency" },
+  { item: "Provincial Assessment (e.g. BC CAP / Casper where applicable)", fee: "~CAD $200 – $600", category: "Provincial Evaluation" },
+  { item: "Study Resources (Toronto Notes, Question Banks)", fee: "~CAD $400 – $800", category: "Preparation Resources" },
+  { item: "Travel, Flights & Accommodation (NAC Exam in Canada)", fee: "~CAD $1,500 – $3,000", category: "Travel & Logistics" },
+];
+
+export const canadaImportantNotes = {
+  doNotAssume: [
+    "Passing MCCQE Part I = guaranteed residency",
+    "Passing NAC = guaranteed interview",
+    "WDOMS listing = eligibility for every program",
+    "PR = guaranteed CaRMS eligibility or match",
+    "One province's criteria = another province's criteria",
+    "Today's requirements = next cycle's requirements",
+  ],
+  doThisInstead: [
+    "Check official CaRMS criteria every cycle.",
+    "Check individual program requirements.",
+    "Keep your MCC profile and documents updated.",
+    "Plan immigration separately but alongside your medical pathway.",
+    "Budget for exams, applications, travel and living costs.",
+    "Build a strong application—not just passing scores.",
+  ],
+  goldenSummary:
+    "Your pathway may take several years. Plan exams, documents, immigration and finances early.",
+};
+
+export const canadaChecklistItems = [
+  "Confirm medical school / WDOMS eligibility",
+  "Create and complete physiciansapply.ca profile",
+  "Establish identity with certified documentation",
+  "Submit source verification for required credential(s)",
+  "Prepare for and pass MCCQE Part I",
+  "Prepare for and pass NAC Examination",
+  "Check current provincial + program eligibility",
+  "Prepare CaRMS application + supporting documents",
+  "Apply strategically to eligible programs",
+  "Prepare for interviews",
+  "Submit rank-order list",
+  "Monitor Match Day + second iteration if needed",
+];
+
+export const canadaImmigrationNotice = {
+  title: "Immigration Status: Keep It Separate From Residency Eligibility",
+  whyItMatters: [
+    "Many IMG residency positions have citizenship / permanent-residency requirements.",
+    "Immigration pathways such as Express Entry and Provincial Nominee Programs are separate systems from CaRMS.",
+    "Do not assume that an immigration priority category automatically creates residency eligibility.",
+  ],
+  bmsTip:
+    "It is important to work on Permanent Residency as you are going through the pathway. Currently, Canada is looking for more doctors and has made getting a Permanent Residency relatively easier through Express Entry pathway and Provincial Nomination.",
+  bmsAdvice:
+    "If Canada is your long-term goal, review your immigration strategy alongside your medical pathway. Because immigration and CaRMS rules change, use current official sources before making major decisions.",
+  keyMessage: "PR can be important—but PR does not guarantee a residency match.",
+};
+
+export const canadaOfficialPortals = [
+  {
+    name: "Medical Council of Canada (MCC)",
+    desc: "physiciansapply.ca, MCCQE Part I, NAC Examination, Source verification, and current examination fees.",
+    url: "https://www.mcc.ca",
+  },
+  {
+    name: "physiciansapply.ca",
+    desc: "Centralized MCC portal for credential verification, exam applications, and sharing candidate records.",
+    url: "https://www.physiciansapply.ca",
+  },
+  {
+    name: "CaRMS (carms.ca)",
+    desc: "R-1 Match eligibility, provincial criteria, program descriptions, application fees, match calendar & Match Day.",
+    url: "https://www.carms.ca",
+  },
+  {
+    name: "College of Family Physicians of Canada (CFPC)",
+    desc: "National professional college responsible for establishing standards for training, certifying, and lifelong learning in Family Medicine.",
+    url: "https://www.cfpc.ca",
+  },
+  {
+    name: "Royal College (RCPSC)",
+    desc: "Royal College of Physicians and Surgeons of Canada setting specialty standards and administering specialty examinations.",
+    url: "https://www.royalcollege.ca",
+  },
+  {
+    name: "IRCC (Immigration, Refugees & Citizenship Canada)",
+    desc: "Official Government of Canada immigration portal: Express Entry (Healthcare Category), Provincial Nominee Programs, and PR rules.",
+    url: "https://www.canada.ca/en/immigration-refugees-citizenship.html",
+  },
+];
+
 
 

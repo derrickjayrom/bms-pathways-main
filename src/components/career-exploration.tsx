@@ -2553,4 +2553,5 @@ export function SubscriptionModal({
 
 export { UkPlabPathwayPage } from "./uk-plab-pathway";
 export { AustraliaAmcPathwayPage } from "./australia-amc-pathway";
+export { CanadaCarmsPathwayPage } from "./canada-carms-pathway";
 

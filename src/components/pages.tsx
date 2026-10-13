@@ -1235,7 +1235,9 @@ export function ResourcesPage() {
               ? "/career-exploration/uk-residency"
               : u.pathway_id === "australia-residency"
                 ? "/career-exploration/australia-residency"
-                : undefined,
+                : u.pathway_id === "canada-residency"
+                  ? "/career-exploration/canada-residency"
+                  : undefined,
         description:
           u.description || `${u.category} · ${u.resource_type} (${u.file_size || "PDF"})`,
         badge: u.is_primary_guide
@@ -1916,4 +1918,5 @@ export {
   UsResidencyPathwayPage,
   UkPlabPathwayPage,
   AustraliaAmcPathwayPage,
+  CanadaCarmsPathwayPage,
 } from "./career-exploration";

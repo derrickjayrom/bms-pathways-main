@@ -46,6 +46,8 @@ export interface BmsSiteSettings {
   uk_guide_pdf_filename?: string | undefined;
   australia_guide_pdf_url?: string | undefined;
   australia_guide_pdf_filename?: string | undefined;
+  canada_guide_pdf_url?: string | undefined;
+  canada_guide_pdf_filename?: string | undefined;
 }
 
 export const DEFAULT_SETTINGS: BmsSiteSettings = {
@@ -65,6 +67,9 @@ export const DEFAULT_SETTINGS: BmsSiteSettings = {
   australia_guide_pdf_url:
     "https://owurtseimitnofbdepoq.supabase.co/storage/v1/object/public/pathway-guides/guides/BMS-Australia-AMC-Pathway-Guide.pdf",
   australia_guide_pdf_filename: "BMS-Australia-AMC-Pathway-Guide.pdf",
+  canada_guide_pdf_url:
+    "https://owurtseimitnofbdepoq.supabase.co/storage/v1/object/public/pathway-guides/guides/BMS-Canada-Residency-Pathway-Guide.pdf",
+  canada_guide_pdf_filename: "BMS-Canada-Residency-Pathway-Guide.pdf",
 };
 
 export const ADMIN_SESSION_KEY = "bms_admin_session_auth";
@@ -87,6 +92,9 @@ export function extractStoragePath(url: string, filename?: string): string {
   }
   if (f.includes("amc") || f.includes("australia")) {
     return "guides/BMS-Australia-AMC-Pathway-Guide.pdf";
+  }
+  if (f.includes("canada") || f.includes("carms") || f.includes("mccqe")) {
+    return "guides/BMS-Canada-Residency-Pathway-Guide.pdf";
   }
   return "guides/1790354719791_BMS_USMLE_Residency_Pathway_PRESENTABLE__1_.pdf";
 }
@@ -520,6 +528,61 @@ export async function uploadAustraliaGuidePdf(
   }
 }
 
+export async function uploadCanadaGuidePdf(
+  file: File,
+): Promise<{ success: boolean; url?: string; filename?: string; error?: string }> {
+  try {
+    if (!supabase) return { success: false, error: "Database client is not initialized" };
+
+    const cleanBaseName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
+    const filePath = `guides/canada_${Date.now()}_${cleanBaseName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from("pathway-guides")
+      .upload(filePath, file, {
+        cacheControl: "3600",
+        upsert: false,
+      });
+
+    if (uploadError) {
+      console.error("Storage upload error:", uploadError);
+      return { success: false, error: uploadError.message };
+    }
+
+    const { data } = supabase.storage.from("pathway-guides").getPublicUrl(filePath);
+    const publicUrl = data.publicUrl;
+
+    await updateSiteSetting("canada_guide_pdf_url", publicUrl);
+    await updateSiteSetting("canada_guide_pdf_filename", file.name);
+
+    let sizeFormatted = "";
+    if (file.size < 1024 * 1024) {
+      sizeFormatted = `${Math.round(file.size / 1024)} KB`;
+    } else {
+      sizeFormatted = `${(file.size / (1024 * 1024)).toFixed(1)} MB`;
+    }
+
+    await saveUploadedResource({
+      title: "Complete Canada Residency Pathway Guide (CaRMS)",
+      category: "Canada CaRMS",
+      resource_type: "Complete Guide",
+      description:
+        "Official step-by-step roadmap for IMGs: PMQ check, physiciansapply.ca, credential verification, MCCQE Part I, NAC OSCE, provincial eligibility, and CaRMS match.",
+      file_url: publicUrl,
+      filename: file.name,
+      file_size: sizeFormatted,
+      is_gated: true,
+      is_primary_guide: true,
+      pathway_id: "canada-residency",
+    });
+
+    return { success: true, url: publicUrl, filename: file.name };
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : "Failed to upload file";
+    return { success: false, error: msg };
+  }
+}
+
 export async function uploadAnyResourceFile(
   file: File,
   folder = "resources",
@@ -732,6 +795,51 @@ export async function getAllUploadedResources(): Promise<BmsResourceItem[]> {
       list.unshift(defaultAusPrimary);
     }
 
+    const { data: canGuideUrlRow } = await supabase
+      .from("bms_settings")
+      .select("value")
+      .eq("key", "canada_guide_pdf_url")
+      .single();
+
+    const primaryCanUrl =
+      canGuideUrlRow?.value && canGuideUrlRow.value.trim().length > 0
+        ? canGuideUrlRow.value.trim()
+        : "https://owurtseimitnofbdepoq.supabase.co/storage/v1/object/public/pathway-guides/guides/BMS-Canada-Residency-Pathway-Guide.pdf";
+
+    const hasCanMatch = list.some(
+      (item) =>
+        item.file_url === primaryCanUrl ||
+        (item.is_primary_guide &&
+          (item.pathway_id === "canada-residency" ||
+            item.category === "Canada CaRMS" ||
+            item.category === "Canadian Medical")),
+    );
+
+    if (!hasCanMatch) {
+      const { data: canGuideNameRow } = await supabase
+        .from("bms_settings")
+        .select("value")
+        .eq("key", "canada_guide_pdf_filename")
+        .single();
+
+      const defaultCanPrimary: BmsResourceItem = {
+        id: "primary-canada-carms-guide",
+        title: "Complete Canada Residency Pathway Guide (CaRMS)",
+        category: "Canada CaRMS",
+        resource_type: "Complete Guide",
+        description:
+          "Official step-by-step roadmap for IMGs: PMQ check, physiciansapply.ca, credential verification, MCCQE Part I, NAC OSCE, provincial eligibility, and CaRMS match.",
+        file_url: primaryCanUrl,
+        filename: canGuideNameRow?.value || "BMS-Canada-Residency-Pathway-Guide.pdf",
+        file_size: "480 KB",
+        is_gated: true,
+        is_primary_guide: true,
+        pathway_id: "canada-residency",
+        created_at: new Date().toISOString(),
+      };
+      list.unshift(defaultCanPrimary);
+    }
+
     const sanitizedList = list.map((item) => {
       let safeUrl = item.file_url;
       if (!safeUrl || safeUrl.includes("supabase.com/dashboard")) {
@@ -745,6 +853,13 @@ export async function getAllUploadedResources(): Promise<BmsResourceItem[]> {
         ) {
           safeUrl =
             "https://owurtseimitnofbdepoq.supabase.co/storage/v1/object/public/pathway-guides/guides/BMS-Australia-AMC-Pathway-Guide.pdf";
+        } else if (
+          item.pathway_id === "canada-residency" ||
+          item.category === "Canada CaRMS" ||
+          item.category === "Canadian Medical"
+        ) {
+          safeUrl =
+            "https://owurtseimitnofbdepoq.supabase.co/storage/v1/object/public/pathway-guides/guides/BMS-Canada-Residency-Pathway-Guide.pdf";
         } else {
           safeUrl =
             "https://owurtseimitnofbdepoq.supabase.co/storage/v1/object/public/pathway-guides/guides/1790354719791_BMS_USMLE_Residency_Pathway_PRESENTABLE__1_.pdf";
@@ -783,6 +898,10 @@ export async function saveUploadedResource(
         newItem.pathway_id === "australia-residency" ||
         newItem.category === "Australia AMC" ||
         newItem.category === "Australian Medical";
+      const isCan =
+        newItem.pathway_id === "canada-residency" ||
+        newItem.category === "Canada CaRMS" ||
+        newItem.category === "Canadian Medical";
 
       existing.forEach((r) => {
         const rIsUk = r.pathway_id === "uk-residency" || r.category === "U.K. PLAB";
@@ -790,11 +909,16 @@ export async function saveUploadedResource(
           r.pathway_id === "australia-residency" ||
           r.category === "Australia AMC" ||
           r.category === "Australian Medical";
+        const rIsCan =
+          r.pathway_id === "canada-residency" ||
+          r.category === "Canada CaRMS" ||
+          r.category === "Canadian Medical";
 
         if (
           (isUk && rIsUk) ||
           (isAus && rIsAus) ||
-          (!isUk && !isAus && !rIsUk && !rIsAus)
+          (isCan && rIsCan) ||
+          (!isUk && !isAus && !isCan && !rIsUk && !rIsAus && !rIsCan)
         ) {
           r.is_primary_guide = false;
         }
@@ -805,6 +929,9 @@ export async function saveUploadedResource(
       } else if (isAus) {
         await updateSiteSetting("australia_guide_pdf_url", newItem.file_url);
         await updateSiteSetting("australia_guide_pdf_filename", newItem.filename);
+      } else if (isCan) {
+        await updateSiteSetting("canada_guide_pdf_url", newItem.file_url);
+        await updateSiteSetting("canada_guide_pdf_filename", newItem.filename);
       } else {
         await updateSiteSetting("guide_pdf_url", newItem.file_url);
         await updateSiteSetting("guide_pdf_filename", newItem.filename);
@@ -872,6 +999,10 @@ export async function deleteUploadedResource(id: string): Promise<boolean> {
         target.pathway_id === "australia-residency" ||
         target.category === "Australia AMC" ||
         target.category === "Australian Medical";
+      const isCan =
+        target.pathway_id === "canada-residency" ||
+        target.category === "Canada CaRMS" ||
+        target.category === "Canadian Medical";
 
       if (isUk) {
         const nextUkPrimary = updated.find(
@@ -899,6 +1030,21 @@ export async function deleteUploadedResource(id: string): Promise<boolean> {
         } else {
           await updateSiteSetting("australia_guide_pdf_url", "");
           await updateSiteSetting("australia_guide_pdf_filename", "");
+        }
+      } else if (isCan) {
+        const nextCanPrimary = updated.find(
+          (r) =>
+            r.pathway_id === "canada-residency" ||
+            r.category === "Canada CaRMS" ||
+            r.category === "Canadian Medical",
+        );
+        if (nextCanPrimary) {
+          nextCanPrimary.is_primary_guide = true;
+          await updateSiteSetting("canada_guide_pdf_url", nextCanPrimary.file_url);
+          await updateSiteSetting("canada_guide_pdf_filename", nextCanPrimary.filename);
+        } else {
+          await updateSiteSetting("canada_guide_pdf_url", "");
+          await updateSiteSetting("canada_guide_pdf_filename", "");
         }
       } else {
         const nextPrimary = updated.find(
@@ -1253,12 +1399,14 @@ export function buildAdminWhatsAppReplyLink(
   const cleanNumber = cleanPhoneNumber(userPhone);
   const pathwayLabel =
     pathwayId === "all-pathways" || pathwayId === "all"
-      ? "All-Access Pass (U.S., U.K., & Australia Pathways)"
+      ? "All-Access Pass (U.S., U.K., Australia & Canada Pathways)"
       : pathwayId === "uk-residency" || pathwayId === "uk-plab"
         ? "U.K. PLAB Pathway"
         : pathwayId === "australia-residency" || pathwayId === "amc"
           ? "Australian Medical Pathway"
-          : "U.S. Residency Pathway";
+          : pathwayId === "canada-residency" || pathwayId === "carms" || pathwayId === "canada"
+            ? "Canadian Medical Pathway (CaRMS)"
+            : "U.S. Residency Pathway";
   const msg = `Hello ${userName}! Your payment has been confirmed by BMS. Your access to the ${pathwayLabel} Roadmap and Downloadable Complete Guide is now APPROVED! (Reference: ${referenceCode}). You can visit the website, enter your email, and start exploring right away. Let us know if you need any guidance!`;
   return `https://wa.me/${cleanNumber}?text=${encodeURIComponent(msg)}`;
 }
@@ -1374,13 +1522,19 @@ export async function verifySubscriptionStatus(
             ? "U.K. PLAB"
             : targetSub.pathway_id === "australia-residency" || targetSub.pathway_id === "amc"
               ? "Australian Medical"
-              : targetSub.pathway_id;
+              : targetSub.pathway_id === "canada-residency" || targetSub.pathway_id === "carms"
+                ? "Canadian Medical (CaRMS)"
+                : targetSub.pathway_id;
       const targetLabel =
         targetPathwayId === "us-residency" || targetPathwayId === "usmle"
           ? "U.S. Residency"
           : targetPathwayId === "uk-residency" || targetPathwayId === "uk-plab"
             ? "U.K. PLAB"
-            : "Australian Medical";
+            : targetPathwayId === "australia-residency" || targetPathwayId === "amc"
+              ? "Australian Medical"
+              : targetPathwayId === "canada-residency" || targetPathwayId === "carms"
+                ? "Canadian Medical (CaRMS)"
+                : "Medical";
       return {
         status: "pathway_mismatch",
         subscription: targetSub,
@@ -1547,6 +1701,22 @@ export function hasPathwayAccess(
       target === "australia" ||
       target === "amc-pathway" ||
       target === "australian-medical")
+  ) {
+    return true;
+  }
+
+  // Aliases for Canada
+  if (
+    (user === "canada-residency" ||
+      user === "carms" ||
+      user === "canada" ||
+      user === "mccqe" ||
+      user === "canadian-medical") &&
+    (target === "canada-residency" ||
+      target === "carms" ||
+      target === "canada" ||
+      target === "mccqe" ||
+      target === "canadian-medical")
   ) {
     return true;
   }
@@ -1810,7 +1980,9 @@ export async function validateActiveSubscription(targetPathwayId?: string): Prom
               ? "U.K. PLAB"
               : currentSub.pathway_id === "australia-residency" || currentSub.pathway_id === "amc"
                 ? "Australian Medical"
-                : currentSub.pathway_id
+                : currentSub.pathway_id === "canada-residency" || currentSub.pathway_id === "carms"
+                  ? "Canadian Medical (CaRMS)"
+                  : currentSub.pathway_id
         }. You can unlock this pathway individually or upgrade to the All-Access Pass.`,
       };
     }

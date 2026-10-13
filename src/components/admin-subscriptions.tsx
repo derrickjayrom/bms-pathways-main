@@ -51,6 +51,7 @@ import {
   uploadGuidePdf,
   uploadUkGuidePdf,
   uploadAustraliaGuidePdf,
+  uploadCanadaGuidePdf,
   uploadAnyResourceFile,
   getAllUploadedResources,
   saveUploadedResource,
@@ -126,7 +127,7 @@ export function AdminSubscriptionsDashboard() {
     "all",
   );
   const [pathwayFilter, setPathwayFilter] = useState<
-    "all" | "all-pathways" | "us-residency" | "uk-residency" | "australia-residency"
+    "all" | "all-pathways" | "us-residency" | "uk-residency" | "australia-residency" | "canada-residency"
   >("all");
 
   // Editable settings form state
@@ -135,6 +136,7 @@ export function AdminSubscriptionsDashboard() {
   const [uploadingPdf, setUploadingPdf] = useState(false);
   const [uploadingUkPdf, setUploadingUkPdf] = useState(false);
   const [uploadingAusPdf, setUploadingAusPdf] = useState(false);
+  const [uploadingCanPdf, setUploadingCanPdf] = useState(false);
   const [storageError, setStorageError] = useState<string | null>(null);
 
   // Check existing session
@@ -507,8 +509,16 @@ export function AdminSubscriptionsDashboard() {
         "australia_guide_pdf_filename",
         settingsForm.australia_guide_pdf_filename || "",
       );
+      const pCanGuide = updateSiteSetting(
+        "canada_guide_pdf_url",
+        settingsForm.canada_guide_pdf_url || "",
+      );
+      const pCanGuideName = updateSiteSetting(
+        "canada_guide_pdf_filename",
+        settingsForm.canada_guide_pdf_filename || "",
+      );
 
-      const [r1, r2, r3, rAllAccess, r4, rDev, r5, r6, rUkGuide, rUkGuideName, rAusGuide, rAusGuideName] =
+      const [r1, r2, r3, rAllAccess, r4, rDev, r5, r6, rUkGuide, rUkGuideName, rAusGuide, rAusGuideName, rCanGuide, rCanGuideName] =
         await Promise.all([
           p1,
           p2,
@@ -522,6 +532,8 @@ export function AdminSubscriptionsDashboard() {
           pUkGuideName,
           pAusGuide,
           pAusGuideName,
+          pCanGuide,
+          pCanGuideName,
         ]);
       const failures = [
         r1,
@@ -536,6 +548,8 @@ export function AdminSubscriptionsDashboard() {
         rUkGuideName,
         rAusGuide,
         rAusGuideName,
+        rCanGuide,
+        rCanGuideName,
       ].filter((r) => !r.success);
 
       if (failures.length === 0) {
@@ -743,6 +757,64 @@ export function AdminSubscriptionsDashboard() {
     }
   };
 
+  // Action: Handle Canadian Medical Pathway (CaRMS) PDF Guide Upload
+  const handleCanPdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.name.toLowerCase().endsWith(".pdf")) {
+      toast.error("Please select a valid PDF file.");
+      return;
+    }
+
+    setUploadingCanPdf(true);
+    try {
+      const res = await uploadCanadaGuidePdf(file);
+      if (res.success && res.url) {
+        setSettings((prev) => ({
+          ...prev,
+          canada_guide_pdf_url: res.url,
+          canada_guide_pdf_filename: res.filename || file.name,
+        }));
+        setSettingsForm((prev) => ({
+          ...prev,
+          canada_guide_pdf_url: res.url,
+          canada_guide_pdf_filename: res.filename || file.name,
+        }));
+        setStorageError(null);
+        toast.success("Complete Canada Residency Guide PDF uploaded successfully!", {
+          description:
+            "Subscribers can now click 'ACCESS COMPLETE CaRMS GUIDE' on the Canadian medical pathway to download this file.",
+        });
+        const updated = await getAllUploadedResources();
+        setUploadedResources(updated);
+      } else {
+        const errorMsg = res.error || "Check Supabase Storage";
+        setStorageError(errorMsg);
+        if (
+          errorMsg.toLowerCase().includes("row-level security") ||
+          errorMsg.toLowerCase().includes("policy") ||
+          errorMsg.toLowerCase().includes("bucket not found") ||
+          errorMsg.toLowerCase().includes("nosuchbucket")
+        ) {
+          toast.error("Upload failed: Supabase Storage bucket policy needed", {
+            description:
+              "The 'pathway-guides' storage bucket or its RLS policy is not configured yet. Copy the Storage SQL below and run it in Supabase.",
+            duration: 8000,
+          });
+        } else {
+          toast.error(`Upload failed: ${errorMsg}`);
+        }
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to upload PDF");
+    } finally {
+      setUploadingCanPdf(false);
+      e.target.value = "";
+    }
+  };
+
   // Action: Add / Upload New Resource
   const handleCreateResource = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -929,7 +1001,11 @@ export function AdminSubscriptionsDashboard() {
         (pathwayFilter === "uk-residency" &&
           (sub.pathway_id === "uk-residency" || sub.pathway_id === "uk-plab")) ||
         (pathwayFilter === "australia-residency" &&
-          (sub.pathway_id === "australia-residency" || sub.pathway_id === "amc"));
+          (sub.pathway_id === "australia-residency" || sub.pathway_id === "amc")) ||
+        (pathwayFilter === "canada-residency" &&
+          (sub.pathway_id === "canada-residency" ||
+            sub.pathway_id === "carms" ||
+            sub.pathway_id === "canada"));
 
       const q = searchQuery.toLowerCase().trim();
       const matchesSearch =
@@ -961,6 +1037,12 @@ export function AdminSubscriptionsDashboard() {
       ).length,
       aus: subscriptions.filter(
         (s) => s.pathway_id === "australia-residency" || s.pathway_id === "amc",
+      ).length,
+      can: subscriptions.filter(
+        (s) =>
+          s.pathway_id === "canada-residency" ||
+          s.pathway_id === "carms" ||
+          s.pathway_id === "canada",
       ).length,
     };
   }, [subscriptions]);
@@ -1371,6 +1453,16 @@ export function AdminSubscriptionsDashboard() {
                 >
                   🇦🇺 Australia AMC ({counts.aus})
                 </button>
+                <button
+                  onClick={() => setPathwayFilter("canada-residency")}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
+                    pathwayFilter === "canada-residency"
+                      ? "bg-red-500/30 text-red-300 border border-red-500/50 shadow-xs"
+                      : "bg-stone-800 text-stone-400 hover:text-red-300"
+                  }`}
+                >
+                  🇨🇦 Canada CaRMS ({counts.can})
+                </button>
               </div>
             </div>
 
@@ -1539,6 +1631,12 @@ export function AdminSubscriptionsDashboard() {
                               sub.pathway_id === "australia" ? (
                               <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-teal-950/80 text-teal-300 border border-teal-800/60">
                                 🇦🇺 Australian Medical Pathway
+                              </span>
+                            ) : sub.pathway_id === "canada-residency" ||
+                              sub.pathway_id === "carms" ||
+                              sub.pathway_id === "canada" ? (
+                              <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-red-950/80 text-red-300 border border-red-800/60">
+                                🇨🇦 Canadian Medical Pathway (CaRMS)
                               </span>
                             ) : (
                               <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-blue-950/80 text-blue-300 border border-blue-800/60">
@@ -1842,6 +1940,7 @@ export function AdminSubscriptionsDashboard() {
                       <option value="uk-residency">🇬🇧 U.K. PLAB Pathway</option>
                       <option value="us-residency">🇺🇸 U.S. Residency Pathway</option>
                       <option value="australia-residency">🇦🇺 Australian Medical Pathway</option>
+                      <option value="canada-residency">🇨🇦 Canadian Medical Pathway (CaRMS)</option>
                       <option value="all-pathways">🌐 All Pathways (All-Access)</option>
                     </select>
                   </div>
@@ -2709,6 +2808,118 @@ export function AdminSubscriptionsDashboard() {
                       💡 Tip: In Supabase Storage, click the <strong>...</strong> next to the file
                       and choose <strong>Copy URL</strong>. Do not copy the browser address bar.
                       Or simply click <strong>Upload / Replace Australia PDF</strong> above!
+                    </p>
+                  </div>
+                </div>
+
+                {/* Guide: Canadian Medical Pathway (CaRMS) */}
+                <div className="bg-stone-950 border border-stone-800/80 rounded-2xl p-4 sm:p-5 space-y-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <Label className="text-xs font-bold text-stone-200 flex items-center gap-2">
+                      <span className="text-base">🇨🇦</span>
+                      Canadian Medical Pathway Complete Guide PDF
+                    </Label>
+                    <span className="text-[10px] text-red-400 font-mono">
+                      pathway_id: canada-residency
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-stone-400">
+                    Target page: <code>/career-exploration/canada-residency</code>
+                  </p>
+
+                  {settings.canada_guide_pdf_url ? (
+                    <div className="bg-stone-900 border border-stone-800 rounded-xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="size-8 rounded-lg bg-red-500/20 text-red-400 flex items-center justify-center shrink-0">
+                          <FileText size={16} />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="text-xs font-bold text-white truncate">
+                            {settings.canada_guide_pdf_filename || "BMS-Canada-Residency-Pathway-Guide.pdf"}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              toast.loading("Downloading Canadian Medical Guide...", {
+                                id: "admin-can-dl",
+                              });
+                              const ok = await triggerFileDownload(
+                                settings.canada_guide_pdf_url || "",
+                                settings.canada_guide_pdf_filename ||
+                                  "BMS-Canada-Residency-Pathway-Guide.pdf",
+                                "canada-residency",
+                              );
+                              if (ok) {
+                                toast.success("Canada Guide downloaded!", { id: "admin-can-dl" });
+                              } else {
+                                toast.error("Download failed", { id: "admin-can-dl" });
+                              }
+                            }}
+                            className="text-[11px] text-red-400 hover:text-red-300 underline font-medium flex items-center gap-1 mt-0.5 cursor-pointer"
+                          >
+                            <Download size={11} /> Test Verified Download
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="relative">
+                        <input
+                          type="file"
+                          id="can-guide-pdf-replace"
+                          accept=".pdf"
+                          onChange={handleCanPdfUpload}
+                          disabled={uploadingCanPdf}
+                          className="sr-only"
+                        />
+                        <label
+                          htmlFor="can-guide-pdf-replace"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-300 border border-stone-700 text-xs font-bold transition-colors cursor-pointer"
+                        >
+                          <Upload size={12} />
+                          {uploadingCanPdf ? "Uploading..." : "Replace Canada PDF"}
+                        </label>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="border border-dashed border-stone-800 rounded-xl p-4 text-center bg-stone-950/40">
+                      <p className="text-xs text-stone-400">No Canada guide PDF uploaded yet</p>
+                      <div className="mt-2.5">
+                        <input
+                          type="file"
+                          id="can-guide-pdf-upload"
+                          accept=".pdf"
+                          onChange={handleCanPdfUpload}
+                          disabled={uploadingCanPdf}
+                          className="sr-only"
+                        />
+                        <label
+                          htmlFor="can-guide-pdf-upload"
+                          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-bold transition-colors cursor-pointer"
+                        >
+                          <Upload size={12} />
+                          {uploadingCanPdf ? "Uploading..." : "Upload Canada Residency PDF Guide"}
+                        </label>
+                      </div>
+                    </div>
+                  )}
+
+                  <div>
+                    <Label className="text-[11px] font-semibold text-stone-400 block mb-1">
+                      Direct Canada PDF Download URL (Optional)
+                    </Label>
+                    <Input
+                      type="url"
+                      placeholder="https://..."
+                      value={settingsForm.canada_guide_pdf_url || ""}
+                      onChange={(e) =>
+                        setSettingsForm({ ...settingsForm, canada_guide_pdf_url: e.target.value })
+                      }
+                      className="bg-stone-950 border-stone-800 text-white text-xs font-mono"
+                    />
+                    <p className="text-[10px] text-stone-500 mt-1">
+                      💡 Tip: In Supabase Storage, click the <strong>...</strong> next to the file
+                      and choose <strong>Copy URL</strong>. Do not copy the browser address bar.
+                      Or simply click <strong>Upload / Replace Canada PDF</strong> above!
                     </p>
                   </div>
                 </div>

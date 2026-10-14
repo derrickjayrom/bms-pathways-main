@@ -1316,6 +1316,56 @@ export function CanadaCarmsPathwayPage() {
 
                           {showAltOptionForStage === stage.id && (
                             <div className="mt-4 pt-4 border-t border-stone-100 space-y-4">
+                              {/* RETAKE POLICY CARD (PUT AT BEGINNING BEFORE THE REST COMES) */}
+                              {stage.altOption.policy && (
+                                <div className="rounded-xl border border-amber-300/80 bg-amber-50/70 p-4 sm:p-5 text-xs sm:text-sm shadow-2xs">
+                                  <div className="flex items-center gap-2 font-bold text-amber-950 text-xs sm:text-sm uppercase tracking-wider mb-2">
+                                    <AlertCircle className="size-4 text-amber-600 shrink-0" />
+                                    <span>{stage.altOption.policy.title}</span>
+                                  </div>
+                                  {stage.altOption.policy.description && (
+                                    <p className="text-xs sm:text-sm text-stone-700 font-medium leading-relaxed mb-3">
+                                      {stage.altOption.policy.description}
+                                    </p>
+                                  )}
+                                  <ul className="space-y-2 text-xs sm:text-sm text-stone-800 mb-3.5 pl-0.5">
+                                    {stage.altOption.policy.rules.map((rule, rIdx) => {
+                                      const colonIdx = rule.indexOf(":");
+                                      const hasLabel = colonIdx !== -1;
+                                      const label = hasLabel ? rule.slice(0, colonIdx + 1) : "";
+                                      const rest = hasLabel ? rule.slice(colonIdx + 1) : rule;
+
+                                      return (
+                                        <li key={rIdx} className="flex items-start gap-2">
+                                          <span className="text-amber-600 font-bold shrink-0 leading-tight">
+                                            •
+                                          </span>
+                                          <span className="leading-relaxed">
+                                            {hasLabel ? (
+                                              <>
+                                                <strong className="text-stone-900 font-semibold">{label}</strong>
+                                                {rest}
+                                              </>
+                                            ) : (
+                                              rule
+                                            )}
+                                          </span>
+                                        </li>
+                                      );
+                                    })}
+                                  </ul>
+                                  {stage.altOption.policy.tip && (
+                                    <div className="rounded-lg bg-emerald-50 border border-emerald-200/90 px-3.5 py-2.5 flex items-start gap-2 text-xs sm:text-sm text-emerald-950">
+                                      <Sparkles className="size-4 text-[#10B981] shrink-0 mt-0.5" />
+                                      <p className="leading-relaxed">
+                                        <strong className="font-bold text-emerald-900">Tip:</strong>{" "}
+                                        {stage.altOption.policy.tip.replace(/^Tip:\s*/i, "")}
+                                      </p>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+
                               {stage.altOption.introPoints && (
                                 <ul className="list-disc pl-5 space-y-1 text-xs text-stone-600">
                                   {stage.altOption.introPoints.map((pt, pIdx) => (

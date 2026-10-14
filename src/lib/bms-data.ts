@@ -537,6 +537,12 @@ export interface UsmleRoadmapStage {
   altOption?: {
     title: string;
     description?: string;
+    policy?: {
+      title: string;
+      description?: string;
+      rules: string[];
+      tip?: string;
+    };
     introPoints?: string[];
     sections?: {
       heading: string;
@@ -1785,7 +1791,7 @@ export const canadaRoadmapStages: UsmleRoadmapStage[] = [
     summary:
       "Create an official Medical Council of Canada (MCC) account on physiciansapply.ca and establish your identity with certified documentation.",
     fees: [
-      { item: "physiciansapply.ca Account Creation Fee", amount: "CAD $340*" },
+      { item: "physiciansapply.ca Account Creation Fee", amount: "CAD $150*" },
     ],
     details: [
       "Create a physiciansapply.ca account, the centralized portal used for all MCC services.",
@@ -1840,6 +1846,18 @@ export const canadaRoadmapStages: UsmleRoadmapStage[] = [
       title: "What to Do If You Need to Strengthen or Retake MCCQE Part I",
       description:
         "The MCCQE Part I emphasizes Canadian clinical practice guidelines, public health, and ethics. A retake requires structured diagnosis of sub-scores and disciplined pacing.",
+      policy: {
+        title: "MCCQE1 Retake Policy",
+        description:
+          "The Medical Council of Canada Qualifying Examination (MCCQE1) can be taken a maximum of four times.",
+        rules: [
+          "Maximum attempts: 4",
+          "Fourth attempt: Requires a one-year waiting period after receiving the third-attempt result.",
+          "Passing the exam: You cannot retake the MCCQE1 after passing.",
+          "Attempt counting: Fail and Denied Standing results count toward the limit, while No Standing does not.",
+        ],
+        tip: "Prepare thoroughly before your first attempt to maximize your chances of success.",
+      },
       introPoints: [
         "Review your detailed score report across Medicine, Surgery, Paediatrics, Obstetrics & Gynaecology, Psychiatry, and Population Health/Ethics.",
         "Check MCC retake regulations and waiting periods before booking your next window (offered 4 times yearly).",
@@ -1938,12 +1956,6 @@ export const canadaRoadmapStages: UsmleRoadmapStage[] = [
       "• Provincial assessment requirements (e.g., CAP in British Columbia, AIMG in Alberta, Casper test).",
       "• Return-of-service (ROS) obligations (often 2–5 years of practice in designated underserviced regions).",
       "• Program-specific criteria, reference letter rules, and applicant quotas.",
-      "Immigration Status: Keep It Separate From Residency Eligibility:",
-      "• Many IMG residency positions have citizenship / permanent-residency requirements.",
-      "• Immigration pathways such as Express Entry and Provincial Nominee Programs are separate systems from CaRMS.",
-      "• Do not assume that an immigration priority category automatically creates residency eligibility.",
-      "• BMS Tip: It is important to work on Permanent Residency as you are going through the pathway. Currently, Canada is looking for more doctors and has made getting PR relatively easier through the Express Entry category-based selection and Provincial Nomination.",
-      "• BMS Advice: If Canada is your long-term goal, review your immigration strategy alongside your medical pathway. PR can be important—but **PR does not guarantee a residency match**.",
     ],
   },
   {
@@ -2060,7 +2072,7 @@ export const canadaRoadmapStages: UsmleRoadmapStage[] = [
 export const canadaBudgetBreakdown = [
   { item: "MCCQE Part I Examination Fee", fee: "CAD $1,500*", category: "MCC Examinations" },
   { item: "NAC Examination / NAC OSCE Fee", fee: "CAD $3,300*", category: "MCC Examinations" },
-  { item: "physiciansapply.ca Account Creation", fee: "CAD $340*", category: "MCC Portal" },
+  { item: "physiciansapply.ca Account Creation", fee: "CAD $150*", category: "MCC Portal" },
   { item: "MCC Credential Source Verification (SVR)", fee: "CAD $232* / credential", category: "MCC Credentials" },
   { item: "CaRMS Match Participation Fee (first 4 programs)", fee: "CAD $301.60*", category: "CaRMS Application" },
   { item: "CaRMS Additional Program Fee", fee: "CAD $66.26* each", category: "CaRMS Application" },

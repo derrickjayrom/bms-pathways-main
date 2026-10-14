@@ -23,10 +23,12 @@ import {
   Globe,
   Info,
   Star,
+  Eye,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { supabase } from "@/utils/supabase";
+import { ProtectedPdfViewer } from "@/components/protected-pdf-viewer";
 import {
   plabRoadmapStages,
   plabBudgetBreakdown,
@@ -60,6 +62,17 @@ export function UkPlabPathwayPage() {
   const [siteSettings, setSiteSettings] = useState<BmsSiteSettings>(DEFAULT_SETTINGS);
   const [activeSession, setActiveSession] = useState<SavedSubscriptionSession | null>(null);
   const [pathwayResources, setPathwayResources] = useState<BmsResourceItem[]>([]);
+  const [viewerOpen, setViewerOpen] = useState(false);
+  const [viewerData, setViewerData] = useState<{
+    url: string;
+    filename: string;
+    title: string;
+    pathwayId?: string;
+  }>({
+    url: "",
+    filename: "",
+    title: "",
+  });
 
   // Sequential progression state: current active stage index (0 to 9)
   const [activeStageIndex, setActiveStageIndex] = useState(0);
@@ -259,7 +272,8 @@ export function UkPlabPathwayPage() {
       }
     } else {
       toast.success("Congratulations! All PLAB Pathway Stages Completed!", {
-        description: "You have reviewed the entire journey to GMC registration and UK medical practice.",
+        description:
+          "You have reviewed the entire journey to GMC registration and UK medical practice.",
       });
     }
   };
@@ -360,16 +374,13 @@ export function UkPlabPathwayPage() {
       "/BMS-UK-PLAB-Pathway-Guide.pdf";
     const filename = siteSettings.uk_guide_pdf_filename || "BMS_PLAB_Pathway_Complete Guide.pdf";
 
-    toast.loading("Downloading official BMS U.K. PLAB Pathway Guide...", { id: "uk-guide-dl" });
-    const success = await triggerFileDownload(downloadUrl, filename, "uk-residency");
-    if (success) {
-      toast.success("Guide downloaded successfully!", {
-        id: "uk-guide-dl",
-        description: filename,
-      });
-    } else {
-      toast.error("Download failed. Please check your connection.", { id: "uk-guide-dl" });
-    }
+    setViewerData({
+      url: downloadUrl,
+      filename,
+      title: "BMS Official U.K. PLAB Pathway Guide",
+      pathwayId: "uk-residency",
+    });
+    setViewerOpen(true);
   };
 
   const handleDownloadResource = async (resource: BmsResourceItem) => {
@@ -413,13 +424,13 @@ export function UkPlabPathwayPage() {
     const fileUrl = resource.file_url || "/BMS-UK-PLAB-Pathway-Guide.pdf";
     const filename = resource.filename || `${resource.title.replace(/\s+/g, "_")}.pdf`;
 
-    toast.loading(`Downloading "${resource.title}"...`, { id: `res-dl-${resource.id}` });
-    const success = await triggerFileDownload(fileUrl, filename, resource.pathway_id || "uk-residency");
-    if (success) {
-      toast.success(`"${resource.title}" downloaded successfully!`, { id: `res-dl-${resource.id}` });
-    } else {
-      toast.error("Download failed. Please try again.", { id: `res-dl-${resource.id}` });
-    }
+    setViewerData({
+      url: fileUrl,
+      filename,
+      title: resource.title,
+      pathwayId: resource.pathway_id || "uk-residency",
+    });
+    setViewerOpen(true);
   };
 
   // -------------------------------------------------------------------------
@@ -436,7 +447,8 @@ export function UkPlabPathwayPage() {
       icon: GraduationCap,
       checkCompleted: (ids: string[]) => ids.includes("plab-stage-01"),
       cardStyle: {
-        background: "linear-gradient(135deg, rgba(16, 185, 129, 0.28) 0%, rgba(16, 185, 129, 0.16) 100%)",
+        background:
+          "linear-gradient(135deg, rgba(16, 185, 129, 0.28) 0%, rgba(16, 185, 129, 0.16) 100%)",
         borderColor: "rgba(16, 185, 129, 0.50)",
       },
       badgeStyle: {
@@ -452,9 +464,11 @@ export function UkPlabPathwayPage() {
       targetIndex: 1,
       stageId: "plab-stage-02",
       icon: FileCheck,
-      checkCompleted: (ids: string[]) => ids.includes("plab-stage-02") || ids.includes("plab-stage-03"),
+      checkCompleted: (ids: string[]) =>
+        ids.includes("plab-stage-02") || ids.includes("plab-stage-03"),
       cardStyle: {
-        background: "linear-gradient(135deg, rgba(16, 185, 129, 0.22) 0%, rgba(16, 185, 129, 0.13) 100%)",
+        background:
+          "linear-gradient(135deg, rgba(16, 185, 129, 0.22) 0%, rgba(16, 185, 129, 0.13) 100%)",
         borderColor: "rgba(16, 185, 129, 0.42)",
       },
       badgeStyle: {
@@ -472,7 +486,8 @@ export function UkPlabPathwayPage() {
       icon: Award,
       checkCompleted: (ids: string[]) => ids.includes("plab-stage-05"),
       cardStyle: {
-        background: "linear-gradient(135deg, rgba(16, 185, 129, 0.18) 0%, rgba(16, 185, 129, 0.10) 100%)",
+        background:
+          "linear-gradient(135deg, rgba(16, 185, 129, 0.18) 0%, rgba(16, 185, 129, 0.10) 100%)",
         borderColor: "rgba(16, 185, 129, 0.35)",
       },
       badgeStyle: {
@@ -490,7 +505,8 @@ export function UkPlabPathwayPage() {
       icon: Stethoscope,
       checkCompleted: (ids: string[]) => ids.includes("plab-stage-07"),
       cardStyle: {
-        background: "linear-gradient(135deg, rgba(16, 185, 129, 0.14) 0%, rgba(16, 185, 129, 0.08) 100%)",
+        background:
+          "linear-gradient(135deg, rgba(16, 185, 129, 0.14) 0%, rgba(16, 185, 129, 0.08) 100%)",
         borderColor: "rgba(16, 185, 129, 0.28)",
       },
       badgeStyle: {
@@ -511,7 +527,8 @@ export function UkPlabPathwayPage() {
       icon: CheckCircle2,
       checkCompleted: (ids: string[]) => ids.includes("plab-stage-08"),
       cardStyle: {
-        background: "linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(16, 185, 129, 0.06) 100%)",
+        background:
+          "linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(16, 185, 129, 0.06) 100%)",
         borderColor: "rgba(16, 185, 129, 0.24)",
       },
       badgeStyle: {
@@ -529,7 +546,8 @@ export function UkPlabPathwayPage() {
       icon: UserCheck,
       checkCompleted: (ids: string[]) => ids.includes("plab-stage-09"),
       cardStyle: {
-        background: "linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(16, 185, 129, 0.03) 100%)",
+        background:
+          "linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(16, 185, 129, 0.03) 100%)",
         borderColor: "rgba(16, 185, 129, 0.18)",
       },
       badgeStyle: {
@@ -648,10 +666,10 @@ export function UkPlabPathwayPage() {
             <blockquote className="mt-5 text-base sm:text-lg text-muted-foreground leading-relaxed border-l-4 border-[#10B981] pl-4 italic">
               “Thinking about practising medicine in the United Kingdom? This BMS pathway breaks the
               journey into manageable stages—from completing medical school and meeting GMC
-              requirements to PLAB preparation, GMC registration and applying for medical jobs in the
-              UK. Whether you’re just starting to explore the UK pathway or you’re ready to begin your
-              PLAB journey, this roadmap helps you understand what comes next, what you need, and where
-              to start.”
+              requirements to PLAB preparation, GMC registration and applying for medical jobs in
+              the UK. Whether you’re just starting to explore the UK pathway or you’re ready to
+              begin your PLAB journey, this roadmap helps you understand what comes next, what you
+              need, and where to start.”
             </blockquote>
 
             <div className="mt-8 flex flex-wrap items-center gap-3.5">
@@ -666,10 +684,10 @@ export function UkPlabPathwayPage() {
                 size="lg"
                 variant="outline"
                 onClick={handleDownloadClick}
-                className="border-border hover:bg-stone-100 font-bold h-12 px-7 text-sm sm:text-base rounded-xl"
+                className="border-border hover:bg-stone-100 font-bold h-12 px-7 text-sm sm:text-base rounded-xl cursor-pointer"
               >
-                <Download className="mr-2 size-4 text-[#10B981]" />
-                DOWNLOAD COMPLETE GUIDE
+                <Eye className="mr-2 size-4 text-[#10B981]" />
+                ACCESS PATHWAY GUIDE
               </Button>
             </div>
           </div>
@@ -691,7 +709,8 @@ export function UkPlabPathwayPage() {
                     End-to-End Sequence from Medical School to NHS Medical Job
                   </h3>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    Click any milestone to jump directly to its guidance and requirements in the roadmap.
+                    Click any milestone to jump directly to its guidance and requirements in the
+                    roadmap.
                   </p>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
@@ -875,8 +894,9 @@ export function UkPlabPathwayPage() {
               {/* FOOTER NOTE */}
               <div className="mt-4 pt-3 border-t border-stone-200/60 flex items-center justify-between text-xs text-muted-foreground">
                 <p className="italic">
-                  Note: PLAB 2 must be passed within two years of passing PLAB 1. GMC registration does
-                  not automatically guarantee an NHS job; prepare your CV and applications early.
+                  Note: PLAB 2 must be passed within two years of passing PLAB 1. GMC registration
+                  does not automatically guarantee an NHS job; prepare your CV and applications
+                  early.
                 </p>
               </div>
             </div>
@@ -914,7 +934,8 @@ export function UkPlabPathwayPage() {
               </h3>
               <p className="mt-3 text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto leading-relaxed">
                 Step-by-step guidance through PMQ checking, English proficiency, EPIC credential
-                verification, PLAB 1, PLAB 2 in Manchester, GMC registration, and NHS job applications.
+                verification, PLAB 1, PLAB 2 in Manchester, GMC registration, and NHS job
+                applications.
               </p>
 
               <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3.5">
@@ -1149,7 +1170,10 @@ export function UkPlabPathwayPage() {
                             Key Requirements &amp; Guidelines:
                           </span>
                           {stage.details.map((detail, dIdx) => (
-                            <div key={dIdx} className="flex items-start gap-3 text-sm text-stone-700">
+                            <div
+                              key={dIdx}
+                              className="flex items-start gap-3 text-sm text-stone-700"
+                            >
                               <span className="size-5 rounded-full bg-emerald-100 text-[#10B981] flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">
                                 ✓
                               </span>
@@ -1210,52 +1234,57 @@ export function UkPlabPathwayPage() {
                                     </p>
                                   )}
 
-                                  {stage.altOption.introPoints && stage.altOption.introPoints.length > 0 && (
-                                    <div className="mb-5 rounded-xl bg-white/80 border border-amber-200 p-4 sm:p-5 space-y-2.5 shadow-2xs">
-                                      {stage.altOption.introPoints.map((point, pIdx) => (
-                                        <div
-                                          key={pIdx}
-                                          className="flex items-start gap-2.5 text-xs sm:text-sm text-amber-950 font-medium leading-relaxed"
-                                        >
-                                          <span className="mt-1 size-2 rounded-full bg-amber-500 shrink-0" />
-                                          <span>{point}</span>
-                                        </div>
-                                      ))}
-                                    </div>
-                                  )}
+                                  {stage.altOption.introPoints &&
+                                    stage.altOption.introPoints.length > 0 && (
+                                      <div className="mb-5 rounded-xl bg-white/80 border border-amber-200 p-4 sm:p-5 space-y-2.5 shadow-2xs">
+                                        {stage.altOption.introPoints.map((point, pIdx) => (
+                                          <div
+                                            key={pIdx}
+                                            className="flex items-start gap-2.5 text-xs sm:text-sm text-amber-950 font-medium leading-relaxed"
+                                          >
+                                            <span className="mt-1 size-2 rounded-full bg-amber-500 shrink-0" />
+                                            <span>{point}</span>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    )}
 
-                                  {stage.altOption.sections && stage.altOption.sections.length > 0 && (
-                                    <div className="space-y-4 my-4">
-                                      {stage.altOption.sections.map((sec, sIdx) => (
-                                        <div
-                                          key={sIdx}
-                                          className="rounded-xl border border-amber-200/90 bg-white/90 p-4 sm:p-5 shadow-2xs transition-all hover:border-amber-300"
-                                        >
-                                          <h5 className="text-sm sm:text-base font-bold text-amber-950 flex items-center gap-2 mb-1">
-                                            <span className="flex size-2 rounded-full bg-amber-600" />
-                                            {sec.heading}
-                                          </h5>
-                                          {sec.subtext && (
-                                            <p className="text-xs sm:text-sm text-amber-800/90 mb-3 font-medium italic">
-                                              {sec.subtext}
-                                            </p>
-                                          )}
-                                          {sec.items && sec.items.length > 0 && (
-                                            <ul className="space-y-2 text-xs sm:text-sm text-stone-800 font-medium pl-1">
-                                              {sec.items.map((item, iIdx) => (
-                                                <li key={iIdx} className="flex items-start gap-2.5">
-                                                  <span className="text-amber-600 font-bold shrink-0 leading-tight">
-                                                    •
-                                                  </span>
-                                                  <span className="leading-relaxed">{item}</span>
-                                                </li>
-                                              ))}
-                                            </ul>
-                                          )}
-                                        </div>
-                                      ))}
-                                    </div>
-                                  )}
+                                  {stage.altOption.sections &&
+                                    stage.altOption.sections.length > 0 && (
+                                      <div className="space-y-4 my-4">
+                                        {stage.altOption.sections.map((sec, sIdx) => (
+                                          <div
+                                            key={sIdx}
+                                            className="rounded-xl border border-amber-200/90 bg-white/90 p-4 sm:p-5 shadow-2xs transition-all hover:border-amber-300"
+                                          >
+                                            <h5 className="text-sm sm:text-base font-bold text-amber-950 flex items-center gap-2 mb-1">
+                                              <span className="flex size-2 rounded-full bg-amber-600" />
+                                              {sec.heading}
+                                            </h5>
+                                            {sec.subtext && (
+                                              <p className="text-xs sm:text-sm text-amber-800/90 mb-3 font-medium italic">
+                                                {sec.subtext}
+                                              </p>
+                                            )}
+                                            {sec.items && sec.items.length > 0 && (
+                                              <ul className="space-y-2 text-xs sm:text-sm text-stone-800 font-medium pl-1">
+                                                {sec.items.map((item, iIdx) => (
+                                                  <li
+                                                    key={iIdx}
+                                                    className="flex items-start gap-2.5"
+                                                  >
+                                                    <span className="text-amber-600 font-bold shrink-0 leading-tight">
+                                                      •
+                                                    </span>
+                                                    <span className="leading-relaxed">{item}</span>
+                                                  </li>
+                                                ))}
+                                              </ul>
+                                            )}
+                                          </div>
+                                        ))}
+                                      </div>
+                                    )}
 
                                   {stage.altOption.callout && (
                                     <div className="my-5 rounded-xl border-2 border-amber-400 bg-amber-100/90 p-4 sm:p-5 text-amber-950 shadow-2xs">
@@ -1448,8 +1477,8 @@ export function UkPlabPathwayPage() {
                   onClick={handleDownloadClick}
                   className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold h-11 rounded-xl shadow-xs cursor-pointer"
                 >
-                  <Download className="mr-2 size-4" />
-                  {isSubscribed ? "Download Complete Guide" : "Subscribe to Download"}
+                  <Eye className="mr-2 size-4" />
+                  {isSubscribed ? "Read Official Guide Online" : "Subscribe to Read Guide"}
                 </Button>
               </div>
             </div>
@@ -1529,8 +1558,8 @@ export function UkPlabPathwayPage() {
                           onClick={() => handleDownloadResource(res)}
                           className="w-full bg-stone-800 hover:bg-emerald-600 text-white font-bold h-11 rounded-xl text-xs transition-colors cursor-pointer"
                         >
-                          <Download className="mr-2 size-3.5 text-emerald-400" />
-                          Download File
+                          <Eye className="mr-2 size-3.5 text-emerald-400" />
+                          Read Resource
                         </Button>
                       )}
                     </div>
@@ -1615,8 +1644,8 @@ export function UkPlabPathwayPage() {
               Key Notes &amp; Strategic Advice
             </h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              Essential realities and career guidance for international medical graduates pursuing the
-              UK pathway.
+              Essential realities and career guidance for international medical graduates pursuing
+              the UK pathway.
             </p>
           </div>
 
@@ -1732,6 +1761,17 @@ export function UkPlabPathwayPage() {
           setSubscriptionOpen(false);
           toast.success("Welcome! Full U.K. PLAB Pathway unlocked.");
         }}
+      />
+
+      {/* SECURE PROTECTED VIEW-ONLY PDF VIEWER */}
+      <ProtectedPdfViewer
+        isOpen={viewerOpen}
+        onClose={() => setViewerOpen(false)}
+        fileUrl={viewerData.url}
+        filename={viewerData.filename}
+        title={viewerData.title}
+        targetPathwayId={viewerData.pathwayId}
+        activeSession={activeSession}
       />
     </div>
   );

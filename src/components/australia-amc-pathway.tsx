@@ -27,9 +27,11 @@ import {
   ChevronUp,
   Hospital,
   AlertCircle,
+  Eye,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { ProtectedPdfViewer } from "@/components/protected-pdf-viewer";
 import {
   australiaAmcRoadmapStages,
   australiaBudgetBreakdown,
@@ -64,6 +66,17 @@ export function AustraliaAmcPathwayPage() {
   const [siteSettings, setSiteSettings] = useState<BmsSiteSettings>(DEFAULT_SETTINGS);
   const [activeSession, setActiveSession] = useState<SavedSubscriptionSession | null>(null);
   const [pathwayResources, setPathwayResources] = useState<BmsResourceItem[]>([]);
+  const [viewerOpen, setViewerOpen] = useState(false);
+  const [viewerData, setViewerData] = useState<{
+    url: string;
+    filename: string;
+    title: string;
+    pathwayId?: string;
+  }>({
+    url: "",
+    filename: "",
+    title: "",
+  });
 
   // Sequential progression state: current active stage index (0 to 11)
   const [activeStageIndex, setActiveStageIndex] = useState(0);
@@ -292,26 +305,20 @@ export function AustraliaAmcPathwayPage() {
       }
     }
 
-    // Direct verified download
+    // Open protected view-only reader
     const downloadUrl =
       siteSettings.australia_guide_pdf_url ||
       "https://owurtseimitnofbdepoq.supabase.co/storage/v1/object/public/pathway-guides/guides/BMS-Australia-AMC-Pathway-Guide.pdf";
     const filename =
       siteSettings.australia_guide_pdf_filename || "BMS-Australia-AMC-Pathway-Guide.pdf";
 
-    toast.loading("Downloading official BMS Australian Medical Pathway Guide...", {
-      id: "aus-guide-dl",
+    setViewerData({
+      url: downloadUrl,
+      filename,
+      title: "BMS Official Australian Medical Pathway Guide",
+      pathwayId: "australia-residency",
     });
-    const success = await triggerFileDownload(downloadUrl, filename, "australia-residency");
-    if (success) {
-      toast.success("BMS Australian Medical Pathway Guide downloaded successfully!", {
-        id: "aus-guide-dl",
-      });
-    } else {
-      toast.error("Download failed. Please contact BMS administration.", {
-        id: "aus-guide-dl",
-      });
-    }
+    setViewerOpen(true);
   };
 
   const handleDownloadResource = async (resource: BmsResourceItem) => {
@@ -348,15 +355,13 @@ export function AustraliaAmcPathwayPage() {
       "https://owurtseimitnofbdepoq.supabase.co/storage/v1/object/public/pathway-guides/guides/BMS-Australia-AMC-Pathway-Guide.pdf";
     const filename = resource.filename || `${resource.title.replace(/\s+/g, "_")}.pdf`;
 
-    toast.loading(`Downloading "${resource.title}"...`, { id: `res-dl-${resource.id}` });
-    const success = await triggerFileDownload(fileUrl, filename, resource.pathway_id || "australia-residency");
-    if (success) {
-      toast.success(`"${resource.title}" downloaded successfully!`, {
-        id: `res-dl-${resource.id}`,
-      });
-    } else {
-      toast.error("Download failed. Please try again.", { id: `res-dl-${resource.id}` });
-    }
+    setViewerData({
+      url: fileUrl,
+      filename,
+      title: resource.title,
+      pathwayId: resource.pathway_id || "australia-residency",
+    });
+    setViewerOpen(true);
   };
 
   // -------------------------------------------------------------------------
@@ -373,7 +378,8 @@ export function AustraliaAmcPathwayPage() {
       icon: GraduationCap,
       checkCompleted: (ids: string[]) => ids.includes("amc-stage-01"),
       cardStyle: {
-        background: "linear-gradient(135deg, rgba(16, 185, 129, 0.28) 0%, rgba(16, 185, 129, 0.16) 100%)",
+        background:
+          "linear-gradient(135deg, rgba(16, 185, 129, 0.28) 0%, rgba(16, 185, 129, 0.16) 100%)",
         borderColor: "rgba(16, 185, 129, 0.50)",
       },
       badgeStyle: {
@@ -391,7 +397,8 @@ export function AustraliaAmcPathwayPage() {
       icon: FileCheck,
       checkCompleted: (ids: string[]) => ids.includes("amc-stage-02"),
       cardStyle: {
-        background: "linear-gradient(135deg, rgba(16, 185, 129, 0.24) 0%, rgba(16, 185, 129, 0.14) 100%)",
+        background:
+          "linear-gradient(135deg, rgba(16, 185, 129, 0.24) 0%, rgba(16, 185, 129, 0.14) 100%)",
         borderColor: "rgba(16, 185, 129, 0.44)",
       },
       badgeStyle: {
@@ -409,7 +416,8 @@ export function AustraliaAmcPathwayPage() {
       icon: Award,
       checkCompleted: (ids: string[]) => ids.includes("amc-stage-03"),
       cardStyle: {
-        background: "linear-gradient(135deg, rgba(16, 185, 129, 0.20) 0%, rgba(16, 185, 129, 0.11) 100%)",
+        background:
+          "linear-gradient(135deg, rgba(16, 185, 129, 0.20) 0%, rgba(16, 185, 129, 0.11) 100%)",
         borderColor: "rgba(16, 185, 129, 0.38)",
       },
       badgeStyle: {
@@ -427,7 +435,8 @@ export function AustraliaAmcPathwayPage() {
       icon: Layers,
       checkCompleted: (ids: string[]) => ids.includes("amc-stage-04"),
       cardStyle: {
-        background: "linear-gradient(135deg, rgba(16, 185, 129, 0.16) 0%, rgba(16, 185, 129, 0.09) 100%)",
+        background:
+          "linear-gradient(135deg, rgba(16, 185, 129, 0.16) 0%, rgba(16, 185, 129, 0.09) 100%)",
         borderColor: "rgba(16, 185, 129, 0.32)",
       },
       badgeStyle: {
@@ -445,7 +454,8 @@ export function AustraliaAmcPathwayPage() {
       icon: Stethoscope,
       checkCompleted: (ids: string[]) => ids.includes("amc-stage-05"),
       cardStyle: {
-        background: "linear-gradient(135deg, rgba(16, 185, 129, 0.13) 0%, rgba(16, 185, 129, 0.07) 100%)",
+        background:
+          "linear-gradient(135deg, rgba(16, 185, 129, 0.13) 0%, rgba(16, 185, 129, 0.07) 100%)",
         borderColor: "rgba(16, 185, 129, 0.26)",
       },
       badgeStyle: {
@@ -463,7 +473,8 @@ export function AustraliaAmcPathwayPage() {
       icon: UserCheck,
       checkCompleted: (ids: string[]) => ids.includes("amc-stage-06"),
       cardStyle: {
-        background: "linear-gradient(135deg, rgba(16, 185, 129, 0.10) 0%, rgba(16, 185, 129, 0.05) 100%)",
+        background:
+          "linear-gradient(135deg, rgba(16, 185, 129, 0.10) 0%, rgba(16, 185, 129, 0.05) 100%)",
         borderColor: "rgba(16, 185, 129, 0.22)",
       },
       badgeStyle: {
@@ -484,7 +495,8 @@ export function AustraliaAmcPathwayPage() {
       icon: ShieldCheck,
       checkCompleted: (ids: string[]) => ids.includes("amc-stage-07"),
       cardStyle: {
-        background: "linear-gradient(135deg, rgba(16, 185, 129, 0.22) 0%, rgba(16, 185, 129, 0.12) 100%)",
+        background:
+          "linear-gradient(135deg, rgba(16, 185, 129, 0.22) 0%, rgba(16, 185, 129, 0.12) 100%)",
         borderColor: "rgba(16, 185, 129, 0.42)",
       },
       badgeStyle: {
@@ -502,7 +514,8 @@ export function AustraliaAmcPathwayPage() {
       icon: Building2,
       checkCompleted: (ids: string[]) => ids.includes("amc-stage-08"),
       cardStyle: {
-        background: "linear-gradient(135deg, rgba(16, 185, 129, 0.18) 0%, rgba(16, 185, 129, 0.10) 100%)",
+        background:
+          "linear-gradient(135deg, rgba(16, 185, 129, 0.18) 0%, rgba(16, 185, 129, 0.10) 100%)",
         borderColor: "rgba(16, 185, 129, 0.35)",
       },
       badgeStyle: {
@@ -520,7 +533,8 @@ export function AustraliaAmcPathwayPage() {
       icon: Clock,
       checkCompleted: (ids: string[]) => ids.includes("amc-stage-09"),
       cardStyle: {
-        background: "linear-gradient(135deg, rgba(16, 185, 129, 0.14) 0%, rgba(16, 185, 129, 0.07) 100%)",
+        background:
+          "linear-gradient(135deg, rgba(16, 185, 129, 0.14) 0%, rgba(16, 185, 129, 0.07) 100%)",
         borderColor: "rgba(16, 185, 129, 0.28)",
       },
       badgeStyle: {
@@ -538,7 +552,8 @@ export function AustraliaAmcPathwayPage() {
       icon: CheckCircle2,
       checkCompleted: (ids: string[]) => ids.includes("amc-stage-10"),
       cardStyle: {
-        background: "linear-gradient(135deg, rgba(16, 185, 129, 0.11) 0%, rgba(16, 185, 129, 0.05) 100%)",
+        background:
+          "linear-gradient(135deg, rgba(16, 185, 129, 0.11) 0%, rgba(16, 185, 129, 0.05) 100%)",
         borderColor: "rgba(16, 185, 129, 0.24)",
       },
       badgeStyle: {
@@ -556,7 +571,8 @@ export function AustraliaAmcPathwayPage() {
       icon: Briefcase,
       checkCompleted: (ids: string[]) => ids.includes("amc-stage-11"),
       cardStyle: {
-        background: "linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(16, 185, 129, 0.03) 100%)",
+        background:
+          "linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(16, 185, 129, 0.03) 100%)",
         borderColor: "rgba(16, 185, 129, 0.18)",
       },
       badgeStyle: {
@@ -677,9 +693,9 @@ export function AustraliaAmcPathwayPage() {
             <blockquote className="mt-5 text-base sm:text-lg text-muted-foreground leading-relaxed border-l-4 border-[#10B981] pl-4 italic">
               “Thinking about practising medicine in Australia? This BMS pathway breaks the journey
               into clear stages—from credential verification and AMC exams to registration and
-              general practice in Australia. Whether you are just starting to explore Australia as an
-              option or you are ready to begin your AMC journey, this roadmap helps you understand
-              what comes next, what you need, and where to start. From medical school to
+              general practice in Australia. Whether you are just starting to explore Australia as
+              an option or you are ready to begin your AMC journey, this roadmap helps you
+              understand what comes next, what you need, and where to start. From medical school to
               registration and beyond, let us map out your Australian medical journey.”
             </blockquote>
 
@@ -695,10 +711,10 @@ export function AustraliaAmcPathwayPage() {
                 size="lg"
                 variant="outline"
                 onClick={handleDownloadClick}
-                className="border-border hover:bg-stone-100 font-bold h-12 px-7 text-sm sm:text-base rounded-xl"
+                className="border-border hover:bg-stone-100 font-bold h-12 px-7 text-sm sm:text-base rounded-xl cursor-pointer"
               >
-                <Download className="mr-2 size-4 text-[#10B981]" />
-                DOWNLOAD COMPLETE GUIDE
+                <Eye className="mr-2 size-4 text-[#10B981]" />
+                ACCESS PATHWAY GUIDE
               </Button>
             </div>
           </div>
@@ -823,7 +839,9 @@ export function AustraliaAmcPathwayPage() {
                   </span>
                 </div>
                 <div className="flex items-center gap-1.5 text-[11px] text-stone-600 font-medium">
-                  <span>Provisional Registration → 47 Weeks Supervised Practice → General Registration</span>
+                  <span>
+                    Provisional Registration → 47 Weeks Supervised Practice → General Registration
+                  </span>
                   <ArrowRight size={12} className="text-[#10B981]" />
                 </div>
               </div>
@@ -950,9 +968,9 @@ export function AustraliaAmcPathwayPage() {
                 Unlock the Complete 12-Stage Interactive Roadmap
               </h3>
               <p className="mt-3 text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-                Comprehensive step-by-step guidance through medical degree eligibility, MyIntealth &amp;
-                EPIC verification, AMC CAT MCQ, Clinical Exam / WBA, AHPRA registration, 47 weeks
-                supervised practice, and specialist college admission.
+                Comprehensive step-by-step guidance through medical degree eligibility, MyIntealth
+                &amp; EPIC verification, AMC CAT MCQ, Clinical Exam / WBA, AHPRA registration, 47
+                weeks supervised practice, and specialist college admission.
               </p>
 
               <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3.5">
@@ -1320,7 +1338,9 @@ export function AustraliaAmcPathwayPage() {
                                             <ul className="space-y-1.5 text-xs text-stone-800 font-medium">
                                               {sec.items.map((item, iIdx) => (
                                                 <li key={iIdx} className="flex items-start gap-2">
-                                                  <span className="text-amber-600 font-bold">•</span>
+                                                  <span className="text-amber-600 font-bold">
+                                                    •
+                                                  </span>
                                                   <span>{item}</span>
                                                 </li>
                                               ))}
@@ -1418,7 +1438,9 @@ export function AustraliaAmcPathwayPage() {
                   <p className="flex items-start gap-2.5">
                     <span className="font-bold text-[#10B981] text-base leading-none mt-1">*</span>
                     <span>
-                      <strong className="text-stone-900">All fees stated are subject to change.</strong>{" "}
+                      <strong className="text-stone-900">
+                        All fees stated are subject to change.
+                      </strong>{" "}
                       Always visit the official Australian Medical Council (AMC) — Fees and Charges
                       portal and Ahpra for current updated fee listings before making payments.
                     </span>
@@ -1434,8 +1456,8 @@ export function AustraliaAmcPathwayPage() {
                   <p className="flex items-start gap-2.5">
                     <span className="text-[#10B981] font-bold text-base leading-none mt-1">•</span>
                     <span className="font-bold text-stone-900">
-                      Budget for the entire pathway—not just examination fees. The Australian pathway
-                      is capital intensive, so plan your timeline and finances thoroughly.
+                      Budget for the entire pathway—not just examination fees. The Australian
+                      pathway is capital intensive, so plan your timeline and finances thoroughly.
                     </span>
                   </p>
                 </div>
@@ -1507,9 +1529,9 @@ export function AustraliaAmcPathwayPage() {
                   Complete Australian Medical Pathway Guide
                 </h3>
                 <p className="mt-2 text-xs text-stone-400 leading-relaxed">
-                  End-to-end official roadmap breakdown covering Medical Degree eligibility, MyIntealth
-                  &amp; EPIC verification, AMC CAT MCQ, Clinical OSCE / WBA, AHPRA registration, 47 weeks
-                  supervised practice, and specialist training.
+                  End-to-end official roadmap breakdown covering Medical Degree eligibility,
+                  MyIntealth &amp; EPIC verification, AMC CAT MCQ, Clinical OSCE / WBA, AHPRA
+                  registration, 47 weeks supervised practice, and specialist training.
                 </p>
                 <div className="mt-4 flex items-center gap-2 text-[11px] text-stone-500 font-mono">
                   <span>PDF Document (23 Slides)</span>
@@ -1523,8 +1545,8 @@ export function AustraliaAmcPathwayPage() {
                   onClick={handleDownloadClick}
                   className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold h-11 rounded-xl shadow-xs cursor-pointer"
                 >
-                  <Download className="mr-2 size-4" />
-                  {isSubscribed ? "Download Complete Guide" : "Subscribe to Download"}
+                  <Eye className="mr-2 size-4" />
+                  {isSubscribed ? "Read Official Guide Online" : "Subscribe to Read Guide"}
                 </Button>
               </div>
             </div>
@@ -1603,7 +1625,7 @@ export function AustraliaAmcPathwayPage() {
                           onClick={() => handleDownloadResource(res)}
                           className="w-full bg-stone-800 hover:bg-emerald-600 text-white font-semibold h-10 text-xs rounded-xl transition-colors cursor-pointer"
                         >
-                          <Download size={12} className="mr-1.5" /> Download File
+                          <Eye size={12} className="mr-1.5" /> Read Resource
                         </Button>
                       )}
                     </div>
@@ -1661,14 +1683,15 @@ export function AustraliaAmcPathwayPage() {
                 <span className="font-bold text-[#10B981]">*</span>
                 <span>
                   <strong>All fees stated are subject to change.</strong> Visit "Australian Medical
-                  Council — Fees and Charges" and Ahpra for the updated fees prior to making bookings.
+                  Council — Fees and Charges" and Ahpra for the updated fees prior to making
+                  bookings.
                 </span>
               </p>
               <p className="flex items-start gap-2 leading-relaxed">
                 <span className="text-[#10B981] font-bold">•</span>
                 <span>
-                  English tests (IELTS/PTE), EPIC primary source verification, travel, accommodation,
-                  visas, and AHPRA registration will add to your total expenditure.
+                  English tests (IELTS/PTE), EPIC primary source verification, travel,
+                  accommodation, visas, and AHPRA registration will add to your total expenditure.
                 </span>
               </p>
               <p className="flex items-start gap-2 leading-relaxed font-semibold text-stone-900">
@@ -1806,6 +1829,17 @@ export function AustraliaAmcPathwayPage() {
           setSubscriptionOpen(false);
           toast.success("Welcome! Full Australian Medical Pathway unlocked.");
         }}
+      />
+
+      {/* SECURE PROTECTED VIEW-ONLY PDF VIEWER */}
+      <ProtectedPdfViewer
+        isOpen={viewerOpen}
+        onClose={() => setViewerOpen(false)}
+        fileUrl={viewerData.url}
+        filename={viewerData.filename}
+        title={viewerData.title}
+        targetPathwayId={viewerData.pathwayId}
+        activeSession={activeSession}
       />
     </div>
   );

@@ -29,10 +29,12 @@ import {
   FileText,
   Info,
   Star,
+  Eye,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { ProtectedPdfViewer } from "@/components/protected-pdf-viewer";
 import { Label } from "@/components/ui/label";
 import {
   Dialog,
@@ -174,6 +176,17 @@ export function UsResidencyPathwayPage() {
   const [siteSettings, setSiteSettings] = useState<BmsSiteSettings>(DEFAULT_SETTINGS);
   const [activeSession, setActiveSession] = useState<SavedSubscriptionSession | null>(null);
   const [pathwayResources, setPathwayResources] = useState<BmsResourceItem[]>([]);
+  const [viewerOpen, setViewerOpen] = useState(false);
+  const [viewerData, setViewerData] = useState<{
+    url: string;
+    filename: string;
+    title: string;
+    pathwayId?: string;
+  }>({
+    url: "",
+    filename: "",
+    title: "",
+  });
 
   // Sequential progression state: current active stage index (0 to 13)
   const [activeStageIndex, setActiveStageIndex] = useState(0);
@@ -470,29 +483,26 @@ export function UsResidencyPathwayPage() {
     const fileUrl = res.file_url || "/BMS-US-Residency-Pathway-Guide.pdf";
     const filename = res.filename || `${res.title.replace(/\s+/g, "_")}.pdf`;
 
-    toast.loading(`Downloading "${res.title}"...`, { id: `res-dl-${res.id}` });
-    const success = await triggerFileDownload(fileUrl, filename, res.pathway_id || "us-residency");
-    if (success) {
-      toast.success(`"${res.title}" downloaded successfully!`, { id: `res-dl-${res.id}` });
-    } else {
-      toast.error("Download failed. Please try again.", { id: `res-dl-${res.id}` });
-    }
+    setViewerData({
+      url: fileUrl,
+      filename,
+      title: res.title,
+      pathwayId: res.pathway_id || "us-residency",
+    });
+    setViewerOpen(true);
   };
 
   const triggerDownload = async () => {
     const downloadUrl = siteSettings.guide_pdf_url || "/BMS-US-Residency-Pathway-Guide.pdf";
     const filename = siteSettings.guide_pdf_filename || "BMS-US-Residency-Pathway-Guide.pdf";
 
-    toast.loading("Downloading official BMS U.S. Residency Pathway Guide...", { id: "us-guide-dl" });
-    const success = await triggerFileDownload(downloadUrl, filename, "us-residency");
-    if (success) {
-      toast.success("Guide downloaded successfully!", {
-        id: "us-guide-dl",
-        description: filename,
-      });
-    } else {
-      toast.error("Download failed. Please check your connection.", { id: "us-guide-dl" });
-    }
+    setViewerData({
+      url: downloadUrl,
+      filename,
+      title: "BMS Official U.S. Residency Pathway Guide",
+      pathwayId: "us-residency",
+    });
+    setViewerOpen(true);
   };
 
   const handleSubscriptionSuccess = (sub?: PathwaySubscription) => {
@@ -809,10 +819,10 @@ export function UsResidencyPathwayPage() {
                 size="lg"
                 variant="outline"
                 onClick={handleDownloadClick}
-                className="border-border hover:bg-stone-100 font-bold h-12 px-7 text-sm sm:text-base rounded-xl"
+                className="border-border hover:bg-stone-100 font-bold h-12 px-7 text-sm sm:text-base rounded-xl cursor-pointer"
               >
-                <Download className="mr-2 size-4 text-[#10B981]" />
-                DOWNLOAD COMPLETE GUIDE
+                <Eye className="mr-2 size-4 text-[#10B981]" />
+                ACCESS PATHWAY GUIDE
               </Button>
             </div>
           </div>
@@ -1425,55 +1435,61 @@ export function UsResidencyPathwayPage() {
                                     </p>
                                   )}
 
-                                  {stage.altOption.introPoints && stage.altOption.introPoints.length > 0 && (
-                                    <div className="mb-5 rounded-xl bg-white/80 border border-amber-200 p-4 sm:p-5 space-y-2.5 shadow-2xs">
-                                      {stage.altOption.introPoints.map((point, pIdx) => (
-                                        <div
-                                          key={pIdx}
-                                          className="flex items-start gap-2.5 text-xs sm:text-sm text-amber-950 font-medium leading-relaxed"
-                                        >
-                                          <span className="mt-1 size-2 rounded-full bg-amber-500 shrink-0" />
-                                          <span>{point}</span>
-                                        </div>
-                                      ))}
-                                    </div>
-                                  )}
+                                  {stage.altOption.introPoints &&
+                                    stage.altOption.introPoints.length > 0 && (
+                                      <div className="mb-5 rounded-xl bg-white/80 border border-amber-200 p-4 sm:p-5 space-y-2.5 shadow-2xs">
+                                        {stage.altOption.introPoints.map((point, pIdx) => (
+                                          <div
+                                            key={pIdx}
+                                            className="flex items-start gap-2.5 text-xs sm:text-sm text-amber-950 font-medium leading-relaxed"
+                                          >
+                                            <span className="mt-1 size-2 rounded-full bg-amber-500 shrink-0" />
+                                            <span>{point}</span>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    )}
 
-                                  {stage.altOption.sections && stage.altOption.sections.length > 0 && (
-                                    <div className="space-y-4 my-4">
-                                      {stage.altOption.sections.map((sec, sIdx) => (
-                                        <div
-                                          key={sIdx}
-                                          className="rounded-xl border border-amber-200/90 bg-white/90 p-4 sm:p-5 shadow-2xs transition-all hover:border-amber-300"
-                                        >
-                                          <h5 className="text-sm sm:text-base font-bold text-amber-950 flex items-center gap-2 mb-1">
-                                            <span className="flex size-2 rounded-full bg-amber-600" />
-                                            {sec.heading}
-                                          </h5>
-                                          {sec.subtext && (
-                                            <p className="text-xs sm:text-sm text-amber-800/90 mb-3 font-medium italic">
-                                              {sec.subtext}
-                                            </p>
-                                          )}
-                                          {sec.items && sec.items.length > 0 && (
-                                            <ul className="space-y-2 text-xs sm:text-sm text-stone-800 font-medium pl-1">
-                                              {sec.items.map((item, iIdx) => (
-                                                <li key={iIdx} className="flex items-start gap-2.5">
-                                                  <span className="text-amber-600 font-bold shrink-0 leading-tight">
-                                                    •
-                                                  </span>
-                                                  <span className="leading-relaxed">{item}</span>
-                                                </li>
-                                              ))}
-                                            </ul>
-                                          )}
-                                        </div>
-                                      ))}
-                                    </div>
-                                  )}
+                                  {stage.altOption.sections &&
+                                    stage.altOption.sections.length > 0 && (
+                                      <div className="space-y-4 my-4">
+                                        {stage.altOption.sections.map((sec, sIdx) => (
+                                          <div
+                                            key={sIdx}
+                                            className="rounded-xl border border-amber-200/90 bg-white/90 p-4 sm:p-5 shadow-2xs transition-all hover:border-amber-300"
+                                          >
+                                            <h5 className="text-sm sm:text-base font-bold text-amber-950 flex items-center gap-2 mb-1">
+                                              <span className="flex size-2 rounded-full bg-amber-600" />
+                                              {sec.heading}
+                                            </h5>
+                                            {sec.subtext && (
+                                              <p className="text-xs sm:text-sm text-amber-800/90 mb-3 font-medium italic">
+                                                {sec.subtext}
+                                              </p>
+                                            )}
+                                            {sec.items && sec.items.length > 0 && (
+                                              <ul className="space-y-2 text-xs sm:text-sm text-stone-800 font-medium pl-1">
+                                                {sec.items.map((item, iIdx) => (
+                                                  <li
+                                                    key={iIdx}
+                                                    className="flex items-start gap-2.5"
+                                                  >
+                                                    <span className="text-amber-600 font-bold shrink-0 leading-tight">
+                                                      •
+                                                    </span>
+                                                    <span className="leading-relaxed">{item}</span>
+                                                  </li>
+                                                ))}
+                                              </ul>
+                                            )}
+                                          </div>
+                                        ))}
+                                      </div>
+                                    )}
 
                                   {/* Fallback to simple actionSteps if no sections exist */}
-                                  {(!stage.altOption.sections || stage.altOption.sections.length === 0) &&
+                                  {(!stage.altOption.sections ||
+                                    stage.altOption.sections.length === 0) &&
                                     stage.altOption.actionSteps &&
                                     stage.altOption.actionSteps.length > 0 && (
                                       <ul className="space-y-2 list-disc list-inside text-sm sm:text-base text-amber-900 mb-5 font-medium">
@@ -1674,10 +1690,10 @@ export function UsResidencyPathwayPage() {
               <div className="mt-6 pt-4 border-t border-stone-800/80">
                 <Button
                   onClick={handleDownloadClick}
-                  className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold h-11 rounded-xl shadow-xs"
+                  className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold h-11 rounded-xl shadow-xs cursor-pointer"
                 >
-                  <Download className="mr-2 size-4" />
-                  {isSubscribed ? "Download Complete Guide" : "Subscribe to Download"}
+                  <Eye className="mr-2 size-4" />
+                  {isSubscribed ? "Read Official Guide Online" : "Subscribe to Read Guide"}
                 </Button>
               </div>
             </div>
@@ -1755,10 +1771,10 @@ export function UsResidencyPathwayPage() {
                       ) : (
                         <Button
                           onClick={() => handleDownloadResource(res)}
-                          className="w-full bg-stone-800 hover:bg-emerald-600 text-white font-bold h-11 rounded-xl text-xs transition-colors"
+                          className="w-full bg-stone-800 hover:bg-emerald-600 text-white font-bold h-11 rounded-xl text-xs transition-colors cursor-pointer"
                         >
-                          <Download className="mr-2 size-3.5 text-emerald-400" />
-                          Download File
+                          <Eye className="mr-2 size-3.5 text-emerald-400" />
+                          Read Resource
                         </Button>
                       )}
                     </div>
@@ -1959,7 +1975,10 @@ export function UsResidencyPathwayPage() {
                 <li className="flex items-start gap-3">
                   <CheckCircle2 size={18} className="text-[#10B981] shrink-0 mt-0.5" />
                   <span className="font-medium">
-                    <strong className="text-stone-900">Step 3 is for independent licensure:</strong> It is part of the USMLE pathway ($955, US/territories only), but is <strong className="text-emerald-700">not</strong> normally required before applying or matching into residency.
+                    <strong className="text-stone-900">Step 3 is for independent licensure:</strong>{" "}
+                    It is part of the USMLE pathway ($955, US/territories only), but is{" "}
+                    <strong className="text-emerald-700">not</strong> normally required before
+                    applying or matching into residency.
                   </span>
                 </li>
               </ul>
@@ -2027,6 +2046,17 @@ export function UsResidencyPathwayPage() {
         initialMode={modalMode}
         pathwayId="us-residency"
         pathwayName="U.S. Residency Pathway"
+      />
+
+      {/* SECURE PROTECTED VIEW-ONLY PDF VIEWER */}
+      <ProtectedPdfViewer
+        isOpen={viewerOpen}
+        onClose={() => setViewerOpen(false)}
+        fileUrl={viewerData.url}
+        filename={viewerData.filename}
+        title={viewerData.title}
+        targetPathwayId={viewerData.pathwayId}
+        activeSession={activeSession}
       />
     </div>
   );
@@ -2554,4 +2584,3 @@ export function SubscriptionModal({
 export { UkPlabPathwayPage } from "./uk-plab-pathway";
 export { AustraliaAmcPathwayPage } from "./australia-amc-pathway";
 export { CanadaCarmsPathwayPage } from "./canada-carms-pathway";
-

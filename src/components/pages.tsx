@@ -28,10 +28,12 @@ import {
   Telescope,
   Users,
   X,
+  Eye,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { CTA, IconCard, PageIntro, SectionHeading } from "@/components/site";
+import { ProtectedPdfViewer } from "@/components/protected-pdf-viewer";
 import {
   events,
   mentorStories,
@@ -53,6 +55,7 @@ import {
   DEFAULT_SETTINGS,
   type BmsResourceItem,
   type BmsSiteSettings,
+  type SavedSubscriptionSession,
 } from "@/lib/subscriptions";
 import { SubscriptionModal } from "@/components/career-exploration";
 
@@ -200,9 +203,7 @@ export function HomePage() {
       >
         <div className="mx-auto max-w-7xl px-5 lg:px-8">
           <div className="max-w-3xl mb-10 sm:mb-12">
-            <p className="text-xs font-bold uppercase tracking-widest text-[#10B981]">
-              INTERESTS
-            </p>
+            <p className="text-xs font-bold uppercase tracking-widest text-[#10B981]">INTERESTS</p>
             <h2 className="mt-2 text-3xl font-extrabold text-foreground sm:text-4xl tracking-tight">
               Map Your Pathway by Interests
             </h2>
@@ -229,8 +230,9 @@ export function HomePage() {
                 </div>
                 <h3 className="text-xl sm:text-2xl font-bold text-foreground">Map Your Pathway</h3>
                 <p className="mt-2.5 text-sm sm:text-base text-muted-foreground leading-relaxed">
-                  Complete step-by-step journeys for international medical graduates: licensing exams
-                  (USMLE, PLAB), credential verification, applications, and residency matches worldwide.
+                  Complete step-by-step journeys for international medical graduates: licensing
+                  exams (USMLE, PLAB), credential verification, applications, and residency matches
+                  worldwide.
                 </p>
                 <div className="mt-5 flex flex-wrap gap-1.5">
                   <span className="text-xs bg-stone-100 px-2.5 py-1 rounded-md font-medium text-stone-700">
@@ -276,7 +278,9 @@ export function HomePage() {
                     Clinical Careers
                   </span>
                 </div>
-                <h3 className="text-xl sm:text-2xl font-bold text-foreground">Specialization & Residency</h3>
+                <h3 className="text-xl sm:text-2xl font-bold text-foreground">
+                  Specialization & Residency
+                </h3>
                 <p className="mt-2.5 text-sm sm:text-base text-muted-foreground leading-relaxed">
                   Navigate clinical specialty choices, postgraduate colleges, portfolio development,
                   fellowships, research, and healthcare leadership.
@@ -1194,7 +1198,19 @@ export function EventsPage() {
 
 export function ResourcesPage() {
   const [uploaded, setUploaded] = useState<BmsResourceItem[]>([]);
+  const [viewerOpen, setViewerOpen] = useState(false);
+  const [viewerData, setViewerData] = useState<{
+    url: string;
+    filename: string;
+    title: string;
+    pathwayId?: string;
+  }>({
+    url: "",
+    filename: "",
+    title: "",
+  });
   const [isSubscribed, setIsSubscribed] = useState(false);
+  const [activeSession, setActiveSession] = useState<SavedSubscriptionSession | null>(null);
   const [subscriptionOpen, setSubscriptionOpen] = useState(false);
   const [modalMode, setModalMode] = useState<"subscribe" | "verify">("subscribe");
   const [siteSettings, setSiteSettings] = useState<BmsSiteSettings>(DEFAULT_SETTINGS);
@@ -1206,11 +1222,35 @@ export function ResourcesPage() {
     // Live pre-flight subscription check on mount
     validateActiveSubscription().then((result) => {
       setIsSubscribed(result.isValid);
+      if (result.subscription) {
+        setActiveSession({
+          id: result.subscription.id,
+          email: result.subscription.email,
+          reference_code: result.subscription.reference_code,
+          full_name: result.subscription.full_name,
+          status: result.subscription.status,
+          verified_at: new Date().toISOString(),
+          bound_device_id: result.subscription.bound_device_id,
+          pathway_id: result.subscription.pathway_id,
+        });
+      }
     });
 
     const handleStorageChange = () => {
       validateActiveSubscription().then((result) => {
         setIsSubscribed(result.isValid);
+        if (result.subscription) {
+          setActiveSession({
+            id: result.subscription.id,
+            email: result.subscription.email,
+            reference_code: result.subscription.reference_code,
+            full_name: result.subscription.full_name,
+            status: result.subscription.status,
+            verified_at: new Date().toISOString(),
+            bound_device_id: result.subscription.bound_device_id,
+            pathway_id: result.subscription.pathway_id,
+          });
+        }
       });
     };
 
@@ -1311,19 +1351,16 @@ export function ResourcesPage() {
     }
 
     if (!r.directUrl) {
-      toast.error("Download link is currently unavailable.");
+      toast.error("Resource is currently unavailable.");
       return;
     }
 
-    toast.success(`Opening & downloading "${r.title}"...`);
-    const link = document.createElement("a");
-    link.href = r.directUrl;
-    link.download = `${r.title.replace(/\s+/g, "_")}.pdf`;
-    link.target = "_blank";
-    link.rel = "noopener noreferrer";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    setViewerData({
+      url: r.directUrl,
+      filename: `${r.title.replace(/\s+/g, "_")}.pdf`,
+      title: r.title,
+    });
+    setViewerOpen(true);
   };
 
   return (
@@ -1431,15 +1468,15 @@ export function ResourcesPage() {
                           setSubscriptionOpen(true);
                         }}
                       >
-                        <Lock size={14} className="mr-1.5 text-amber-400" /> Subscribe to Download
+                        <Lock size={14} className="mr-1.5 text-amber-400" /> Subscribe to View
                       </Button>
                     ) : (
                       <Button
-                        className="mt-7 w-full bg-[#10B981] hover:bg-[#059669] text-white font-bold"
+                        className="mt-7 w-full bg-[#10B981] hover:bg-[#059669] text-white font-bold cursor-pointer"
                         size="sm"
                         onClick={() => handleDownloadResource(r)}
                       >
-                        <Download size={14} className="mr-1.5" /> Download File
+                        <Eye size={14} className="mr-1.5" /> Read Online
                       </Button>
                     )
                   ) : r.href ? (
@@ -1488,14 +1525,35 @@ export function ResourcesPage() {
           setIsSubscribed(true);
           if (sub) {
             saveSubscribedSession(sub);
+            setActiveSession({
+              id: sub.id,
+              email: sub.email,
+              reference_code: sub.reference_code,
+              full_name: sub.full_name,
+              status: sub.status,
+              verified_at: new Date().toISOString(),
+              bound_device_id: sub.bound_device_id,
+              pathway_id: sub.pathway_id,
+            });
           }
           setSubscriptionOpen(false);
           toast.success("Payment verified! Access is now unlocked.", {
-            description: "You can now download all premium guides and resources.",
+            description: "You can now read all premium guides and resources online.",
           });
         }}
         siteSettings={siteSettings}
         initialMode={modalMode}
+      />
+
+      {/* SECURE PROTECTED VIEW-ONLY PDF VIEWER */}
+      <ProtectedPdfViewer
+        isOpen={viewerOpen}
+        onClose={() => setViewerOpen(false)}
+        fileUrl={viewerData.url}
+        filename={viewerData.filename}
+        title={viewerData.title}
+        targetPathwayId={viewerData.pathwayId}
+        activeSession={activeSession}
       />
     </>
   );

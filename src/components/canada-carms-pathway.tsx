@@ -33,9 +33,11 @@ import {
   RotateCcw,
   Info,
   Star,
+  Eye,
 } from "lucide-react";
 import { toast } from "sonner";
 import { SubscriptionModal } from "@/components/career-exploration";
+import { ProtectedPdfViewer } from "@/components/protected-pdf-viewer";
 import {
   type BmsSiteSettings,
   DEFAULT_SETTINGS,
@@ -66,6 +68,17 @@ export function CanadaCarmsPathwayPage() {
   const [modalMode, setModalMode] = useState<"subscribe" | "verify">("subscribe");
   const [isSubscribed, setIsSubscribed] = useState<boolean>(false);
   const [activeSession, setActiveSession] = useState<SavedSubscriptionSession | null>(null);
+  const [viewerOpen, setViewerOpen] = useState(false);
+  const [viewerData, setViewerData] = useState<{
+    url: string;
+    filename: string;
+    title: string;
+    pathwayId?: string;
+  }>({
+    url: "",
+    filename: "",
+    title: "",
+  });
 
   // Initial load: settings, resources, subscription status
   useEffect(() => {
@@ -336,26 +349,20 @@ export function CanadaCarmsPathwayPage() {
       }
     }
 
-    // Direct verified download
+    // Open protected view-only reader
     const downloadUrl =
       siteSettings.canada_guide_pdf_url ||
       "https://owurtseimitnofbdepoq.supabase.co/storage/v1/object/public/pathway-guides/guides/BMS-Canada-Residency-Pathway-Guide.pdf";
     const filename =
       siteSettings.canada_guide_pdf_filename || "BMS-Canada-Residency-Pathway-Guide.pdf";
 
-    toast.loading("Downloading official BMS Canadian Medical Pathway Guide...", {
-      id: "can-guide-dl",
+    setViewerData({
+      url: downloadUrl,
+      filename,
+      title: "BMS Official Canadian Medical Pathway Guide",
+      pathwayId: "canada-residency",
     });
-    const success = await triggerFileDownload(downloadUrl, filename, "canada-residency");
-    if (success) {
-      toast.success("BMS Canadian Medical Pathway Guide downloaded successfully!", {
-        id: "can-guide-dl",
-      });
-    } else {
-      toast.error("Download failed. Please contact BMS administration.", {
-        id: "can-guide-dl",
-      });
-    }
+    setViewerOpen(true);
   };
 
   const handleDownloadResource = async (resource: BmsResourceItem) => {
@@ -392,15 +399,13 @@ export function CanadaCarmsPathwayPage() {
       "https://owurtseimitnofbdepoq.supabase.co/storage/v1/object/public/pathway-guides/guides/BMS-Canada-Residency-Pathway-Guide.pdf";
     const filename = resource.filename || `${resource.title.replace(/\s+/g, "_")}.pdf`;
 
-    toast.loading(`Downloading "${resource.title}"...`, { id: `res-dl-${resource.id}` });
-    const success = await triggerFileDownload(fileUrl, filename, resource.pathway_id || "canada-residency");
-    if (success) {
-      toast.success(`"${resource.title}" downloaded successfully!`, {
-        id: `res-dl-${resource.id}`,
-      });
-    } else {
-      toast.error("Download failed. Please try again.", { id: `res-dl-${resource.id}` });
-    }
+    setViewerData({
+      url: fileUrl,
+      filename,
+      title: resource.title,
+      pathwayId: resource.pathway_id || "canada-residency",
+    });
+    setViewerOpen(true);
   };
 
   // -------------------------------------------------------------------------
@@ -420,7 +425,8 @@ export function CanadaCarmsPathwayPage() {
       icon: GraduationCap,
       checkCompleted: (ids: string[]) => ids.includes("canada-stage-01"),
       cardStyle: {
-        background: "linear-gradient(135deg, rgba(16, 185, 129, 0.28) 0%, rgba(16, 185, 129, 0.16) 100%)",
+        background:
+          "linear-gradient(135deg, rgba(16, 185, 129, 0.28) 0%, rgba(16, 185, 129, 0.16) 100%)",
         borderColor: "rgba(16, 185, 129, 0.50)",
       },
       badgeStyle: {
@@ -438,7 +444,8 @@ export function CanadaCarmsPathwayPage() {
       icon: FileCheck,
       checkCompleted: (ids: string[]) => ids.includes("canada-stage-02"),
       cardStyle: {
-        background: "linear-gradient(135deg, rgba(16, 185, 129, 0.24) 0%, rgba(16, 185, 129, 0.14) 100%)",
+        background:
+          "linear-gradient(135deg, rgba(16, 185, 129, 0.24) 0%, rgba(16, 185, 129, 0.14) 100%)",
         borderColor: "rgba(16, 185, 129, 0.44)",
       },
       badgeStyle: {
@@ -456,7 +463,8 @@ export function CanadaCarmsPathwayPage() {
       icon: Award,
       checkCompleted: (ids: string[]) => ids.includes("canada-stage-03"),
       cardStyle: {
-        background: "linear-gradient(135deg, rgba(16, 185, 129, 0.20) 0%, rgba(16, 185, 129, 0.11) 100%)",
+        background:
+          "linear-gradient(135deg, rgba(16, 185, 129, 0.20) 0%, rgba(16, 185, 129, 0.11) 100%)",
         borderColor: "rgba(16, 185, 129, 0.38)",
       },
       badgeStyle: {
@@ -474,7 +482,8 @@ export function CanadaCarmsPathwayPage() {
       icon: Stethoscope,
       checkCompleted: (ids: string[]) => ids.includes("canada-stage-04"),
       cardStyle: {
-        background: "linear-gradient(135deg, rgba(16, 185, 129, 0.16) 0%, rgba(16, 185, 129, 0.09) 100%)",
+        background:
+          "linear-gradient(135deg, rgba(16, 185, 129, 0.16) 0%, rgba(16, 185, 129, 0.09) 100%)",
         borderColor: "rgba(16, 185, 129, 0.32)",
       },
       badgeStyle: {
@@ -492,7 +501,8 @@ export function CanadaCarmsPathwayPage() {
       icon: CheckCircle2,
       checkCompleted: (ids: string[]) => ids.includes("canada-stage-05"),
       cardStyle: {
-        background: "linear-gradient(135deg, rgba(16, 185, 129, 0.13) 0%, rgba(16, 185, 129, 0.07) 100%)",
+        background:
+          "linear-gradient(135deg, rgba(16, 185, 129, 0.13) 0%, rgba(16, 185, 129, 0.07) 100%)",
         borderColor: "rgba(16, 185, 129, 0.26)",
       },
       badgeStyle: {
@@ -513,7 +523,8 @@ export function CanadaCarmsPathwayPage() {
       icon: ShieldCheck,
       checkCompleted: (ids: string[]) => ids.includes("canada-stage-06"),
       cardStyle: {
-        background: "linear-gradient(135deg, rgba(16, 185, 129, 0.20) 0%, rgba(16, 185, 129, 0.10) 100%)",
+        background:
+          "linear-gradient(135deg, rgba(16, 185, 129, 0.20) 0%, rgba(16, 185, 129, 0.10) 100%)",
         borderColor: "rgba(16, 185, 129, 0.40)",
       },
       badgeStyle: {
@@ -531,7 +542,8 @@ export function CanadaCarmsPathwayPage() {
       icon: Layers,
       checkCompleted: (ids: string[]) => ids.includes("canada-stage-07"),
       cardStyle: {
-        background: "linear-gradient(135deg, rgba(16, 185, 129, 0.16) 0%, rgba(16, 185, 129, 0.08) 100%)",
+        background:
+          "linear-gradient(135deg, rgba(16, 185, 129, 0.16) 0%, rgba(16, 185, 129, 0.08) 100%)",
         borderColor: "rgba(16, 185, 129, 0.35)",
       },
       badgeStyle: {
@@ -549,7 +561,8 @@ export function CanadaCarmsPathwayPage() {
       icon: Sparkles,
       checkCompleted: (ids: string[]) => ids.includes("canada-stage-08"),
       cardStyle: {
-        background: "linear-gradient(135deg, rgba(16, 185, 129, 0.13) 0%, rgba(16, 185, 129, 0.06) 100%)",
+        background:
+          "linear-gradient(135deg, rgba(16, 185, 129, 0.13) 0%, rgba(16, 185, 129, 0.06) 100%)",
         borderColor: "rgba(16, 185, 129, 0.30)",
       },
       badgeStyle: {
@@ -567,7 +580,8 @@ export function CanadaCarmsPathwayPage() {
       icon: Compass,
       checkCompleted: (ids: string[]) => ids.includes("canada-stage-09"),
       cardStyle: {
-        background: "linear-gradient(135deg, rgba(16, 185, 129, 0.10) 0%, rgba(16, 185, 129, 0.05) 100%)",
+        background:
+          "linear-gradient(135deg, rgba(16, 185, 129, 0.10) 0%, rgba(16, 185, 129, 0.05) 100%)",
         borderColor: "rgba(16, 185, 129, 0.25)",
       },
       badgeStyle: {
@@ -585,7 +599,8 @@ export function CanadaCarmsPathwayPage() {
       icon: Target,
       checkCompleted: (ids: string[]) => ids.includes("canada-stage-10"),
       cardStyle: {
-        background: "linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(16, 185, 129, 0.03) 100%)",
+        background:
+          "linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(16, 185, 129, 0.03) 100%)",
         borderColor: "rgba(16, 185, 129, 0.20)",
       },
       badgeStyle: {
@@ -614,9 +629,7 @@ export function CanadaCarmsPathwayPage() {
     },
   ];
 
-  const progressPercent = Math.round(
-    (completedStageIds.length / canadaRoadmapStages.length) * 100,
-  );
+  const progressPercent = Math.round((completedStageIds.length / canadaRoadmapStages.length) * 100);
   const currentStage = canadaRoadmapStages[activeStageIndex] || canadaRoadmapStages[0];
 
   return (
@@ -701,10 +714,10 @@ export function CanadaCarmsPathwayPage() {
               International Medical Graduates (IMGs) who want to pursue residency, obtain medical
               licensure, or practise medicine in Canada. This BMS pathway introduces the main routes
               available to IMGs, while focusing primarily on the CaRMS pathway — the route into
-              Canadian residency. From verifying your medical credentials and completing the required
-              MCC examinations to determining your provincial and program eligibility, applying
-              through CaRMS, and navigating the residency match, this roadmap helps you understand the
-              journey and what comes next.”
+              Canadian residency. From verifying your medical credentials and completing the
+              required MCC examinations to determining your provincial and program eligibility,
+              applying through CaRMS, and navigating the residency match, this roadmap helps you
+              understand the journey and what comes next.”
             </blockquote>
 
             <div className="mt-8 flex flex-wrap items-center gap-3.5">
@@ -719,10 +732,10 @@ export function CanadaCarmsPathwayPage() {
                 size="lg"
                 variant="outline"
                 onClick={handleDownloadClick}
-                className="border-border hover:bg-stone-100 font-bold h-12 px-7 text-sm sm:text-base rounded-xl"
+                className="border-border hover:bg-stone-100 font-bold h-12 px-7 text-sm sm:text-base rounded-xl cursor-pointer"
               >
-                <Download className="mr-2 size-4 text-[#10B981]" />
-                ACCESS COMPLETE CaRMS GUIDE
+                <Eye className="mr-2 size-4 text-[#10B981]" />
+                ACCESS PATHWAY GUIDE
               </Button>
             </div>
           </div>
@@ -744,8 +757,8 @@ export function CanadaCarmsPathwayPage() {
                     End-to-End Sequence from Medical Degree to Canadian Residency
                   </h3>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    Click any milestone in the flowchart below to jump directly to its complete guidance,
-                    requirements, and fees.
+                    Click any milestone in the flowchart below to jump directly to its complete
+                    guidance, requirements, and fees.
                   </p>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
@@ -834,7 +847,8 @@ export function CanadaCarmsPathwayPage() {
               <div className="flex items-center justify-center my-4">
                 <div className="h-px flex-1 bg-border/60" />
                 <span className="inline-flex items-center gap-1.5 text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-3 py-1 bg-stone-100 rounded-full border border-stone-200">
-                  <ArrowRight size={11} className="text-[#10B981]" /> Progression to Program Eligibility &amp; CaRMS Match
+                  <ArrowRight size={11} className="text-[#10B981]" /> Progression to Program
+                  Eligibility &amp; CaRMS Match
                 </span>
                 <div className="h-px flex-1 bg-border/60" />
               </div>
@@ -946,8 +960,9 @@ export function CanadaCarmsPathwayPage() {
                 Unlock the Complete 11-Stage Interactive Roadmap
               </h3>
               <p className="mt-3 text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-                Comprehensive step-by-step guidance through medical degree eligibility, physiciansapply.ca,
-                credential verification, MCCQE Part I, NAC Examination OSCE, provincial eligibility, CaRMS R-1 Match, and Canadian residency training.
+                Comprehensive step-by-step guidance through medical degree eligibility,
+                physiciansapply.ca, credential verification, MCCQE Part I, NAC Examination OSCE,
+                provincial eligibility, CaRMS R-1 Match, and Canadian residency training.
               </p>
 
               {siteSettings.subscription_price && (
@@ -1028,415 +1043,434 @@ export function CanadaCarmsPathwayPage() {
           ) : (
             <>
               {/* SEQUENCE PROGRESS TRACKER BAR */}
-          <div className="max-w-4xl lg:max-w-5xl mx-auto mb-10 rounded-2xl border border-stone-200/90 bg-card p-5 sm:p-6 shadow-xs">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-sm mb-4">
-              <div>
-                <span className="font-bold text-foreground">Sequential Progress: </span>
-                <span className="text-[#10B981] font-extrabold text-base">
-                  Stage {activeStageIndex + 1} of {canadaRoadmapStages.length}
-                </span>
-                <span className="text-foreground font-semibold ml-1.5 hidden sm:inline">
-                  — {currentStage?.title.replace(/^\d+\s*/, "")}
-                </span>
-                <span className="text-muted-foreground ml-2 text-xs sm:text-sm font-medium">
-                  ({completedStageIds.length} passed)
-                </span>
-              </div>
-              <div className="flex items-center gap-4">
-                <span className="font-mono font-black text-xl text-[#10B981]">
-                  {progressPercent}%
-                </span>
-                {completedStageIds.length > 0 && (
-                  <button
-                    type="button"
-                    onClick={handleResetProgress}
-                    className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground text-xs sm:text-sm font-semibold cursor-pointer transition-colors"
-                    title="Reset Progress"
-                  >
-                    <RotateCcw size={14} /> Reset Progress
-                  </button>
-                )}
-              </div>
-            </div>
+              <div className="max-w-4xl lg:max-w-5xl mx-auto mb-10 rounded-2xl border border-stone-200/90 bg-card p-5 sm:p-6 shadow-xs">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-sm mb-4">
+                  <div>
+                    <span className="font-bold text-foreground">Sequential Progress: </span>
+                    <span className="text-[#10B981] font-extrabold text-base">
+                      Stage {activeStageIndex + 1} of {canadaRoadmapStages.length}
+                    </span>
+                    <span className="text-foreground font-semibold ml-1.5 hidden sm:inline">
+                      — {currentStage?.title.replace(/^\d+\s*/, "")}
+                    </span>
+                    <span className="text-muted-foreground ml-2 text-xs sm:text-sm font-medium">
+                      ({completedStageIds.length} passed)
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <span className="font-mono font-black text-xl text-[#10B981]">
+                      {progressPercent}%
+                    </span>
+                    {completedStageIds.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={handleResetProgress}
+                        className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground text-xs sm:text-sm font-semibold cursor-pointer transition-colors"
+                        title="Reset Progress"
+                      >
+                        <RotateCcw size={14} /> Reset Progress
+                      </button>
+                    )}
+                  </div>
+                </div>
 
-            {/* PROGRESS BAR */}
-            <div className="h-2.5 w-full rounded-full bg-stone-100 overflow-hidden">
-              <div
-                className="h-full bg-[#10B981] transition-all duration-300 rounded-full"
-                style={{ width: `${progressPercent}%` }}
-              />
-            </div>
+                {/* PROGRESS BAR */}
+                <div className="h-2.5 w-full rounded-full bg-stone-100 overflow-hidden">
+                  <div
+                    className="h-full bg-[#10B981] transition-all duration-300 rounded-full"
+                    style={{ width: `${progressPercent}%` }}
+                  />
+                </div>
 
-            {/* MINI STAGE DOTS STEPPER */}
-            <div className="mt-5 flex items-center justify-between gap-1.5 overflow-x-auto py-1">
-              {canadaRoadmapStages.map((s, sIdx) => {
-                const isPassed = completedStageIds.includes(s.id);
-                const isCurrent = sIdx === activeStageIndex;
+                {/* MINI STAGE DOTS STEPPER */}
+                <div className="mt-5 flex items-center justify-between gap-1.5 overflow-x-auto py-1">
+                  {canadaRoadmapStages.map((s, sIdx) => {
+                    const isPassed = completedStageIds.includes(s.id);
+                    const isCurrent = sIdx === activeStageIndex;
 
-                return (
-                  <button
-                    key={s.id}
-                    type="button"
-                    onClick={() => {
-                      setActiveStageIndex(sIdx);
-                      setActiveStageDetailsHidden(false);
-                      const el = document.getElementById(`stage-card-${sIdx}`);
-                      if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
-                    }}
-                    title={s.title}
-                    className={`size-8 sm:size-9 rounded-lg flex items-center justify-center text-xs font-bold shrink-0 transition-all cursor-pointer ${
-                      isPassed
-                        ? "bg-[#10B981] text-white shadow-2xs"
-                        : isCurrent
-                          ? "bg-stone-900 text-white ring-2 ring-[#10B981]"
-                          : "bg-stone-100 text-stone-700 hover:bg-stone-200"
-                    }`}
-                  >
-                    {isPassed ? "✓" : s.number}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* STAGES LIST */}
-          <div className="space-y-6 max-w-4xl lg:max-w-5xl mx-auto">
-            {canadaRoadmapStages.map((stage, idx) => {
-              const isCurrent = idx === activeStageIndex;
-              const isCompleted = completedStageIds.includes(stage.id);
-              const isExpanded =
-                expandedStageId === stage.id || (isCurrent && !activeStageDetailsHidden);
-
-              return (
-                <div
-                  key={stage.id}
-                  id={`stage-card-${idx}`}
-                  className={`rounded-2xl border transition-all duration-200 overflow-hidden ${
-                    isCurrent
-                      ? "border-[#10B981] bg-card shadow-md ring-2 ring-[#10B981]/20"
-                      : isCompleted
-                        ? "border-emerald-300/80 bg-emerald-50/20 shadow-2xs"
-                        : "border-border/70 bg-card/50 opacity-70"
-                  }`}
-                >
-                  {/* CARD HEADER */}
-                  <div className="p-5 sm:p-7 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div className="flex items-start gap-4">
-                      <div
-                        className={`size-11 rounded-xl flex items-center justify-center font-black text-sm shrink-0 shadow-2xs ${
-                          isCompleted
-                            ? "bg-emerald-600 text-white"
+                    return (
+                      <button
+                        key={s.id}
+                        type="button"
+                        onClick={() => {
+                          setActiveStageIndex(sIdx);
+                          setActiveStageDetailsHidden(false);
+                          const el = document.getElementById(`stage-card-${sIdx}`);
+                          if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+                        }}
+                        title={s.title}
+                        className={`size-8 sm:size-9 rounded-lg flex items-center justify-center text-xs font-bold shrink-0 transition-all cursor-pointer ${
+                          isPassed
+                            ? "bg-[#10B981] text-white shadow-2xs"
                             : isCurrent
-                              ? "bg-[#10B981] text-white"
-                              : "bg-stone-100 text-stone-500 border border-stone-200"
+                              ? "bg-stone-900 text-white ring-2 ring-[#10B981]"
+                              : "bg-stone-100 text-stone-700 hover:bg-stone-200"
                         }`}
                       >
-                        {isCompleted ? <Check size={20} strokeWidth={3} /> : stage.number}
-                      </div>
+                        {isPassed ? "✓" : s.number}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
 
-                      <div>
-                        <div className="flex flex-wrap items-center gap-2 mb-1">
-                          <h3 className="text-lg sm:text-xl font-extrabold text-foreground tracking-tight">
-                            {stage.title}
-                          </h3>
-                          {isCurrent && (
-                            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-300/80">
-                              Active Milestone
-                            </span>
-                          )}
-                          {isCompleted && (
-                            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-300/80">
-                              Completed
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed max-w-3xl">
-                          {stage.summary}
-                        </p>
-                      </div>
-                    </div>
+              {/* STAGES LIST */}
+              <div className="space-y-6 max-w-4xl lg:max-w-5xl mx-auto">
+                {canadaRoadmapStages.map((stage, idx) => {
+                  const isCurrent = idx === activeStageIndex;
+                  const isCompleted = completedStageIds.includes(stage.id);
+                  const isExpanded =
+                    expandedStageId === stage.id || (isCurrent && !activeStageDetailsHidden);
 
-                    <div className="flex items-center gap-2 self-end md:self-center shrink-0">
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => {
-                          if (isCurrent) {
-                            setActiveStageDetailsHidden(!activeStageDetailsHidden);
-                          } else {
-                            setExpandedStageId(isExpanded ? null : stage.id);
-                          }
-                        }}
-                        className="text-xs font-semibold text-stone-600 hover:text-stone-900"
-                      >
-                        {isExpanded ? (
-                          <>
-                            Hide Details <ChevronUp size={14} className="ml-1" />
-                          </>
-                        ) : (
-                          <>
-                            View Details <ChevronDown size={14} className="ml-1" />
-                          </>
-                        )}
-                      </Button>
-                    </div>
-                  </div>
-
-                  {/* EXPANDED DETAILS */}
-                  {isExpanded && (
-                    <div className="border-t border-border/70 p-5 sm:p-7 bg-stone-50/50 space-y-6">
-                      {/* FEES SECTION IF PRESENT */}
-                      {stage.fees && stage.fees.length > 0 && (
-                        <div className="rounded-xl border border-stone-200/80 bg-white p-4">
-                          <div className="flex items-center gap-2 mb-2 text-xs font-black uppercase tracking-wider text-[#10B981]">
-                            <Info size={14} /> Applicable Fees (Approximate)
+                  return (
+                    <div
+                      key={stage.id}
+                      id={`stage-card-${idx}`}
+                      className={`rounded-2xl border transition-all duration-200 overflow-hidden ${
+                        isCurrent
+                          ? "border-[#10B981] bg-card shadow-md ring-2 ring-[#10B981]/20"
+                          : isCompleted
+                            ? "border-emerald-300/80 bg-emerald-50/20 shadow-2xs"
+                            : "border-border/70 bg-card/50 opacity-70"
+                      }`}
+                    >
+                      {/* CARD HEADER */}
+                      <div className="p-5 sm:p-7 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div className="flex items-start gap-4">
+                          <div
+                            className={`size-11 rounded-xl flex items-center justify-center font-black text-sm shrink-0 shadow-2xs ${
+                              isCompleted
+                                ? "bg-emerald-600 text-white"
+                                : isCurrent
+                                  ? "bg-[#10B981] text-white"
+                                  : "bg-stone-100 text-stone-500 border border-stone-200"
+                            }`}
+                          >
+                            {isCompleted ? <Check size={20} strokeWidth={3} /> : stage.number}
                           </div>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                            {stage.fees.map((feeItem, feeIdx) => (
-                              <div
-                                key={feeIdx}
-                                className="p-3 rounded-lg bg-stone-50 border border-stone-100 text-xs flex justify-between items-center"
-                              >
-                                <span className="text-stone-600 font-medium">{feeItem.item}</span>
-                                <span className="font-mono font-bold text-stone-900">
-                                  {feeItem.amount}
+
+                          <div>
+                            <div className="flex flex-wrap items-center gap-2 mb-1">
+                              <h3 className="text-lg sm:text-xl font-extrabold text-foreground tracking-tight">
+                                {stage.title}
+                              </h3>
+                              {isCurrent && (
+                                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-300/80">
+                                  Active Milestone
                                 </span>
-                              </div>
-                            ))}
-                          </div>
-                          <p className="text-[11px] text-muted-foreground mt-2 italic">
-                            *Fees are subject to periodic review by MCC, CaRMS, and provincial colleges.
-                          </p>
-                        </div>
-                      )}
-
-                      {/* SPECIAL DIAGRAM FOR STAGE 03: SOURCE VERIFICATION WORKFLOW */}
-                      {stage.id === "canada-stage-03" && (
-                        <div className="rounded-xl border border-emerald-200/80 bg-emerald-50/30 p-4 sm:p-5">
-                          <h4 className="text-xs font-black uppercase tracking-wider text-emerald-800 mb-3 flex items-center gap-2">
-                            <Layers size={14} className="text-[#10B981]" /> Medical Credential Source Verification Flow
-                          </h4>
-                          <div className="grid grid-cols-1 sm:grid-cols-5 gap-2.5 text-center">
-                            {[
-                              { step: "YOU", action: "Upload credential" },
-                              { step: "MCC", action: "Reviews submission" },
-                              { step: "EICS", action: "Contacts issuing institution" },
-                              { step: "MEDICAL SCHOOL", action: "Verifies credential" },
-                              { step: "MCC", action: "Updates status" },
-                            ].map((s, sIdx) => (
-                              <div
-                                key={sIdx}
-                                className="bg-white border border-emerald-100 rounded-lg p-3 shadow-2xs flex flex-col justify-center items-center"
-                              >
-                                <span className="text-[11px] font-black text-emerald-800 mb-0.5">
-                                  {s.step}
+                              )}
+                              {isCompleted && (
+                                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-300/80">
+                                  Completed
                                 </span>
-                                <span className="text-[10px] text-stone-600 font-medium leading-tight">
-                                  {s.action}
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* SPECIAL NOTICE FOR STAGE 06: IMMIGRATION STATUS VS RESIDENCY */}
-                      {stage.id === "canada-stage-06" && (
-                        <div className="rounded-xl border border-amber-300 bg-amber-50/70 p-4 sm:p-5 text-amber-950">
-                          <div className="flex items-center gap-2 mb-2">
-                            <AlertCircle size={16} className="text-amber-700 shrink-0" />
-                            <h4 className="text-xs sm:text-sm font-black uppercase tracking-wider text-amber-900">
-                              {canadaImmigrationNotice.title}
-                            </h4>
-                          </div>
-                          <div className="space-y-2 text-xs sm:text-sm">
-                            <p className="font-semibold text-amber-900">Why It Matters:</p>
-                            <ul className="list-disc pl-5 space-y-1 text-amber-900">
-                              {canadaImmigrationNotice.whyItMatters.map((item, mIdx) => (
-                                <li key={mIdx}>{item}</li>
-                              ))}
-                            </ul>
-                            <div className="mt-3 pt-3 border-t border-amber-200/80 space-y-1.5 text-xs">
-                              <p>
-                                <strong>BMS Tip:</strong> {canadaImmigrationNotice.bmsTip}
-                              </p>
-                              <p>
-                                <strong>BMS Advice:</strong> {canadaImmigrationNotice.bmsAdvice}
-                              </p>
-                              <p className="font-bold text-amber-950">
-                                <strong>Key Message:</strong> {canadaImmigrationNotice.keyMessage}
-                              </p>
+                              )}
                             </div>
+                            <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed max-w-3xl">
+                              {stage.summary}
+                            </p>
                           </div>
                         </div>
-                      )}
 
-                      {/* STAGE DETAILS BULLET LIST */}
-                      <div className="space-y-2.5">
-                        <h4 className="text-xs font-black uppercase tracking-wider text-foreground">
-                          Key Requirements &amp; Guidance
-                        </h4>
-                        <ul className="space-y-2">
-                          {stage.details.map((detail, dIdx) => (
-                            <li
-                              key={dIdx}
-                              className="text-xs sm:text-sm text-stone-700 flex items-start gap-2.5 leading-relaxed"
-                            >
-                              <span className="size-1.5 rounded-full bg-[#10B981] mt-2 shrink-0" />
-                              <span>{detail}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-
-                      {/* ALTERNATIVE GUIDANCE DRAWER IF PRESENT (MCCQE / NAC) */}
-                      {stage.altOption && (
-                        <div className="border border-emerald-200/90 rounded-xl bg-white p-4 sm:p-5">
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center gap-2 text-emerald-800">
-                              <HelpCircle size={15} className="text-[#10B981]" />
-                              <h5 className="text-xs font-bold uppercase tracking-wider">
-                                {stage.altOption.title}
-                              </h5>
-                            </div>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() =>
-                                setShowAltOptionForStage(
-                                  showAltOptionForStage === stage.id ? null : stage.id,
-                                )
+                        <div className="flex items-center gap-2 self-end md:self-center shrink-0">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => {
+                              if (isCurrent) {
+                                setActiveStageDetailsHidden(!activeStageDetailsHidden);
+                              } else {
+                                setExpandedStageId(isExpanded ? null : stage.id);
                               }
-                              className="text-xs text-emerald-700 hover:text-emerald-800 font-semibold"
-                            >
-                              {showAltOptionForStage === stage.id ? "Hide Strategy" : "View Strategy"}
-                            </Button>
-                          </div>
-                          <p className="text-xs text-muted-foreground">{stage.altOption.description}</p>
+                            }}
+                            className="text-xs font-semibold text-stone-600 hover:text-stone-900"
+                          >
+                            {isExpanded ? (
+                              <>
+                                Hide Details <ChevronUp size={14} className="ml-1" />
+                              </>
+                            ) : (
+                              <>
+                                View Details <ChevronDown size={14} className="ml-1" />
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                      </div>
 
-                          {showAltOptionForStage === stage.id && (
-                            <div className="mt-4 pt-4 border-t border-stone-100 space-y-4">
-                              {/* RETAKE POLICY CARD (PUT AT BEGINNING BEFORE THE REST COMES) */}
-                              {stage.altOption.policy && (
-                                <div className="rounded-xl border border-amber-300/80 bg-amber-50/70 p-4 sm:p-5 text-xs sm:text-sm shadow-2xs">
-                                  <div className="flex items-center gap-2 font-bold text-amber-950 text-xs sm:text-sm uppercase tracking-wider mb-2">
-                                    <AlertCircle className="size-4 text-amber-600 shrink-0" />
-                                    <span>{stage.altOption.policy.title}</span>
+                      {/* EXPANDED DETAILS */}
+                      {isExpanded && (
+                        <div className="border-t border-border/70 p-5 sm:p-7 bg-stone-50/50 space-y-6">
+                          {/* FEES SECTION IF PRESENT */}
+                          {stage.fees && stage.fees.length > 0 && (
+                            <div className="rounded-xl border border-stone-200/80 bg-white p-4">
+                              <div className="flex items-center gap-2 mb-2 text-xs font-black uppercase tracking-wider text-[#10B981]">
+                                <Info size={14} /> Applicable Fees (Approximate)
+                              </div>
+                              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                                {stage.fees.map((feeItem, feeIdx) => (
+                                  <div
+                                    key={feeIdx}
+                                    className="p-3 rounded-lg bg-stone-50 border border-stone-100 text-xs flex justify-between items-center"
+                                  >
+                                    <span className="text-stone-600 font-medium">
+                                      {feeItem.item}
+                                    </span>
+                                    <span className="font-mono font-bold text-stone-900">
+                                      {feeItem.amount}
+                                    </span>
                                   </div>
-                                  {stage.altOption.policy.description && (
-                                    <p className="text-xs sm:text-sm text-stone-700 font-medium leading-relaxed mb-3">
-                                      {stage.altOption.policy.description}
-                                    </p>
-                                  )}
-                                  <ul className="space-y-2 text-xs sm:text-sm text-stone-800 mb-3.5 pl-0.5">
-                                    {stage.altOption.policy.rules.map((rule, rIdx) => {
-                                      const colonIdx = rule.indexOf(":");
-                                      const hasLabel = colonIdx !== -1;
-                                      const label = hasLabel ? rule.slice(0, colonIdx + 1) : "";
-                                      const rest = hasLabel ? rule.slice(colonIdx + 1) : rule;
+                                ))}
+                              </div>
+                              <p className="text-[11px] text-muted-foreground mt-2 italic">
+                                *Fees are subject to periodic review by MCC, CaRMS, and provincial
+                                colleges.
+                              </p>
+                            </div>
+                          )}
 
-                                      return (
-                                        <li key={rIdx} className="flex items-start gap-2">
-                                          <span className="text-amber-600 font-bold shrink-0 leading-tight">
-                                            •
-                                          </span>
-                                          <span className="leading-relaxed">
-                                            {hasLabel ? (
-                                              <>
-                                                <strong className="text-stone-900 font-semibold">{label}</strong>
-                                                {rest}
-                                              </>
-                                            ) : (
-                                              rule
-                                            )}
-                                          </span>
-                                        </li>
-                                      );
-                                    })}
-                                  </ul>
-                                  {stage.altOption.policy.tip && (
-                                    <div className="rounded-lg bg-emerald-50 border border-emerald-200/90 px-3.5 py-2.5 flex items-start gap-2 text-xs sm:text-sm text-emerald-950">
-                                      <Sparkles className="size-4 text-[#10B981] shrink-0 mt-0.5" />
-                                      <p className="leading-relaxed">
-                                        <strong className="font-bold text-emerald-900">Tip:</strong>{" "}
-                                        {stage.altOption.policy.tip.replace(/^Tip:\s*/i, "")}
-                                      </p>
-                                    </div>
-                                  )}
-                                </div>
-                              )}
-
-                              {stage.altOption.introPoints && (
-                                <ul className="list-disc pl-5 space-y-1 text-xs text-stone-600">
-                                  {stage.altOption.introPoints.map((pt, pIdx) => (
-                                    <li key={pIdx}>{pt}</li>
-                                  ))}
-                                </ul>
-                              )}
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {stage.altOption.sections?.map((sec, sIdx) => (
+                          {/* SPECIAL DIAGRAM FOR STAGE 03: SOURCE VERIFICATION WORKFLOW */}
+                          {stage.id === "canada-stage-03" && (
+                            <div className="rounded-xl border border-emerald-200/80 bg-emerald-50/30 p-4 sm:p-5">
+                              <h4 className="text-xs font-black uppercase tracking-wider text-emerald-800 mb-3 flex items-center gap-2">
+                                <Layers size={14} className="text-[#10B981]" /> Medical Credential
+                                Source Verification Flow
+                              </h4>
+                              <div className="grid grid-cols-1 sm:grid-cols-5 gap-2.5 text-center">
+                                {[
+                                  { step: "YOU", action: "Upload credential" },
+                                  { step: "MCC", action: "Reviews submission" },
+                                  { step: "EICS", action: "Contacts issuing institution" },
+                                  { step: "MEDICAL SCHOOL", action: "Verifies credential" },
+                                  { step: "MCC", action: "Updates status" },
+                                ].map((s, sIdx) => (
                                   <div
                                     key={sIdx}
-                                    className="p-3.5 rounded-lg bg-stone-50 border border-stone-200/80 text-xs"
+                                    className="bg-white border border-emerald-100 rounded-lg p-3 shadow-2xs flex flex-col justify-center items-center"
                                   >
-                                    <h6 className="font-bold text-stone-900 mb-1">{sec.heading}</h6>
-                                    {sec.subtext && (
-                                      <p className="text-stone-500 mb-2 italic">{sec.subtext}</p>
-                                    )}
-                                    <ul className="list-disc pl-4 space-y-1 text-stone-700">
-                                      {sec.items?.map((item, iIdx) => (
-                                        <li key={iIdx}>{item}</li>
-                                      ))}
-                                    </ul>
+                                    <span className="text-[11px] font-black text-emerald-800 mb-0.5">
+                                      {s.step}
+                                    </span>
+                                    <span className="text-[10px] text-stone-600 font-medium leading-tight">
+                                      {s.action}
+                                    </span>
                                   </div>
                                 ))}
                               </div>
                             </div>
                           )}
+
+                          {/* SPECIAL NOTICE FOR STAGE 06: IMMIGRATION STATUS VS RESIDENCY */}
+                          {stage.id === "canada-stage-06" && (
+                            <div className="rounded-xl border border-amber-300 bg-amber-50/70 p-4 sm:p-5 text-amber-950">
+                              <div className="flex items-center gap-2 mb-2">
+                                <AlertCircle size={16} className="text-amber-700 shrink-0" />
+                                <h4 className="text-xs sm:text-sm font-black uppercase tracking-wider text-amber-900">
+                                  {canadaImmigrationNotice.title}
+                                </h4>
+                              </div>
+                              <div className="space-y-2 text-xs sm:text-sm">
+                                <p className="font-semibold text-amber-900">Why It Matters:</p>
+                                <ul className="list-disc pl-5 space-y-1 text-amber-900">
+                                  {canadaImmigrationNotice.whyItMatters.map((item, mIdx) => (
+                                    <li key={mIdx}>{item}</li>
+                                  ))}
+                                </ul>
+                                <div className="mt-3 pt-3 border-t border-amber-200/80 space-y-1.5 text-xs">
+                                  <p>
+                                    <strong>BMS Tip:</strong> {canadaImmigrationNotice.bmsTip}
+                                  </p>
+                                  <p>
+                                    <strong>BMS Advice:</strong> {canadaImmigrationNotice.bmsAdvice}
+                                  </p>
+                                  <p className="font-bold text-amber-950">
+                                    <strong>Key Message:</strong>{" "}
+                                    {canadaImmigrationNotice.keyMessage}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* STAGE DETAILS BULLET LIST */}
+                          <div className="space-y-2.5">
+                            <h4 className="text-xs font-black uppercase tracking-wider text-foreground">
+                              Key Requirements &amp; Guidance
+                            </h4>
+                            <ul className="space-y-2">
+                              {stage.details.map((detail, dIdx) => (
+                                <li
+                                  key={dIdx}
+                                  className="text-xs sm:text-sm text-stone-700 flex items-start gap-2.5 leading-relaxed"
+                                >
+                                  <span className="size-1.5 rounded-full bg-[#10B981] mt-2 shrink-0" />
+                                  <span>{detail}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+
+                          {/* ALTERNATIVE GUIDANCE DRAWER IF PRESENT (MCCQE / NAC) */}
+                          {stage.altOption && (
+                            <div className="border border-emerald-200/90 rounded-xl bg-white p-4 sm:p-5">
+                              <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center gap-2 text-emerald-800">
+                                  <HelpCircle size={15} className="text-[#10B981]" />
+                                  <h5 className="text-xs font-bold uppercase tracking-wider">
+                                    {stage.altOption.title}
+                                  </h5>
+                                </div>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() =>
+                                    setShowAltOptionForStage(
+                                      showAltOptionForStage === stage.id ? null : stage.id,
+                                    )
+                                  }
+                                  className="text-xs text-emerald-700 hover:text-emerald-800 font-semibold"
+                                >
+                                  {showAltOptionForStage === stage.id
+                                    ? "Hide Strategy"
+                                    : "View Strategy"}
+                                </Button>
+                              </div>
+                              <p className="text-xs text-muted-foreground">
+                                {stage.altOption.description}
+                              </p>
+
+                              {showAltOptionForStage === stage.id && (
+                                <div className="mt-4 pt-4 border-t border-stone-100 space-y-4">
+                                  {/* RETAKE POLICY CARD (PUT AT BEGINNING BEFORE THE REST COMES) */}
+                                  {stage.altOption.policy && (
+                                    <div className="rounded-xl border border-amber-300/80 bg-amber-50/70 p-4 sm:p-5 text-xs sm:text-sm shadow-2xs">
+                                      <div className="flex items-center gap-2 font-bold text-amber-950 text-xs sm:text-sm uppercase tracking-wider mb-2">
+                                        <AlertCircle className="size-4 text-amber-600 shrink-0" />
+                                        <span>{stage.altOption.policy.title}</span>
+                                      </div>
+                                      {stage.altOption.policy.description && (
+                                        <p className="text-xs sm:text-sm text-stone-700 font-medium leading-relaxed mb-3">
+                                          {stage.altOption.policy.description}
+                                        </p>
+                                      )}
+                                      <ul className="space-y-2 text-xs sm:text-sm text-stone-800 mb-3.5 pl-0.5">
+                                        {stage.altOption.policy.rules.map((rule, rIdx) => {
+                                          const colonIdx = rule.indexOf(":");
+                                          const hasLabel = colonIdx !== -1;
+                                          const label = hasLabel ? rule.slice(0, colonIdx + 1) : "";
+                                          const rest = hasLabel ? rule.slice(colonIdx + 1) : rule;
+
+                                          return (
+                                            <li key={rIdx} className="flex items-start gap-2">
+                                              <span className="text-amber-600 font-bold shrink-0 leading-tight">
+                                                •
+                                              </span>
+                                              <span className="leading-relaxed">
+                                                {hasLabel ? (
+                                                  <>
+                                                    <strong className="text-stone-900 font-semibold">
+                                                      {label}
+                                                    </strong>
+                                                    {rest}
+                                                  </>
+                                                ) : (
+                                                  rule
+                                                )}
+                                              </span>
+                                            </li>
+                                          );
+                                        })}
+                                      </ul>
+                                      {stage.altOption.policy.tip && (
+                                        <div className="rounded-lg bg-emerald-50 border border-emerald-200/90 px-3.5 py-2.5 flex items-start gap-2 text-xs sm:text-sm text-emerald-950">
+                                          <Sparkles className="size-4 text-[#10B981] shrink-0 mt-0.5" />
+                                          <p className="leading-relaxed">
+                                            <strong className="font-bold text-emerald-900">
+                                              Tip:
+                                            </strong>{" "}
+                                            {stage.altOption.policy.tip.replace(/^Tip:\s*/i, "")}
+                                          </p>
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
+
+                                  {stage.altOption.introPoints && (
+                                    <ul className="list-disc pl-5 space-y-1 text-xs text-stone-600">
+                                      {stage.altOption.introPoints.map((pt, pIdx) => (
+                                        <li key={pIdx}>{pt}</li>
+                                      ))}
+                                    </ul>
+                                  )}
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {stage.altOption.sections?.map((sec, sIdx) => (
+                                      <div
+                                        key={sIdx}
+                                        className="p-3.5 rounded-lg bg-stone-50 border border-stone-200/80 text-xs"
+                                      >
+                                        <h6 className="font-bold text-stone-900 mb-1">
+                                          {sec.heading}
+                                        </h6>
+                                        {sec.subtext && (
+                                          <p className="text-stone-500 mb-2 italic">
+                                            {sec.subtext}
+                                          </p>
+                                        )}
+                                        <ul className="list-disc pl-4 space-y-1 text-stone-700">
+                                          {sec.items?.map((item, iIdx) => (
+                                            <li key={iIdx}>{item}</li>
+                                          ))}
+                                        </ul>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          {/* COMPLETION BUTTON */}
+                          <div className="pt-3 flex items-center justify-between">
+                            <div className="text-xs text-muted-foreground font-medium">
+                              {isCompleted ? (
+                                <span className="text-emerald-700 font-bold flex items-center gap-1">
+                                  <CheckCircle2 size={14} /> Milestone completed
+                                </span>
+                              ) : (
+                                <span>Complete this milestone to unlock the next stage</span>
+                              )}
+                            </div>
+
+                            <Button
+                              size="sm"
+                              onClick={() => handlePassStage(stage.id, idx + 1)}
+                              className={
+                                isCompleted
+                                  ? "bg-emerald-600 hover:bg-emerald-700 text-white font-bold"
+                                  : "bg-[#10B981] hover:bg-[#059669] text-white font-bold"
+                              }
+                            >
+                              {isCompleted
+                                ? "Completed (Review Again)"
+                                : "Mark as Complete & Proceed →"}
+                            </Button>
+                          </div>
                         </div>
                       )}
 
-                      {/* COMPLETION BUTTON */}
-                      <div className="pt-3 flex items-center justify-between">
-                        <div className="text-xs text-muted-foreground font-medium">
-                          {isCompleted ? (
-                            <span className="text-emerald-700 font-bold flex items-center gap-1">
-                              <CheckCircle2 size={14} /> Milestone completed
-                            </span>
-                          ) : (
-                            <span>Complete this milestone to unlock the next stage</span>
-                          )}
+                      {/* DOWN ARROW CONNECTOR */}
+                      {idx < canadaRoadmapStages.length - 1 && (
+                        <div className="flex flex-col items-center my-3 text-muted-foreground/60">
+                          <div className="w-0.5 h-4 bg-border/80" />
+                          <span className="text-lg sm:text-xl font-bold text-[#10B981] my-0.5">
+                            ↓
+                          </span>
+                          <div className="w-0.5 h-4 bg-border/80" />
                         </div>
-
-                        <Button
-                          size="sm"
-                          onClick={() => handlePassStage(stage.id, idx + 1)}
-                          className={
-                            isCompleted
-                              ? "bg-emerald-600 hover:bg-emerald-700 text-white font-bold"
-                              : "bg-[#10B981] hover:bg-[#059669] text-white font-bold"
-                          }
-                        >
-                          {isCompleted ? "Completed (Review Again)" : "Mark as Complete & Proceed →"}
-                        </Button>
-                      </div>
+                      )}
                     </div>
-                  )}
-
-                  {/* DOWN ARROW CONNECTOR */}
-                  {idx < canadaRoadmapStages.length - 1 && (
-                    <div className="flex flex-col items-center my-3 text-muted-foreground/60">
-                      <div className="w-0.5 h-4 bg-border/80" />
-                      <span className="text-lg sm:text-xl font-bold text-[#10B981] my-0.5">
-                        ↓
-                      </span>
-                      <div className="w-0.5 h-4 bg-border/80" />
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+                  );
+                })}
+              </div>
             </>
           )}
         </div>
@@ -1504,9 +1538,10 @@ export function CanadaCarmsPathwayPage() {
                   Complete Canada Residency Pathway Guide (CaRMS)
                 </h3>
                 <p className="mt-2 text-xs text-stone-400 leading-relaxed">
-                  End-to-end official roadmap breakdown covering Medical Degree eligibility, physiciansapply.ca,
-                  MCC credential source verification, MCCQE Part I, NAC OSCE, provincial eligibility, CaRMS R-1 match,
-                  ranking algorithms, and Canadian residency.
+                  End-to-end official roadmap breakdown covering Medical Degree eligibility,
+                  physiciansapply.ca, MCC credential source verification, MCCQE Part I, NAC OSCE,
+                  provincial eligibility, CaRMS R-1 match, ranking algorithms, and Canadian
+                  residency.
                 </p>
                 <div className="mt-4 flex items-center gap-2 text-[11px] text-stone-500 font-mono">
                   <span>PDF Document (20 Slides)</span>
@@ -1520,8 +1555,8 @@ export function CanadaCarmsPathwayPage() {
                   onClick={handleDownloadClick}
                   className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold h-11 rounded-xl shadow-xs cursor-pointer"
                 >
-                  <Download className="mr-2 size-4" />
-                  {isSubscribed ? "Download Complete Guide" : "Subscribe to Download"}
+                  <Eye className="mr-2 size-4" />
+                  {isSubscribed ? "Read Official Guide Online" : "Subscribe to Read Guide"}
                 </Button>
               </div>
             </div>
@@ -1601,7 +1636,7 @@ export function CanadaCarmsPathwayPage() {
                           onClick={() => handleDownloadResource(res)}
                           className="w-full bg-stone-800 hover:bg-emerald-600 text-white font-semibold h-10 text-xs rounded-xl transition-colors cursor-pointer"
                         >
-                          <Download size={12} className="mr-1.5" /> Download File
+                          <Eye size={12} className="mr-1.5" /> Read Resource
                         </Button>
                       )}
                     </div>
@@ -1623,7 +1658,8 @@ export function CanadaCarmsPathwayPage() {
               CaRMS Application Costs &amp; Budget Planning
             </h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              Published fee schedules and itemized expenditure breakdown for International Medical Graduates.
+              Published fee schedules and itemized expenditure breakdown for International Medical
+              Graduates.
             </p>
           </div>
 
@@ -1660,19 +1696,23 @@ export function CanadaCarmsPathwayPage() {
               <p className="flex items-start gap-2 leading-relaxed">
                 <span className="font-bold text-[#10B981]">*</span>
                 <span>
-                  <strong>All fees stated are subject to change.</strong> Always verify the current fee schedules on physiciansapply.ca and CaRMS Online prior to making payment.
+                  <strong>All fees stated are subject to change.</strong> Always verify the current
+                  fee schedules on physiciansapply.ca and CaRMS Online prior to making payment.
                 </span>
               </p>
               <p className="flex items-start gap-2 leading-relaxed">
                 <span className="text-[#10B981] font-bold">•</span>
                 <span>
-                  CaRMS states there is no minimum or maximum number of programs an applicant can apply to. Apply strategically based on your provincial eligibility and competitive profile.
+                  CaRMS states there is no minimum or maximum number of programs an applicant can
+                  apply to. Apply strategically based on your provincial eligibility and competitive
+                  profile.
                 </span>
               </p>
               <p className="flex items-start gap-2 leading-relaxed font-semibold text-stone-900">
                 <span className="text-[#10B981] font-bold">•</span>
                 <span>
-                  Budget for the entire pathway—including examinations, document translations, notarial services, and travel to Canada for OSCEs and interviews.
+                  Budget for the entire pathway—including examinations, document translations,
+                  notarial services, and travel to Canada for OSCEs and interviews.
                 </span>
               </p>
             </div>
@@ -1691,7 +1731,8 @@ export function CanadaCarmsPathwayPage() {
               Beyond CaRMS: The Other Two IMG Routes
             </h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              For physicians who already possess substantial clinical experience or completed specialist training abroad.
+              For physicians who already possess substantial clinical experience or completed
+              specialist training abroad.
             </p>
           </div>
 
@@ -1706,19 +1747,31 @@ export function CanadaCarmsPathwayPage() {
               <ul className="space-y-2 text-xs sm:text-sm text-stone-700 leading-relaxed">
                 <li className="flex items-start gap-2">
                   <span className="text-[#10B981] font-bold">•</span>
-                  <span>Designed for eligible internationally trained physicians with substantial independent clinical experience.</span>
+                  <span>
+                    Designed for eligible internationally trained physicians with substantial
+                    independent clinical experience.
+                  </span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-[#10B981] font-bold">•</span>
-                  <span>Often focused on Family Medicine / General Practice, but province-specific opportunities vary.</span>
+                  <span>
+                    Often focused on Family Medicine / General Practice, but province-specific
+                    opportunities vary.
+                  </span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-[#10B981] font-bold">•</span>
-                  <span>Assessment determines whether the physician is ready for independent practice in the relevant setting.</span>
+                  <span>
+                    Assessment determines whether the physician is ready for independent practice in
+                    the relevant setting.
+                  </span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-[#10B981] font-bold">•</span>
-                  <span>Requirements, specialties, supervision, and Return-of-Service conditions vary by province.</span>
+                  <span>
+                    Requirements, specialties, supervision, and Return-of-Service conditions vary by
+                    province.
+                  </span>
                 </li>
               </ul>
             </div>
@@ -1733,7 +1786,9 @@ export function CanadaCarmsPathwayPage() {
               <ul className="space-y-2 text-xs sm:text-sm text-stone-700 leading-relaxed">
                 <li className="flex items-start gap-2">
                   <span className="text-[#10B981] font-bold">•</span>
-                  <span>For physicians who have completed postgraduate specialist training abroad.</span>
+                  <span>
+                    For physicians who have completed postgraduate specialist training abroad.
+                  </span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-[#10B981] font-bold">•</span>
@@ -1741,11 +1796,17 @@ export function CanadaCarmsPathwayPage() {
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-[#10B981] font-bold">•</span>
-                  <span>Possible routes include Royal College (RCPSC) assessment pathways and other approved processes.</span>
+                  <span>
+                    Possible routes include Royal College (RCPSC) assessment pathways and other
+                    approved processes.
+                  </span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-[#10B981] font-bold">•</span>
-                  <span>Recognition is not automatic—training and credentials are evaluated against Canadian national standards.</span>
+                  <span>
+                    Recognition is not automatic—training and credentials are evaluated against
+                    Canadian national standards.
+                  </span>
                 </li>
               </ul>
             </div>
@@ -1764,7 +1825,8 @@ export function CanadaCarmsPathwayPage() {
               Important BMS Notes for IMGs
             </h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              Critical reality checks and proactive mindsets for navigating the Canadian medical landscape.
+              Critical reality checks and proactive mindsets for navigating the Canadian medical
+              landscape.
             </p>
           </div>
 
@@ -1776,7 +1838,10 @@ export function CanadaCarmsPathwayPage() {
               </div>
               <ul className="space-y-3">
                 {canadaImportantNotes.doNotAssume.map((item, idx) => (
-                  <li key={idx} className="flex items-start gap-2.5 text-xs sm:text-sm text-rose-950 font-medium">
+                  <li
+                    key={idx}
+                    className="flex items-start gap-2.5 text-xs sm:text-sm text-rose-950 font-medium"
+                  >
                     <span className="text-rose-600 font-bold">✕</span>
                     <span>{item}</span>
                   </li>
@@ -1791,7 +1856,10 @@ export function CanadaCarmsPathwayPage() {
               </div>
               <ul className="space-y-3">
                 {canadaImportantNotes.doThisInstead.map((item, idx) => (
-                  <li key={idx} className="flex items-start gap-2.5 text-xs sm:text-sm text-emerald-950 font-medium">
+                  <li
+                    key={idx}
+                    className="flex items-start gap-2.5 text-xs sm:text-sm text-emerald-950 font-medium"
+                  >
                     <span className="text-emerald-600 font-bold">✓</span>
                     <span>{item}</span>
                   </li>
@@ -1817,7 +1885,8 @@ export function CanadaCarmsPathwayPage() {
               Official Sources to Check Before You Apply
             </h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              BMS principle: use this guide to understand the pathway, then verify every current requirement on the official source before applying.
+              BMS principle: use this guide to understand the pathway, then verify every current
+              requirement on the official source before applying.
             </p>
           </div>
 
@@ -1874,6 +1943,17 @@ export function CanadaCarmsPathwayPage() {
           setSubscriptionOpen(false);
           toast.success("Welcome! Full Canadian Medical Pathway unlocked.");
         }}
+      />
+
+      {/* SECURE PROTECTED VIEW-ONLY PDF VIEWER */}
+      <ProtectedPdfViewer
+        isOpen={viewerOpen}
+        onClose={() => setViewerOpen(false)}
+        fileUrl={viewerData.url}
+        filename={viewerData.filename}
+        title={viewerData.title}
+        targetPathwayId={viewerData.pathwayId}
+        activeSession={activeSession}
       />
     </div>
   );

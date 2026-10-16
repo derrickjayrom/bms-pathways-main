@@ -82,6 +82,9 @@ export function getLocalGuideFallback(filename?: string, pathwayId?: string): st
   const f = (filename || "").toLowerCase();
   const p = (pathwayId || "").toLowerCase();
 
+  if (p.includes("postgrad") || f.includes("postgrad") || p.includes("uk-pg") || p.includes("pg")) {
+    return "/BMS-UK-Postgraduate-Pathway-Guide.pdf";
+  }
   if (p.includes("canada") || f.includes("canada") || f.includes("carms") || f.includes("mccqe")) {
     return "/BMS-Canada-Residency-Pathway-Guide.pdf";
   }
@@ -110,6 +113,9 @@ export function extractStoragePath(url: string, filename?: string): string {
     if (url.startsWith("guides/")) return url;
   }
   const f = (filename || url || "").toLowerCase();
+  if (f.includes("postgrad") || f.includes("uk-pg")) {
+    return "guides/BMS-UK-Postgraduate-Pathway-Guide.pdf";
+  }
   if (f.includes("plab") || f.includes("uk")) {
     return "guides/BMS_PLAB_Pathway_Complete Guide.pdf";
   }
@@ -1817,6 +1823,22 @@ export function hasPathwayAccess(
       target === "mccqe" ||
       target === "canada-pathway" ||
       target === "canadian-medical")
+  ) {
+    return true;
+  }
+
+  // Aliases for UK Postgraduate Studies
+  if (
+    (user === "uk-postgraduate" ||
+      user === "postgraduate" ||
+      user === "international-postgraduate" ||
+      user === "uk-pg" ||
+      user === "other-international") &&
+    (target === "uk-postgraduate" ||
+      target === "postgraduate" ||
+      target === "international-postgraduate" ||
+      target === "uk-pg" ||
+      target === "other-international")
   ) {
     return true;
   }

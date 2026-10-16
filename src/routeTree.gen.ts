@@ -25,7 +25,9 @@ import { Route as CareerExplorationAustraliaPathwayRouteImport } from './routes/
 import { Route as CareerExplorationAustraliaResidencyRouteImport } from './routes/career-exploration/australia-residency'
 import { Route as CareerExplorationCanadaPathwayRouteImport } from './routes/career-exploration/canada-pathway'
 import { Route as CareerExplorationCanadaResidencyRouteImport } from './routes/career-exploration/canada-residency'
+import { Route as CareerExplorationPostgraduateRouteImport } from './routes/career-exploration/postgraduate'
 import { Route as CareerExplorationUkPlabRouteImport } from './routes/career-exploration/uk-plab'
+import { Route as CareerExplorationUkPostgraduateRouteImport } from './routes/career-exploration/uk-postgraduate'
 import { Route as CareerExplorationUkResidencyRouteImport } from './routes/career-exploration/uk-residency'
 import { Route as CareerExplorationUsResidencyRouteImport } from './routes/career-exploration/us-residency'
 
@@ -113,11 +115,23 @@ const CareerExplorationCanadaResidencyRoute =
     path: '/career-exploration/canada-residency',
     getParentRoute: () => rootRouteImport,
   } as any)
+const CareerExplorationPostgraduateRoute =
+  CareerExplorationPostgraduateRouteImport.update({
+    id: '/career-exploration/postgraduate',
+    path: '/career-exploration/postgraduate',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const CareerExplorationUkPlabRoute = CareerExplorationUkPlabRouteImport.update({
   id: '/career-exploration/uk-plab',
   path: '/career-exploration/uk-plab',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CareerExplorationUkPostgraduateRoute =
+  CareerExplorationUkPostgraduateRouteImport.update({
+    id: '/career-exploration/uk-postgraduate',
+    path: '/career-exploration/uk-postgraduate',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const CareerExplorationUkResidencyRoute =
   CareerExplorationUkResidencyRouteImport.update({
     id: '/career-exploration/uk-residency',
@@ -146,7 +160,9 @@ export interface FileRoutesByFullPath {
   '/career-exploration/australia-residency': typeof CareerExplorationAustraliaResidencyRoute
   '/career-exploration/canada-pathway': typeof CareerExplorationCanadaPathwayRoute
   '/career-exploration/canada-residency': typeof CareerExplorationCanadaResidencyRoute
+  '/career-exploration/postgraduate': typeof CareerExplorationPostgraduateRoute
   '/career-exploration/uk-plab': typeof CareerExplorationUkPlabRoute
+  '/career-exploration/uk-postgraduate': typeof CareerExplorationUkPostgraduateRoute
   '/career-exploration/uk-residency': typeof CareerExplorationUkResidencyRoute
   '/career-exploration/us-residency': typeof CareerExplorationUsResidencyRoute
   '/admin/': typeof AdminIndexRoute
@@ -167,7 +183,9 @@ export interface FileRoutesByTo {
   '/career-exploration/australia-residency': typeof CareerExplorationAustraliaResidencyRoute
   '/career-exploration/canada-pathway': typeof CareerExplorationCanadaPathwayRoute
   '/career-exploration/canada-residency': typeof CareerExplorationCanadaResidencyRoute
+  '/career-exploration/postgraduate': typeof CareerExplorationPostgraduateRoute
   '/career-exploration/uk-plab': typeof CareerExplorationUkPlabRoute
+  '/career-exploration/uk-postgraduate': typeof CareerExplorationUkPostgraduateRoute
   '/career-exploration/uk-residency': typeof CareerExplorationUkResidencyRoute
   '/career-exploration/us-residency': typeof CareerExplorationUsResidencyRoute
   '/admin': typeof AdminIndexRoute
@@ -189,7 +207,9 @@ export interface FileRoutesById {
   '/career-exploration/australia-residency': typeof CareerExplorationAustraliaResidencyRoute
   '/career-exploration/canada-pathway': typeof CareerExplorationCanadaPathwayRoute
   '/career-exploration/canada-residency': typeof CareerExplorationCanadaResidencyRoute
+  '/career-exploration/postgraduate': typeof CareerExplorationPostgraduateRoute
   '/career-exploration/uk-plab': typeof CareerExplorationUkPlabRoute
+  '/career-exploration/uk-postgraduate': typeof CareerExplorationUkPostgraduateRoute
   '/career-exploration/uk-residency': typeof CareerExplorationUkResidencyRoute
   '/career-exploration/us-residency': typeof CareerExplorationUsResidencyRoute
   '/admin/': typeof AdminIndexRoute
@@ -212,7 +232,9 @@ export interface FileRouteTypes {
     | '/career-exploration/australia-residency'
     | '/career-exploration/canada-pathway'
     | '/career-exploration/canada-residency'
+    | '/career-exploration/postgraduate'
     | '/career-exploration/uk-plab'
+    | '/career-exploration/uk-postgraduate'
     | '/career-exploration/uk-residency'
     | '/career-exploration/us-residency'
     | '/admin/'
@@ -233,7 +255,9 @@ export interface FileRouteTypes {
     | '/career-exploration/australia-residency'
     | '/career-exploration/canada-pathway'
     | '/career-exploration/canada-residency'
+    | '/career-exploration/postgraduate'
     | '/career-exploration/uk-plab'
+    | '/career-exploration/uk-postgraduate'
     | '/career-exploration/uk-residency'
     | '/career-exploration/us-residency'
     | '/admin'
@@ -254,7 +278,9 @@ export interface FileRouteTypes {
     | '/career-exploration/australia-residency'
     | '/career-exploration/canada-pathway'
     | '/career-exploration/canada-residency'
+    | '/career-exploration/postgraduate'
     | '/career-exploration/uk-plab'
+    | '/career-exploration/uk-postgraduate'
     | '/career-exploration/uk-residency'
     | '/career-exploration/us-residency'
     | '/admin/'
@@ -276,7 +302,9 @@ export interface RootRouteChildren {
   CareerExplorationAustraliaResidencyRoute: typeof CareerExplorationAustraliaResidencyRoute
   CareerExplorationCanadaPathwayRoute: typeof CareerExplorationCanadaPathwayRoute
   CareerExplorationCanadaResidencyRoute: typeof CareerExplorationCanadaResidencyRoute
+  CareerExplorationPostgraduateRoute: typeof CareerExplorationPostgraduateRoute
   CareerExplorationUkPlabRoute: typeof CareerExplorationUkPlabRoute
+  CareerExplorationUkPostgraduateRoute: typeof CareerExplorationUkPostgraduateRoute
   CareerExplorationUkResidencyRoute: typeof CareerExplorationUkResidencyRoute
   CareerExplorationUsResidencyRoute: typeof CareerExplorationUsResidencyRoute
   AdminIndexRoute: typeof AdminIndexRoute
@@ -397,11 +425,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CareerExplorationCanadaResidencyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/career-exploration/postgraduate': {
+      id: '/career-exploration/postgraduate'
+      path: '/career-exploration/postgraduate'
+      fullPath: '/career-exploration/postgraduate'
+      preLoaderRoute: typeof CareerExplorationPostgraduateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/career-exploration/uk-plab': {
       id: '/career-exploration/uk-plab'
       path: '/career-exploration/uk-plab'
       fullPath: '/career-exploration/uk-plab'
       preLoaderRoute: typeof CareerExplorationUkPlabRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/career-exploration/uk-postgraduate': {
+      id: '/career-exploration/uk-postgraduate'
+      path: '/career-exploration/uk-postgraduate'
+      fullPath: '/career-exploration/uk-postgraduate'
+      preLoaderRoute: typeof CareerExplorationUkPostgraduateRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/career-exploration/uk-residency': {
@@ -438,7 +480,9 @@ const rootRouteChildren: RootRouteChildren = {
     CareerExplorationAustraliaResidencyRoute,
   CareerExplorationCanadaPathwayRoute: CareerExplorationCanadaPathwayRoute,
   CareerExplorationCanadaResidencyRoute: CareerExplorationCanadaResidencyRoute,
+  CareerExplorationPostgraduateRoute: CareerExplorationPostgraduateRoute,
   CareerExplorationUkPlabRoute: CareerExplorationUkPlabRoute,
+  CareerExplorationUkPostgraduateRoute: CareerExplorationUkPostgraduateRoute,
   CareerExplorationUkResidencyRoute: CareerExplorationUkResidencyRoute,
   CareerExplorationUsResidencyRoute: CareerExplorationUsResidencyRoute,
   AdminIndexRoute: AdminIndexRoute,

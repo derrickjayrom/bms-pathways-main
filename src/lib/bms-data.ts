@@ -506,20 +506,20 @@ export const internationalPathways: InternationalPathwayItem[] = [
     ],
   },
   {
-    id: "other-international",
-    flag: "🌍",
-    country: "Global",
+    id: "uk-postgraduate",
+    flag: "🇬🇧",
+    country: "United Kingdom",
     title: "International Postgraduate Pathways",
     description:
-      "Global medical fellowships, clinical observerships, public health programs, and hospital training positions across Europe, Asia and Africa.",
-    href: "/career-exploration/other-opportunities",
-    badge: "Coming Soon",
-    isDeveloped: false,
+      "A step-by-step roadmap to identify suitable programmes, prepare application documents, explore funding opportunities, secure admission, and prepare for your studies in the UK.",
+    href: "/career-exploration/postgraduate",
+    badge: "Interactive Roadmap Available",
+    isDeveloped: true,
     highlights: [
-      "Global Health Fellowships",
-      "Clinical Observerships",
-      "Research Postdocs",
-      "Non-Degree Credentials",
+      "MSc & MPH Programmes",
+      "Academic CV & Personal Statement",
+      "Scholarships & Funding",
+      "CAS & UK Student Visa",
     ],
   },
 ];
@@ -2164,6 +2164,213 @@ export const canadaOfficialPortals = [
     url: "https://www.canada.ca/en/immigration-refugees-citizenship.html",
   },
 ];
+
+// ---------------------------------------------------------------------------
+// UK POSTGRADUATE STUDIES PATHWAY ROADMAP (14 STAGES)
+// ---------------------------------------------------------------------------
+export const ukPostgraduateRoadmapStages: UsmleRoadmapStage[] = [
+  {
+    id: "uk-pg-stage-01",
+    number: "01",
+    title: "Define Your Goal",
+    summary: "Start with the outcome you want, then work backwards to the right academic qualification.",
+    details: [
+      "Differentiate between Taught programmes (MSc — Master of Science, MPH — Master of Public Health) with structured teaching, modules, and assessments vs Research programmes (MRes — Master of Research, MPhil — Master of Philosophy, PhD — Doctor of Philosophy) designed around research training or an independent project.",
+      "Explore relevant fields for medical graduates: Public Health & Epidemiology, Clinical Research & Global Health, Biomedical Sciences, and Healthcare Management.",
+      "Important Notice: An academic degree such as an MSc or MPH does not, by itself, qualify a doctor for independent clinical practice in the UK. Clinical specialty training follows separate GMC registration pathways.",
+      "Identify career outcomes: Align your chosen qualification with long-term aspirations—such as academic medicine, global health policy, clinical trial leadership, or university research.",
+    ],
+  },
+  {
+    id: "uk-pg-stage-02",
+    number: "02",
+    title: "Research Universities and Courses",
+    summary: "Compare university courses, curriculum fit, entry requirements, fees, and career support.",
+    details: [
+      "Course Fit: Review specific modules, faculty research interests, laboratory equipment, and teaching style.",
+      "Entry Requirements: Verify required academic qualifications (e.g. 2:1 UK honors equivalent in your primary medical degree) and necessary subject prerequisites.",
+      "Cost Analysis: Review annual international tuition fees, required course deposits, and living costs.",
+      "Timing: Check intake dates (primarily September/October, with limited January starts), application deadlines, and course duration (typically 1 year full-time for Master's).",
+      "Specialty Note: Some universities offer Master's programmes tailored toward specific clinical specialties (e.g. Surgical Sciences, Tropical Medicine, Oncology)—consider this if targeting specific fields.",
+      "Useful Starting Portals: Explore FindAMasters.com, FindAPhD.com, UCAS Postgraduate, and individual university departmental directories.",
+    ],
+  },
+  {
+    id: "uk-pg-stage-03",
+    number: "03",
+    title: "Build a Professional Academic CV",
+    summary: "Make it easy for an admissions committee to evaluate your clinical foundation and research suitability.",
+    details: [
+      "Include 8 Essential Sections: (1) Contact Details (professional email, country-coded phone, location), (2) Profile (brief summary of interests and career direction), (3) Education (medical degree, institutions, dates, honors), (4) Experience (clinical internships, housemanship, employment), (5) Research (projects, dissertations, publications, presentations), (6) Training & Skills (certifications, statistical software, technical skills), (7) Leadership & Awards (clinical audits, committees, academic prizes), (8) Referees (academic and clinical supervisors).",
+      "Tailor your CV emphasis to the specific course, highlighting relevant public health, laboratory, or clinical experiences.",
+      "Maintain consistent dates, reverse-chronological ordering, concise bullet phrasing, and impeccable formatting.",
+      "Save and submit as a clean PDF formatted as requested (e.g., FullName_Academic_CV.pdf).",
+    ],
+  },
+  {
+    id: "uk-pg-stage-04",
+    number: "04",
+    title: "Prepare Your Personal Statement",
+    summary: "Explain the connection between your medical background, this programme, and your future career trajectory.",
+    details: [
+      "Pillar 1 — Motivation: Explain why this exact course matters to you right now and what sparked your academic interest.",
+      "Pillar 2 — Academic Preparation: Detail relevant medical school coursework, clinical postings, or research projects that prepare you for rigorous study.",
+      "Pillar 3 — Programme Fit: Identify specific modules, distinguished faculty members, or research facilities unique to this institution.",
+      "Pillar 4 — Future Goals: Clearly articulate how this postgraduate qualification directly enables your next career milestones.",
+      "Pillar 5 — Contribution: Highlight the unique clinical perspectives, leadership experience, and cultural insights you bring to the classroom.",
+      "What to Avoid: Generic statements, copied or template phrasing, unsupported assertions, and exceeding university word limits (typically 500–1,000 words).",
+      "BMS Pro-Tip: Draft a strong core statement once, then tailor specific paragraphs to each target university and department.",
+    ],
+  },
+  {
+    id: "uk-pg-stage-05",
+    number: "05",
+    title: "Gather Supporting Documents and Meet Requirements",
+    summary: "Collect academic references, official graduation transcripts, and verified English proficiency results.",
+    details: [
+      "Academic & Professional References: Request letters from lecturers, research/dissertation supervisors, or senior supervising clinicians who know your work personally and can provide concrete examples.",
+      "Certificates & Transcripts: Prepare official degree certificates, comprehensive academic transcripts (with grading scales), and professional medical council registrations if requested.",
+      "English Proficiency Testing: Confirm accepted tests (IELTS Academic, TOEFL iBT, Pearson PTE Academic) and required score thresholds (typically IELTS 6.5–7.5 overall with minimum 6.0 in each sub-band).",
+      "Exemption Check: Review whether your primary medical qualification taught in English satisfies university waiver policies.",
+      "Adhere strictly to individual programme instructions regarding referee submission portals, certified translations, and document upload specs.",
+    ],
+  },
+  {
+    id: "uk-pg-stage-06",
+    number: "06",
+    title: "Prepare a Research Proposal (If Required)",
+    summary: "Draft a clear, structured research proposal for research-based master's (MRes) and doctoral (PhD) applications.",
+    details: [
+      "Structure 6 Core Elements: (1) Title (concise description of the proposed study), (2) Rationale (background context, clinical/scientific problem, and brief literature review), (3) Research Question & Aims (primary hypothesis and specific measurable objectives), (4) Methods (study design, data collection, analytical plan, and feasibility), (5) Ethics & Impact (ethical considerations and expected contribution to healthcare), (6) Academic References (peer-reviewed citations).",
+      "Feasibility: Ensure the study design can realistically be executed within the 1-year (MRes) or 3–4-year (PhD) funding and degree timeline.",
+      "Supervisor Alignment: For PhD candidates, review departmental research groups and contact potential faculty supervisors in advance to align interests.",
+    ],
+  },
+  {
+    id: "uk-pg-stage-07",
+    number: "07",
+    title: "Explore Scholarships and Funding",
+    summary: "Identify and apply early for university merit scholarships, international government schemes, and medical awards.",
+    details: [
+      "Major Government & International Schemes: Chevening Scholarships, Commonwealth Master's and PhD Scholarships (application cycles often run August–November for the subsequent academic year).",
+      "University Awards: Merit-based international scholarships, faculty bursaries, and alumni tuition discounts.",
+      "Research Studentships: Project-linked funding covering tuition and stipends for doctoral research programmes.",
+      "Employer & External Sponsorship: Ministry of Health study leave, charitable foundations, medical royal colleges, and non-profit trusts.",
+      "Evaluation Checklist: For every funding opportunity, verify Eligibility, Application Deadlines, Tuition Coverage, Living Stipend, Travel Allowance, and whether a separate application is required.",
+      "Funding Reality: An admission offer does not guarantee funding; scholarship deadlines are frequently months earlier than course admissions deadlines.",
+    ],
+  },
+  {
+    id: "uk-pg-stage-08",
+    number: "08",
+    title: "Submit Applications",
+    summary: "Complete university online application portals, upload verified files, and monitor submission status.",
+    details: [
+      "Portal Registration: Create individual applicant accounts on official university portals (or UCAS Postgraduate where used).",
+      "Accurate Data Entry: Provide verified personal data, passport numbers, detailed academic history, and referee contact emails.",
+      "Document Uploads: Upload your tailored academic CV, personal statement, official transcripts, degree certificates, and English test scores.",
+      "Reference Verification: Follow up with referees to ensure their reference forms or recommendation letters are submitted before the deadline.",
+      "Application Fees: Pay required processing fees (typically £50–£100 per application at competitive UK institutions).",
+      "Post-Submission Protocol: Save confirmation receipts, record applicant ID numbers, and monitor your email and application portal regularly.",
+    ],
+  },
+  {
+    id: "uk-pg-stage-09",
+    number: "09",
+    title: "Attend Interviews and Receive an Offer",
+    summary: "Prepare for course interviews, understand offer conditions, and confirm your university acceptance.",
+    details: [
+      "Interview Preparation: Prepare to articulate why you selected this course and university, how your medical background prepares you, what you hope to achieve, and your long-term career aspirations.",
+      "Conditional Offer: You must satisfy specific remaining criteria—such as completing final university exams, submitting official certificates, or meeting language test requirements.",
+      "Unconditional Offer: All academic conditions have been satisfied; you are eligible to proceed to enrollment deposit and immigration steps.",
+      "Pre-Acceptance Review: Verify acceptance deadlines, required tuition deposits (often £1,500–£4,000 to secure your seat), refund policies, and course start dates.",
+    ],
+  },
+  {
+    id: "uk-pg-stage-10",
+    number: "10",
+    title: "Plan Your Finances",
+    summary: "Construct a comprehensive budget encompassing tuition fees, living costs, visa surcharges, and reserves.",
+    details: [
+      "Tuition Fee Structure: Confirm full course tuition and installment payment schedules (e.g. 50% at enrollment, remaining across subsequent terms).",
+      "Living Cost Standards: Budget according to UKVI visa benchmarks: at least £1,334/month for London or £1,023/month outside London for up to 9 months.",
+      "Immigration Fees: Plan for the UK Student Visa application fee (£490) and the mandatory Immigration Health Surcharge (IHS, £776/year) for NHS access.",
+      "Travel & Setup Reserves: Budget £1,000–£2,000 for flights, airport transit, initial temporary lodging, and essential household setup.",
+      "Golden Rule: Plan funding for the entire duration of the programme—not only the initial deposit. Do not rely on part-time student employment as your primary funding source.",
+    ],
+  },
+  {
+    id: "uk-pg-stage-11",
+    number: "11",
+    title: "Obtain Your CAS",
+    summary: "Satisfy all university pre-CAS conditions to receive your official Confirmation of Acceptance for Studies.",
+    details: [
+      "Understanding CAS: A unique electronic reference number generated by your licensed university sponsor and registered with UK Visas and Immigration (UKVI).",
+      "Prerequisites for Issuance: Hold an unconditional offer, pay the required tuition seat deposit, and pass university pre-CAS financial and document audits.",
+      "Data Verification: Inspect every detail on your CAS draft—including legal name spelling, passport number, course title, start/end dates, and fees already paid.",
+      "Timing: A CAS is typically issued up to 3–6 months before your course start date and is valid for a single visa application within 6 months.",
+    ],
+  },
+  {
+    id: "uk-pg-stage-12",
+    number: "12",
+    title: "Apply for a UK Student Visa",
+    summary: "Submit your online UKVI application, satisfy the 28-day financial rule, and attend biometric enrollment.",
+    details: [
+      "Official Application: Apply online exclusively through the official UK Government portal (gov.uk/student-visa).",
+      "The 28-Day Financial Rule: Maintenance funds (living costs + outstanding tuition) must be held in an accepted bank account continuously for at least 28 consecutive days before application submission.",
+      "Required Documentation: Valid international passport, CAS reference statement, bank statements meeting strict UKVI specifications, Tuberculosis (TB) test certificate from an approved clinic (if applicable), and ATAS certificate (if applicable).",
+      "Biometrics Appointment: Book and attend your appointment at a VFS Global or TLScontact Visa Application Centre to submit fingerprints and facial photographs.",
+      "Processing Timelines: Standard processing takes 3 weeks from biometrics; priority and super-priority processing are available in select locations.",
+    ],
+  },
+  {
+    id: "uk-pg-stage-13",
+    number: "13",
+    title: "Arrange Accommodation and Travel",
+    summary: "Secure university or verified private housing, book flights, and organize essential travel documentation.",
+    details: [
+      "Housing Selection: Compare university-owned postgraduate halls vs reputable private student accommodations; review tenancy agreements, deposit terms, and included utilities.",
+      "Private Letting Precautions: Never wire rental deposits to unverified private listings or social media contacts without formal contracts and verification.",
+      "Flight Booking: Coordinate travel to arrive during your university's recommended arrival window and within your visa vignette validity period.",
+      "Hand Luggage Document Pack: Carry your passport with visa vignette, CAS statement, university offer letter, TB screening certificate, proof of accommodation, and financial documents in your carry-on bag.",
+    ],
+  },
+  {
+    id: "uk-pg-stage-14",
+    number: "14",
+    title: "Arrive in the UK and Begin Your Studies",
+    summary: "Complete university in-person enrollment, collect your BRP or digital eVisa status, register with NHS GP, and commence classes.",
+    details: [
+      "Border Clearance: Present your passport with visa vignette and university acceptance documents to UK Border Force upon arrival.",
+      "University Enrollment: Attend campus induction, complete in-person identity verification, collect your student ID card, and register for classes.",
+      "Immigration Formalities: Collect your physical Biometric Residence Permit (BRP) from the designated Post Office or university campus, or confirm your digital UKVI eVisa share code.",
+      "NHS Healthcare Registration: Register with a local General Practitioner (GP) practice near your accommodation for medical care covered by your paid IHS surcharge.",
+      "Banking & Connectivity: Open a UK student bank account using your university status confirmation letter and obtain a local UK mobile phone SIM card.",
+      "Final Checklist: Confirm completion of all 4 phases—Plan, Prepare, Apply & Fund, and Confirm—as you embark on your postgraduate academic journey.",
+    ],
+  },
+];
+
+export const ukPostgraduateBudgetBreakdown = [
+  { item: "University Tuition Fees (MSc / MPH)", amount: "£16,000 – £38,000", category: "Tuition", note: "Varies by institution, clinical vs non-clinical modules, and laboratory requirements" },
+  { item: "Living Expenses (UKVI Maintenance Standard)", amount: "£9,207 – £12,006", category: "Living", note: "£1,023/month outside London or £1,334/month inside London (9-month visa requirement)" },
+  { item: "Accommodation (Halls or Private Rental)", amount: "£6,000 – £12,000", category: "Living", note: "Annual estimate for single student room; includes utilities in university halls" },
+  { item: "UK Student Visa Application Fee", amount: "£490", category: "Immigration", note: "Official UKVI fee for student visa applications submitted from outside the UK" },
+  { item: "Immigration Health Surcharge (IHS)", amount: "£776 / year", category: "Immigration", note: "Mandatory fee granting full access to the UK National Health Service (NHS)" },
+  { item: "Tuberculosis (TB) Medical Screening", amount: "£80 – £130", category: "Pre-Departure", note: "Required from approved IOM clinics in designated countries" },
+  { item: "English Language Test (IELTS / PTE Academic)", amount: "£180 – £230", category: "Pre-Departure", note: "Official test fee at approved SELT test centers" },
+  { item: "Flight Bookings & Local UK Airport Transfer", amount: "£600 – £1,200", category: "Travel", note: "International airfare to the UK plus coach/train transit to university town" },
+  { item: "Initial Settling-In & Emergency Contingency", amount: "£1,000 – £2,000", category: "Settling-In", note: "Bedding, warm winter clothing, course textbooks, laptop, and initial groceries" },
+];
+
+export const ukPostgraduateKeyNotes = [
+  "This guide focuses on academic postgraduate education (MSc, MPH, MRes, PhD). Clinical specialty training and the requirements for practising medicine in the UK follow separate pathways (GMC registration / PLAB).",
+  "An admission offer does not guarantee funding; scholarship deadlines are often 6 to 10 months earlier than general course application deadlines.",
+  "Plan for the whole programme—not only the first payment. Do not rely on part-time work as your primary funding source.",
+  "UKVI 28-day financial rule is strictly enforced: required funds must be held in an acceptable bank account continuously for 28 consecutive days prior to visa application.",
+];
+
 
 
 

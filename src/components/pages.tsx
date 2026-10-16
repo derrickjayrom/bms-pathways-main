@@ -1977,4 +1977,5 @@ export {
   UkPlabPathwayPage,
   AustraliaAmcPathwayPage,
   CanadaCarmsPathwayPage,
+  UkPostgraduatePathwayPage,
 } from "./career-exploration";

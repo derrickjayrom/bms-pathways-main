@@ -510,7 +510,7 @@ export const internationalPathways: InternationalPathwayItem[] = [
     id: "other-international",
     flag: "🌍",
     country: "Global",
-    title: "Other International Opportunities",
+    title: "International Postgraduate Pathways",
     description:
       "Global medical fellowships, clinical observerships, public health programs, and hospital training positions across Europe, Asia and Africa.",
     href: "/career-exploration/other-opportunities",

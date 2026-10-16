@@ -230,7 +230,6 @@ export const resources: MedicalResource[] = [
     description:
       "Official roadmap for IMGs: PMQ check, physiciansapply.ca, credential verification, MCCQE Part I, NAC OSCE, provincial eligibility, and CaRMS match.",
   },
-  { title: "Mapping Your Medical Career", cat: "Career Guides", type: "Guide" },
   { title: "The Standout Medical CV", cat: "CV & Interview", type: "Toolkit" },
   { title: "Research Starter Pack", cat: "Research", type: "Workbook" },
   { title: "Postgraduate Pathways Explained", cat: "Postgraduate", type: "Guide" },
